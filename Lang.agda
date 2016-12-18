@@ -83,6 +83,10 @@ postulate primStringAppend : String → String → String
 postulate primStringEquality : String → String → Bool
 postulate primShowString : String → String
 
+
+postulate primShowChar : Char → String
+
+
 notStr : String
 notStr = "not!"
 
@@ -391,54 +395,53 @@ item x = item' (primStringToList x)
 any : Parser₄ Char
 any = item
 
+
+
+
+
+
+inString' : Char → List Char → Bool
+inString' c [] = false
+inString' c (x ∷ xs) = if (primStringEquality (primShowChar c) (primShowChar x)) then true else (inString' c xs)
+
+inString : Char → String → Bool
+inString c s = inString' c (primStringToList s)
+
+
+
 digits : String
 digits = "0123456789"
 
 isDigit : Char → Bool
-isDigit '0' = true
-isDigit '1' = true
-isDigit '2' = true
-isDigit '3' = true
-isDigit '4' = true
-isDigit '5' = true
-isDigit '6' = true
-isDigit '7' = true
-isDigit '8' = true
-isDigit '9' = true
-isDigit _ = false
+isDigit c = inString c digits
 
 parseDigit : Parser₄ Char
 parseDigit x = satisfy isDigit x
 
 
 
+
+lcChars : String
+lcChars = "abcdefghijklmnopqrstuvwxyz"
+
 isLower : Char → Bool
-isLower 'a' = true
-isLower 'b' = true
-isLower 'c' = true
-isLower 'd' = true
-isLower 'e' = true
-isLower 'f' = true
-isLower 'g' = true
-isLower 'h' = true
-isLower 'i' = true
-isLower 'j' = true
-isLower 'k' = true
-isLower 'l' = true
-isLower 'm' = true
-isLower 'n' = true
-isLower 'o' = true
-isLower 'p' = true
-isLower 'r' = true
-isLower 's' = true
-isLower 't' = true
-isLower 'u' = true
-isLower 'v' = true
-isLower 'w' = true
-isLower 'x' = true
-isLower 'y' = true
-isLower 'z' = true
-isLower _ = false
+isLower c = inString c lcChars
+
+parseLower : Parser₄ Char
+parseLower x = satisfy isLower x
+
+
+
+
+
+ucChars : String
+ucChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+isUpper : Char → Bool
+isUpper c = inString c ucChars
+
+parseUpper : Parser₄ Char
+parseUpper x = satisfy isUpper x
 
 {-
 -- "literal" from Schirmer's "Parsers All the Way Down?"

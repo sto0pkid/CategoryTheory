@@ -49,7 +49,6 @@ listmap f [] = []
 listmap f (x ∷ xs) = (f x) ∷ (listmap f xs) 
 
 
-
 data Bool : Set where
  true : Bool
  false : Bool
@@ -185,9 +184,6 @@ kliesliCategory₀ {α} = record {
 
 π₂[idLogger-x]≡[] : ∀ {α} {A : Set α} (x : A) → second (idLogger x) ≡ ""
 π₂[idLogger-x]≡[] {α} {A} x = refl ""
-
-p≡[π₁-p,π₂-p] : ∀ {α β} {A : Set α} {B : Set β} (p : A × B) → p ≡ (first p , second p)
-p≡[π₁-p,π₂-p] {α} {β} {A} {B} (p1 , p2) = refl (p1 , p2)
 
 {-
 kliesliCategory : ∀ {α} → Category {lsuc α} {α}

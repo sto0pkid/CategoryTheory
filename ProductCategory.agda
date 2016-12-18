@@ -9,14 +9,117 @@ ProductCategory₀ : ∀ {i j k l} (C : Category {i} {j}) (D : Category {k} {l})
 ProductCategory₀ {i} {j} {k} {l} C D = 
  record {
   obj = (Category.obj C) × (Category.obj D);
-  hom = λ p1 p2 → ((Category.hom C) (outl p1) (outl p2)) × ((Category.hom D) (outr p1) (outr p2));
-  id = λ p → (((Category.id C) (outl p)) , ((Category.id D) (outr p)));
-  comp = λ g f → (((Category.comp C) (outl g) (outl f)) , ((Category.comp D) (outr g) (outr f))) 
+  hom = λ p1 p2 → ((Category.hom C) (first p1) (first p2)) × ((Category.hom D) (second p1) (second p2));
+  id = λ p → (((Category.id C) (first p)) , ((Category.id D) (second p)));
+  comp = λ g f → (((Category.comp C) (first g) (first f)) , ((Category.comp D) (second g) (second f))) 
  }
 
-{-
-  left-id : {x y : obj} → (f : hom x y) → (comp (id y) f) ≡ f
--}
+
+ProductCategory : ∀ {i j k l} (C : Category {i} {j}) (D : Category {k} {l}) → Category {i ⊔ k} {j ⊔ l}
+ProductCategory {i} {j} {k} {l} C D = 
+ record {
+  obj = Category₀.obj P;
+  hom = Category₀.hom P;
+  id = Category₀.id P;
+  comp = Category₀.comp P;
+  left-id = left-id';
+  right-id = right-id';
+  assoc = assoc'
+ }
+ where
+  P = ProductCategory₀ {i} {j} {k} {l} C D
+  objP = Category₀.obj P
+  homP = Category₀.hom P
+  compP = Category₀.comp P  
+  idP = Category₀.id P
+
+  left-id' : {x y : objP} → (f : homP x y) → (compP (idP y) f) ≡ f
+  left-id' {x} {y} f = left-id-proof
+   where
+    x₁ : Category.obj C
+    x₁ = first x
+
+    x₂ : Category.obj D
+    x₂ = second x
+
+    y₁ : Category.obj C
+    y₁ = first y
+  
+    y₂ : Category.obj D
+    y₂ = second y
+
+    y⟲ : homP y y
+    y⟲ = idP y
+
+    y₁⟲ : (Category.hom C) y₁ y₁ 
+    y₁⟲ =  (Category.id C) y₁
+
+    y₂⟲ : (Category.hom D) y₂ y₂
+    y₂⟲ = (Category.id D) y₂
+
+    f₁ : (Category.hom C) x₁ y₁
+    f₁ = first f
+
+    f₂ : (Category.hom D) x₂ y₂
+    f₂ = second f
+
+    _∘_ = Category₀.comp P
+
+    _∘₁_ = Category.comp C
+
+    _∘₂_ = Category.comp D
+    
+    f≡[f₁,f₂] : f ≡ (f₁ , f₂)
+    f≡[f₁,f₂] = p≡[π₁-p,π₂-p] f
+
+    [f₁,f₂]≡f : (f₁ , f₂) ≡ f
+    [f₁,f₂]≡f = ≡-↑↓ f≡[f₁,f₂]
+
+    y⟲∘f≡y⟲∘_ : (g : (Category₀.hom P) x y) → Set (l ⊔ j)
+    y⟲∘f≡y⟲∘ g = (y⟲ ∘ f) ≡ (y⟲ ∘ g)
+
+    y⟲∘f≡y⟲∘[f₁,f₂] : (y⟲ ∘ f) ≡ (y⟲ ∘ (f₁ , f₂))
+    y⟲∘f≡y⟲∘[f₁,f₂] = [x≡y]→[Px→Py] y⟲∘f≡y⟲∘_ f (f₁ , f₂) f≡[f₁,f₂] (refl (y⟲ ∘ f))
+
+    y⟲∘[f₁,f₂]≡[y₁⟲∘f₁,y₂⟲∘f₂] : (y⟲ ∘ (f₁ , f₂)) ≡ ((y₁⟲ ∘₁ f₁) , (y₂⟲ ∘₂ f₂))
+    y⟲∘[f₁,f₂]≡[y₁⟲∘f₁,y₂⟲∘f₂] = refl ((y₁⟲ ∘₁ f₁) , (y₂⟲ ∘₂ f₂))
+
+    y₁⟲∘f₁≡f₁ : y₁⟲ ∘₁ f₁ ≡ f₁
+    y₁⟲∘f₁≡f₁ = (Category.left-id C) f₁
+
+    y₂⟲∘f₂≡f₂ : y₂⟲ ∘₂ f₂ ≡ f₂
+    y₂⟲∘f₂≡f₂ = (Category.left-id D) f₂
+
+    [_,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] : (g : (Category.hom C) x₁ y₁) → Set (l ⊔ j)
+    [ g ,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] = (g , (y₂⟲ ∘₂ f₂)) ≡ (f₁ , (y₂⟲ ∘₂ f₂))
+
+    [y₁⟲∘f₁,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] : ((y₁⟲ ∘₁ f₁) , (y₂⟲ ∘₂ f₂)) ≡ (f₁ , (y₂⟲ ∘₂ f₂))
+    [y₁⟲∘f₁,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] = [x≡y]→[Px→Py] [_,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] f₁ (y₁⟲ ∘₁ f₁) (≡-↑↓ y₁⟲∘f₁≡f₁) (refl (f₁ , (y₂⟲ ∘₂ f₂)))
+
+    [f₁,_]≡[f₁,f₂] : (g : (Category.hom D) x₂ y₂) → Set (l ⊔ j)
+    [f₁, g ]≡[f₁,f₂] = (f₁ , g) ≡ (f₁ , f₂)
+
+    [f₁,y₂⟲∘f₂]≡[f₁,f₂] : (f₁ , (y₂⟲ ∘₂ f₂)) ≡ (f₁ , f₂)
+    [f₁,y₂⟲∘f₂]≡[f₁,f₂] = [x≡y]→[Px→Py] [f₁,_]≡[f₁,f₂] f₂ (y₂⟲ ∘₂ f₂) (≡-↑↓ y₂⟲∘f₂≡f₂) (refl (f₁ , f₂))
+
+    eq-chain : EqChain (y⟲ ∘ f) f
+    eq-chain = 
+          y⟲∘f≡y⟲∘[f₁,f₂] 
+        ∷ y⟲∘[f₁,f₂]≡[y₁⟲∘f₁,y₂⟲∘f₂] 
+        ∷ [y₁⟲∘f₁,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂]
+        ∷ [f₁,y₂⟲∘f₂]≡[f₁,f₂]
+        ∷ (end [f₁,f₂]≡f)
+
+    left-id-proof = EqChainExtract eq-chain
+
+  right-id' = right-id''
+   where
+    right-id''
+
+  assoc' = assoc''
+   where
+    assoc''
+
 
 {-
 ProductCategory-left-id : ∀ {i j k l} (C : Category {i} {j}) (D : Category {k} {l}) → {x y : Category₀.obj (ProductCategory₀ C D)} → (f : Category₀.hom (ProductCategory₀ C D) x y) → (Category₀.comp (ProductCategory₀ C D) ((Category₀.id (ProductCategory₀ C D)) y) f) ≡ f
@@ -95,6 +198,7 @@ ProductCategory-left-id {i} {j} {k} {l} C D {x} {y} (f1 , f2) = proof
 
 -}
 
+{-
 ProductCategory-right-id :  ∀ {i j k l} (C : Category {i} {j}) (D : Category {k} {l}) → {x y : Category₀.obj (ProductCategory₀ C D)} → (f : Category₀.hom (ProductCategory₀ C D) x y) → (Category₀.comp (ProductCategory₀ C D) f (Category₀.id (ProductCategory₀ C D) x)) ≡ f 
 ProductCategory-right-id {i} {j} {k} {l} C D {x} {y} (f1 , f2) = proof
  where
@@ -102,16 +206,16 @@ ProductCategory-right-id {i} {j} {k} {l} C D {x} {y} (f1 , f2) = proof
   P = ProductCategory₀ C D
 
   x1 : Category.obj C
-  x1 = outl x
+  x1 = first x
 
   x2 : Category.obj D
-  x2 = outr x
+  x2 = second x
 
   y1 : Category.obj C
-  y1 = outl y
+  y1 = first y
 
   y2 : Category.obj D
-  y2 = outr y
+  y2 = second y
 
   id-x : Category₀.hom P x x
   id-x = Category₀.id P x
@@ -178,7 +282,7 @@ ProductCategory-right-id {i} {j} {k} {l} C D {x} {y} (f1 , f2) = proof
    (≡-⇶ [f1∘id-x1,f2∘id-x2]≡[f1,f2∘id-x2]
          [f1,f2∘id-x2]≡[f1,f2]
    ))
-  
+-}
 
 {- 
   : id-y∘f ≡ (f1 , f2)

@@ -32,6 +32,7 @@ _∧_ = _×_
 ∧-cons' : ∀ {α β} {A : Set α} {B : Set β} → B → A → A ∧ B
 ∧-cons' = ×-cons'
 
+
 first : ∀ {α β} {A : Set α} {B : Set β} (P : A × B) → A
 first (a , b) = a
 
@@ -65,17 +66,19 @@ data _≡_ {α} {A : Set α} : A → A → Set α where
 [x≡y]→[Px→Py] : ∀ {α β} {A : Set α} (P : A → Set β) → (x y : A) → x ≡ y → P x → P y
 [x≡y]→[Px→Py] {α} {β} {A} P x .x (refl .x) Px = Px
 
+p≡[π₁-p,π₂-p] : ∀ {α β} {A : Set α} {B : Set β} (p : A × B) → p ≡ (first p , second p)
+p≡[π₁-p,π₂-p] {α} {β} {A} {B} (p1 , p2) = refl (p1 , p2)
 
 
-
+infixr 3 _∷_
 data EqChain {α} {A : Set α} : A → A → Set α where
  end : {x y : A} → x ≡ y → EqChain x y
- _::_ : {x y z : A} → x ≡ y → EqChain y z → EqChain x z
+ _∷_ : {x y z : A} → x ≡ y → EqChain y z → EqChain x z
  
 
 EqChainExtract : ∀ {α} {A : Set α} {x y : A} → EqChain x y → x ≡ y
 EqChainExtract {α} {A} {x} {y} (end p) = p
-EqChainExtract {α} {A} {x} {y} (p :: (end q)) = ≡-⇶ p q
-EqChainExtract {α} {A} {x} {y} (p :: (q :: rest)) = ≡-⇶ p (≡-⇶ q (EqChainExtract rest))
+EqChainExtract {α} {A} {x} {y} (p ∷ (end q)) = ≡-⇶ p q
+EqChainExtract {α} {A} {x} {y} (p ∷ (q ∷ rest)) = ≡-⇶ p (≡-⇶ q (EqChainExtract rest))
 
 

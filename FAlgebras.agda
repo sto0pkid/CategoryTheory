@@ -76,7 +76,7 @@ F-algebra-category₀ {i} {j} C F =
       α≡α∘F[A⟲] = ≡-↑↓ α∘F[A⟲]≡α
 
       eq-chain : EqChain (A⟲ ∘ α) (α ∘ F[A⟲])
-      eq-chain = A⟲∘α≡α :: (end α≡α∘F[A⟲])
+      eq-chain = A⟲∘α≡α ∷ (end α≡α∘F[A⟲])
 
       A⟲∘α≡α∘F[A⟲] : (A⟲ ∘ α) ≡ (α ∘ F[A⟲])
       A⟲∘α≡α∘F[A⟲] = EqChainExtract eq-chain
@@ -173,11 +173,11 @@ F-algebra-category₀ {i} {j} C F =
 
             eq-chain : EqChain ((g ∘ f) ∘ α₁) (α₃ ∘ F[g∘f])
             eq-chain = [g∘f]∘α₁≡g∘[f∘α₁] 
-                    :: (g∘[f∘α₁]≡g∘[α₂∘F[f]]
-                    :: (g∘[α₂∘F[f]]≡[g∘α₂]∘F[f]
-                    :: ([g∘α₂]∘F[f]≡[α₃∘F[g]]∘F[f]
-                    :: ([α₃∘F[g]]∘F[f]≡α₃∘[F[g]∘F[f]]
-                    :: (end α₃∘[F[g]∘F[f]]≡α₃∘[F[g∘f]]
+                    ∷ (g∘[f∘α₁]≡g∘[α₂∘F[f]]
+                    ∷ (g∘[α₂∘F[f]]≡[g∘α₂]∘F[f]
+                    ∷ ([g∘α₂]∘F[f]≡[α₃∘F[g]]∘F[f]
+                    ∷ ([α₃∘F[g]]∘F[f]≡α₃∘[F[g]∘F[f]]
+                    ∷ (end α₃∘[F[g]∘F[f]]≡α₃∘[F[g∘f]]
                        )))))
 
             [g∘f]∘α₁≡α₃∘F[g∘f] : ((g ∘ f) ∘ α₁) ≡ (α₃ ∘ F[g∘f])

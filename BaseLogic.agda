@@ -32,11 +32,11 @@ _∧_ = _×_
 ∧-cons' : ∀ {α β} {A : Set α} {B : Set β} → B → A → A ∧ B
 ∧-cons' = ×-cons'
 
-outl : ∀ {α β} {A : Set α} {B : Set β} (P : A × B) → A
-outl (a , b) = a
+first : ∀ {α β} {A : Set α} {B : Set β} (P : A × B) → A
+first (a , b) = a
 
-outr : ∀ {α β} {A : Set α} {B : Set β} (P : A × B) → B
-outr (a , b) = b
+second : ∀ {α β} {A : Set α} {B : Set β} (P : A × B) → B
+second (a , b) = b
 
 data ∃ {α β} (A : Set α) (B : A → Set β) : Set (α ⊔ β) where
  _,_ : (x : A) → B x → ∃ A B

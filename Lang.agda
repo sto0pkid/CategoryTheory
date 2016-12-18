@@ -448,10 +448,19 @@ parseUpper x = satisfy isUpper x
 literal : Parser₄ Char
 -}
 
+charEqual : Char → Char → Bool
+charEqual c₁ c₂ = primStringEquality (primShowChar c₁) (primShowChar c₂)
+
+parseChar : Char → Parser₄ Char
+parseChar c x = satisfy (charEqual c) x
+
 {-
 -- "alternative" combinator from Schirmer's "Parsers All the Way Down?"
 -}
-
+{-
+alt : ∀ {i j} {A : Set i} {B : Set j} → Parser₄ A → Parser₄ B → Parser₄ (A + B)
+alt {i} {j} {A} {B} 
+-}
 {-
 -- "next" combinator from Schirmer's "Parsers All the Way Down?"
 -}

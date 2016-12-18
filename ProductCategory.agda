@@ -11,7 +11,7 @@ ProductCategory₀ {i} {j} {k} {l} C D =
   obj = (Category.obj C) × (Category.obj D);
   hom = λ p1 p2 → ((Category.hom C) (first p1) (first p2)) × ((Category.hom D) (second p1) (second p2));
   id = λ p → (((Category.id C) (first p)) , ((Category.id D) (second p)));
-  comp = λ g f → (((Category.comp C) (first g) (first f)) , ((Category.comp D) (second g) (second f))) 
+  comp = λ {x} {y} {z} g f → (((Category.comp C) (first g) (first f)) , ((Category.comp D) (second g) (second f))) 
  }
 
 
@@ -21,10 +21,10 @@ ProductCategory {i} {j} {k} {l} C D =
   obj = Category₀.obj P;
   hom = Category₀.hom P;
   id = Category₀.id P;
-  comp = Category₀.comp P;
-  left-id = left-id';
-  right-id = right-id';
-  assoc = assoc'
+  comp = λ {x} {y} {z} → Category₀.comp P {x} {y} {z};
+  left-id = λ {x} {y} → left-id' {x} {y};
+  right-id = λ {x} {y} → right-id' {x} {y};
+  assoc = λ {x} {y} {z} {w} → assoc' {x} {y} {z} {w}
  }
  where
   P = ProductCategory₀ {i} {j} {k} {l} C D
@@ -202,9 +202,9 @@ ProductCategory {i} {j} {k} {l} C D =
 
 
 
-  assoc' : {x y z w : Category₀.obj P} → (f : Category₀.hom P x y) → (g : Category₀.hom P y z) → (h : Category₀.hom P z w) → 
+  assoc' : {x y z w : Category₀.obj P} → (h : Category₀.hom P z w) → (g : Category₀.hom P y z) → (f : Category₀.hom P x y) → 
            (compP {x} {y} {w} (compP {y} {z} {w} h g) f) ≡ (compP {x} {z} {w} h (compP {x} {y} {z} g f))
-  assoc' {x} {y} {z} {w} f g h = assoc-proof
+  assoc' {x} {y} {z} {w} h g f = assoc-proof
    where
     x₁ : Category.obj C
     x₁ = first x

@@ -197,8 +197,156 @@ ProductCategory {i} {j} {k} {l} C D =
            (compP {x} {y} {w} (compP {y} {z} {w} h g) f) ≡ (compP {x} {z} {w} h (compP {x} {y} {z} g f))
   assoc' {x} {y} {z} {w} f g h = assoc-proof
    where
-    
-    assoc-proof
+    x₁ : Category.obj C
+    x₁ = first x
+
+    x₂ : Category.obj D
+    x₂ = second x
+
+    y₁ : Category.obj C
+    y₁ = first y
+
+    y₂ : Category.obj D
+    y₂ = second y
+
+    z₁ : Category.obj C
+    z₁ = first z
+
+    z₂ : Category.obj D
+    z₂ = second z
+
+    w₁ : Category.obj C
+    w₁ = first w
+
+    w₂ : Category.obj D
+    w₂ = second w
+
+    f₁ : Category.hom C x₁ y₁
+    f₁ = first f
+ 
+    f₂ : Category.hom D x₂ y₂
+    f₂ = second f
+
+    g₁ : Category.hom C y₁ z₁
+    g₁ = first g
+
+    g₂ : Category.hom D y₂ z₂
+    g₂ = second g
+
+    h₁ : Category.hom C z₁ w₁
+    h₁ = first h
+
+    h₂ : Category.hom D z₂ w₂
+    h₂ = second h
+
+    _∘₁_ = Category.comp C
+
+    _∘₂_ = Category.comp D
+
+    f≡[f₁,f₂] : f ≡ (f₁ , f₂)
+    f≡[f₁,f₂] = p≡[π₁-p,π₂-p] f
+
+    g≡[g₁,g₂] : g ≡ (g₁ , g₂)
+    g≡[g₁,g₂] = p≡[π₁-p,π₂-p] g
+
+    h≡[h₁,h₂] : h ≡ (h₁ , h₂)
+    h≡[h₁,h₂] = p≡[π₁-p,π₂-p] h
+
+    h∘g≡h∘_ : (g' : Category₀.hom P y z) → Set (l ⊔ j)
+    h∘g≡h∘ g' = compP {y} {z} {w} h g ≡ compP {y} {z} {w} h g'
+
+    h∘g≡h∘[g₁,g₂] : compP {y} {z} {w} h g ≡ compP {y} {z} {w} h (g₁ , g₂)
+    h∘g≡h∘[g₁,g₂] = [x≡y]→[Px→Py] h∘g≡h∘_ g (g₁ , g₂) g≡[g₁,g₂] (refl (compP {y} {z} {w} h g))
+
+    h∘[g₁,g₂]≡[h₁∘g₁,h₂∘g₂] : compP {y} {z} {w} h (g₁ , g₂) ≡ ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂))
+    h∘[g₁,g₂]≡[h₁∘g₁,h₂∘g₂] = refl ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂))
+
+    h∘g≡[h₁∘g₁,h₂∘g₂] : compP {y} {z} {w} h g ≡ ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂))
+    h∘g≡[h₁∘g₁,h₂∘g₂] = ≡-⇶ h∘g≡h∘[g₁,g₂] h∘[g₁,g₂]≡[h₁∘g₁,h₂∘g₂]
+
+    [h∘g]∘f≡_∘f : (q : Category₀.hom P y w) → Set (l ⊔ j)
+    [h∘g]∘f≡ q ∘f = (compP {x} {y} {w} (compP {y} {z} {w} h g) f) ≡ (compP {x} {y} {w} q f)
+
+    [h∘g]∘f≡[h₁∘g₁,h₂∘g₂]∘f : (compP {x} {y} {w} (compP {y} {z} {w} h g) f) ≡ (compP {x} {y} {w} ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂)) f)
+    [h∘g]∘f≡[h₁∘g₁,h₂∘g₂]∘f = 
+      [x≡y]→[Px→Py]
+        [h∘g]∘f≡_∘f
+        (compP {y} {z} {w} h g)
+        ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂))
+        h∘g≡[h₁∘g₁,h₂∘g₂]
+        (refl (compP {x} {y} {w} (compP {y} {z} {w} h g) f))
+
+    [h₁∘g₁,h₂∘g₂]∘f≡[[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂] : compP {x} {y} {w} ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂)) f ≡ (((h₁ ∘₁ g₁) ∘₁ f₁) , ((h₂ ∘₂ g₂) ∘₂ f₂))
+    [h₁∘g₁,h₂∘g₂]∘f≡[[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂] = refl (((h₁ ∘₁ g₁) ∘₁ f₁) , ((h₂ ∘₂ g₂) ∘₂ f₂))
+
+    [h₁∘g₁]∘f₁≡h₁∘[g₁∘f₁] : ((h₁ ∘₁ g₁) ∘₁ f₁) ≡ (h₁ ∘₁ (g₁ ∘₁ f₁))
+    [h₁∘g₁]∘f₁≡h₁∘[g₁∘f₁] = Category.assoc C h₁ g₁ f₁
+
+    [h₂∘g₂]∘f₂≡h₂∘[g₂∘f₂] : ((h₂ ∘₂ g₂) ∘₂ f₂) ≡ (h₂ ∘₂ (g₂ ∘₂ f₂))
+    [h₂∘g₂]∘f₂≡h₂∘[g₂∘f₂] = Category.assoc D h₂ g₂ f₂
+
+    [[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂]≡[_,[h₂∘g₂]∘f₂] : (q  : Category.hom C x₁ w₁) → Set (l ⊔ j)
+    [[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂]≡[ q ,[h₂∘g₂]∘f₂] = _≡_ {l ⊔ j} {Category₀.hom P x w} (((h₁ ∘₁ g₁) ∘₁ f₁) , ((h₂ ∘₂ g₂) ∘₂ f₂)) (q , ((h₂ ∘₂ g₂) ∘₂ f₂))
+
+    [[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂] : (((h₁ ∘₁ g₁) ∘₁ f₁) , ((h₂ ∘₂ g₂) ∘₂ f₂)) ≡ ((h₁ ∘₁ (g₁ ∘₁ f₁)) , ((h₂ ∘₂ g₂) ∘₂ f₂))
+    [[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂] = 
+      [x≡y]→[Px→Py]
+        [[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂]≡[_,[h₂∘g₂]∘f₂] 
+        ((h₁ ∘₁ g₁) ∘₁ f₁)
+        (h₁ ∘₁ (g₁ ∘₁ f₁))
+        [h₁∘g₁]∘f₁≡h₁∘[g₁∘f₁]
+        (refl (((h₁ ∘₁ g₁) ∘₁ f₁) , ((h₂ ∘₂ g₂) ∘₂ f₂)))
+
+    [h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁],_] : (q : Category.hom D x₂ w₂) → Set (l ⊔ j)
+    [h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁], q ] = _≡_ {l ⊔ j} {Category₀.hom P x w} ((h₁ ∘₁ (g₁ ∘₁ f₁)) , ((h₂ ∘₂ g₂) ∘₂ f₂)) ((h₁ ∘₁ (g₁ ∘₁ f₁)) , q)
+
+    [h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]] : ((h₁ ∘₁ (g₁ ∘₁ f₁)) , ((h₂ ∘₂ g₂) ∘₂ f₂)) ≡ ((h₁ ∘₁ (g₁ ∘₁ f₁)) , (h₂ ∘₂ (g₂ ∘₂ f₂)))
+    [h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]] =
+      [x≡y]→[Px→Py]
+        [h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁],_]
+        ((h₂ ∘₂ g₂) ∘₂ f₂)
+        (h₂ ∘₂ (g₂ ∘₂ f₂))
+        [h₂∘g₂]∘f₂≡h₂∘[g₂∘f₂]
+        (refl ((h₁ ∘₁ (g₁ ∘₁ f₁)) , ((h₂ ∘₂ g₂) ∘₂ f₂)))
+
+    g∘f≡g∘_ : (f' : Category₀.hom P x y) → Set (l ⊔ j)
+    g∘f≡g∘ f' = compP {x} {y} {z} g f ≡ compP {x} {y} {z} g f'
+
+    g∘f≡g∘[f₁,f₂] : compP {x} {y} {z} g f ≡ compP {x} {y} {z} g (f₁ , f₂)
+    g∘f≡g∘[f₁,f₂] = [x≡y]→[Px→Py] g∘f≡g∘_ f (f₁ , f₂) f≡[f₁,f₂] (refl (compP {x} {y} {z} g f))
+
+    g∘[f₁,f₂]≡[g₁∘f₁,g₂∘f₂] : compP {x} {y} {z} g (f₁ , f₂) ≡ ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂))
+    g∘[f₁,f₂]≡[g₁∘f₁,g₂∘f₂] = refl ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂))
+
+    g∘f≡[g₁∘f₁,g₂∘f₂] : compP {x} {y} {z} g f ≡ ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂))
+    g∘f≡[g₁∘f₁,g₂∘f₂] = ≡-⇶ g∘f≡g∘[f₁,f₂] g∘[f₁,f₂]≡[g₁∘f₁,g₂∘f₂]
+
+    h∘[g∘f]≡h∘_ : (v  : Category₀.hom P x z) → Set (l ⊔ j)
+    h∘[g∘f]≡h∘ v = compP {x} {z} {w} h (compP {x} {y} {z} g f) ≡ compP {x} {z} {w} h v
+
+    h∘[g∘f]≡h∘[g₁∘f₁,g₂∘f₂] : compP {x} {z} {w} h (compP {x} {y} {z} g f) ≡ compP {x} {z} {w} h ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂))
+    h∘[g∘f]≡h∘[g₁∘f₁,g₂∘f₂] = [x≡y]→[Px→Py] h∘[g∘f]≡h∘_ (compP {x} {y} {z} g f) ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂)) g∘f≡[g₁∘f₁,g₂∘f₂] (refl (compP {x} {z} {w} h (compP {x} {y} {z} g f)))
+
+    h∘[g₁∘f₁,g₂∘f₂]≡h∘[g∘f] : compP {x} {z} {w} h ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂)) ≡ compP {x} {z} {w} h (compP {x} {y} {z} g f)
+    h∘[g₁∘f₁,g₂∘f₂]≡h∘[g∘f] = ≡-↑↓ h∘[g∘f]≡h∘[g₁∘f₁,g₂∘f₂]
+
+    h∘[g₁∘f₁,g₂∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]] : compP {x} {z} {w} h ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂)) ≡ ((h₁ ∘₁ (g₁ ∘₁ f₁)) , (h₂ ∘₂ (g₂ ∘₂ f₂))) 
+    h∘[g₁∘f₁,g₂∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]] = refl ((h₁ ∘₁ (g₁ ∘₁ f₁)) , (h₂ ∘₂ (g₂ ∘₂ f₂)))
+ 
+    [h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]]≡h∘[g₁∘f₁,g₂∘f₂] : ((h₁ ∘₁ (g₁ ∘₁ f₁)) , (h₂ ∘₂ (g₂ ∘₂ f₂))) ≡ (compP {x} {z} {w} h ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂)))
+    [h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]]≡h∘[g₁∘f₁,g₂∘f₂] = ≡-↑↓ h∘[g₁∘f₁,g₂∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]]
+
+
+    eq-chain : EqChain (compP {x} {y} {w} (compP {y} {z} {w} h g) f) (compP {x} {z} {w} h (compP {x} {y} {z} g f))
+    eq-chain = 
+        [h∘g]∘f≡[h₁∘g₁,h₂∘g₂]∘f
+      ∷ [h₁∘g₁,h₂∘g₂]∘f≡[[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂]
+      ∷ [[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂]
+      ∷ [h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]]
+      ∷ [h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]]≡h∘[g₁∘f₁,g₂∘f₂]
+      ∷ (end h∘[g₁∘f₁,g₂∘f₂]≡h∘[g∘f])
+
+    assoc-proof = EqChainExtract eq-chain
 
 
 {-

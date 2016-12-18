@@ -388,6 +388,57 @@ item' (x ∷ xs) = (x , (primStringFromList xs)) ∷ []
 item : Parser₄ Char
 item x = item' (primStringToList x)
 
+any : Parser₄ Char
+any = item
+
+digits : String
+digits = "0123456789"
+
+isDigit : Char → Bool
+isDigit '0' = true
+isDigit '1' = true
+isDigit '2' = true
+isDigit '3' = true
+isDigit '4' = true
+isDigit '5' = true
+isDigit '6' = true
+isDigit '7' = true
+isDigit '8' = true
+isDigit '9' = true
+isDigit _ = false
+
+parseDigit : Parser₄ Char
+parseDigit x = satisfy isDigit x
+
+
+
+isLower : Char → Bool
+isLower 'a' = true
+isLower 'b' = true
+isLower 'c' = true
+isLower 'd' = true
+isLower 'e' = true
+isLower 'f' = true
+isLower 'g' = true
+isLower 'h' = true
+isLower 'i' = true
+isLower 'j' = true
+isLower 'k' = true
+isLower 'l' = true
+isLower 'm' = true
+isLower 'n' = true
+isLower 'o' = true
+isLower 'p' = true
+isLower 'r' = true
+isLower 's' = true
+isLower 't' = true
+isLower 'u' = true
+isLower 'v' = true
+isLower 'w' = true
+isLower 'x' = true
+isLower 'y' = true
+isLower 'z' = true
+isLower _ = false
 
 {-
 -- "literal" from Schirmer's "Parsers All the Way Down?"

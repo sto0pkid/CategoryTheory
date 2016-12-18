@@ -30,10 +30,12 @@ ProductCategory {i} {j} {k} {l} C D =
   P = ProductCategory₀ {i} {j} {k} {l} C D
   objP = Category₀.obj P
   homP = Category₀.hom P
-  compP = Category₀.comp P  
+  compP = Category₀.comp P
   idP = Category₀.id P
 
-  left-id' : {x y : objP} → (f : homP x y) → (compP (idP y) f) ≡ f
+
+
+  left-id' : {x y : objP} → (f : homP x y) → (compP {x} {y} {y} (idP y) f) ≡ f
   left-id' {x} {y} f = left-id-proof
    where
     x₁ : Category.obj C
@@ -63,7 +65,7 @@ ProductCategory {i} {j} {k} {l} C D =
     f₂ : (Category.hom D) x₂ y₂
     f₂ = second f
 
-    _∘_ = Category₀.comp P
+    _∘_ = Category₀.comp P {x} {y} {y}
 
     _∘₁_ = Category.comp C
 
@@ -112,13 +114,91 @@ ProductCategory {i} {j} {k} {l} C D =
 
     left-id-proof = EqChainExtract eq-chain
 
-  right-id' = right-id''
+  right-id' : {x y : objP} → (f : homP x y) → (compP {x} {x} {y} f (idP x)) ≡ f
+  right-id' {x} {y} f = right-id-proof
    where
-    right-id''
+    x₁ : Category.obj C
+    x₁ = first x
 
-  assoc' = assoc''
+    x₂ : Category.obj D
+    x₂ = second x
+
+    y₁ : Category.obj C
+    y₁ = first y
+  
+    y₂ : Category.obj D
+    y₂ = second y
+
+    x⟲ : homP x x
+    x⟲ = idP x
+
+    x₁⟲ : (Category.hom C) x₁ x₁ 
+    x₁⟲ =  (Category.id C) x₁
+
+    x₂⟲ : (Category.hom D) x₂ x₂
+    x₂⟲ = (Category.id D) x₂
+
+    f₁ : (Category.hom C) x₁ y₁
+    f₁ = first f
+
+    f₂ : (Category.hom D) x₂ y₂
+    f₂ = second f
+
+    _∘_ = Category₀.comp P {x} {x} {y}
+
+    _∘₁_ = Category.comp C {x₁} {x₁} {y₁}
+
+    _∘₂_ = Category.comp D {x₂} {x₂} {y₂}
+    
+    f≡[f₁,f₂] : f ≡ (f₁ , f₂)
+    f≡[f₁,f₂] = p≡[π₁-p,π₂-p] f
+
+    [f₁,f₂]≡f : (f₁ , f₂) ≡ f
+    [f₁,f₂]≡f = ≡-↑↓ f≡[f₁,f₂]
+
+    f∘x⟲≡_∘x⟲ : (g : Category₀.hom P x y) → Set (l ⊔ j)
+    f∘x⟲≡ g ∘x⟲ = (f ∘ x⟲) ≡ (g ∘ x⟲)
+
+    f∘x⟲≡[f₁,f₂]∘x⟲ : (f ∘ x⟲) ≡ ((f₁ , f₂) ∘ x⟲)
+    f∘x⟲≡[f₁,f₂]∘x⟲ = [x≡y]→[Px→Py] f∘x⟲≡_∘x⟲ f (f₁ , f₂) f≡[f₁,f₂] (refl (f ∘ x⟲))
+
+    [f₁,f₂]∘x⟲≡[f₁∘x₁⟲,f₂∘x₂⟲] : ((f₁ , f₂) ∘ x⟲) ≡ ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲))
+    [f₁,f₂]∘x⟲≡[f₁∘x₁⟲,f₂∘x₂⟲] = refl ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲))
+
+    f₁∘x₁⟲≡f₁ : (f₁ ∘₁ x₁⟲) ≡ f₁
+    f₁∘x₁⟲≡f₁ = Category.right-id C f₁
+
+    f₂∘x₂⟲≡f₂ : (f₂ ∘₂ x₂⟲) ≡ f₂
+    f₂∘x₂⟲≡f₂ = Category.right-id D f₂
+
+    [f₁∘x₁⟲,f₂∘x₂⟲]≡[_,f₂∘x₂⟲] : (g : Category.hom C x₁ y₁) → Set (l ⊔ j)
+    [f₁∘x₁⟲,f₂∘x₂⟲]≡[ g ,f₂∘x₂⟲] = _≡_ {l ⊔ j} {(Category₀.hom P x y)} ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲)) (g , (f₂ ∘₂ x₂⟲))    
+
+    [f₁∘x₁⟲,f₂∘x₂⟲]≡[f₁,f₂∘x₂⟲] : ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲)) ≡ (f₁ , (f₂ ∘₂ x₂⟲))
+    [f₁∘x₁⟲,f₂∘x₂⟲]≡[f₁,f₂∘x₂⟲] = [x≡y]→[Px→Py] [f₁∘x₁⟲,f₂∘x₂⟲]≡[_,f₂∘x₂⟲] (f₁ ∘₁ x₁⟲) f₁ f₁∘x₁⟲≡f₁ (refl ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲)))
+
+    [f₁,f₂∘x₂⟲]≡[f₁,_] : (g : Category.hom D x₂ y₂) → Set (l ⊔ j)
+    [f₁,f₂∘x₂⟲]≡[f₁, g ] = _≡_ {l ⊔ j} {(Category₀.hom P x y)} (f₁ , (f₂ ∘₂ x₂⟲)) (f₁ , g)
+
+    [f₁,f₂∘x₂⟲]≡[f₁,f₂] : (f₁ , (f₂ ∘₂ x₂⟲)) ≡ (f₁ , f₂)
+    [f₁,f₂∘x₂⟲]≡[f₁,f₂] = [x≡y]→[Px→Py] [f₁,f₂∘x₂⟲]≡[f₁,_] (f₂ ∘₂ x₂⟲) f₂ f₂∘x₂⟲≡f₂ (refl (f₁ , (f₂ ∘₂ x₂⟲)))
+
+    eq-chain : EqChain (f ∘ x⟲) f
+    eq-chain = 
+         f∘x⟲≡[f₁,f₂]∘x⟲
+       ∷ [f₁,f₂]∘x⟲≡[f₁∘x₁⟲,f₂∘x₂⟲]
+       ∷ [f₁∘x₁⟲,f₂∘x₂⟲]≡[f₁,f₂∘x₂⟲]
+       ∷ [f₁,f₂∘x₂⟲]≡[f₁,f₂]
+       ∷ (end [f₁,f₂]≡f)
+
+    right-id-proof = EqChainExtract eq-chain
+
+  assoc' : {x y z w : Category₀.obj P} → (f : Category₀.hom P x y) → (g : Category₀.hom P y z) → (h : Category₀.hom P z w) → 
+           (compP {x} {y} {w} (compP {y} {z} {w} h g) f) ≡ (compP {x} {z} {w} h (compP {x} {y} {z} g f))
+  assoc' {x} {y} {z} {w} f g h = assoc-proof
    where
-    assoc''
+    
+    assoc-proof
 
 
 {-

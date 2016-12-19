@@ -4,91 +4,11 @@ open import Agda.Primitive
 open import BaseLogic
 open import Category
 
-infixr 3 _∷_
-data List {α} (A : Set α) : Set α where
- [] : List A
- _∷_ : A → List A → List A
-
-{-# BUILTIN LIST List #-}
-{-# BUILTIN NIL []    #-}
-{-# BUILTIN CONS _∷_  #-}
-
-infixr 3 _++_
-_++_ : ∀ {α} {A : Set α} → List A → List A → List A
-[] ++ ys = ys
-(x ∷ xs) ++ ys = x ∷ (xs ++ ys)
-
-[]++xs≡xs : ∀ {α} {A : Set α} → (x : List A) → ([] ++ x) ≡ x
-[]++xs≡xs x = refl x
-
-
-[xs++[]≡xs]-ind : ∀ {α} {A : Set α} → (xs : List A) → ((xs ++ []) ≡ xs) → (x : A) → ((x ∷ xs) ++ []) ≡ (x ∷ xs)
-[xs++[]≡xs]-ind {α} {A} xs [xs++[]≡xs] x = [x∷xs++[]≡x∷xs]
- where
-  [x∷xs++[]]≡x∷[xs++[]] : ((x ∷ xs) ++ []) ≡ x ∷ (xs ++ [])
-  [x∷xs++[]]≡x∷[xs++[]] = refl (x ∷ (xs ++ []))
-
-  x∷_ : (l : List A) → Set α
-  x∷ l = (x ∷ (xs ++ [])) ≡ (x ∷ l)
-
-  x∷[xs++[]]≡x∷xs : (x ∷ (xs ++ [])) ≡ (x ∷ xs)
-  x∷[xs++[]]≡x∷xs = [x≡y]→[Px→Py] x∷_ (xs ++ []) xs [xs++[]≡xs] (refl (x ∷ (xs ++ [])))
-
-  [x∷xs++[]≡x∷xs] : ((x ∷ xs) ++ []) ≡ (x ∷ xs)
-  [x∷xs++[]≡x∷xs] = ≡-⇶ [x∷xs++[]]≡x∷[xs++[]] x∷[xs++[]]≡x∷xs
-
-
-
-xs++[]≡xs : ∀ {α} {A : Set α} → (xs : List A) → (xs ++ []) ≡ xs
-xs++[]≡xs [] = refl []
-xs++[]≡xs (x ∷ xs) = [xs++[]≡xs]-ind xs (xs++[]≡xs xs) x
-
-
-listmap : ∀ {α β} {A : Set α} {B : Set β} (f : A → B) → List A → List B
-listmap f [] = []
-listmap f (x ∷ xs) = (f x) ∷ (listmap f xs) 
-
-
-data Bool : Set where
- true : Bool
- false : Bool
-
-{-# BUILTIN BOOL Bool #-}
-{-# BUILTIN TRUE true #-}
-{-# BUILTIN FALSE false #-}
-
-if_then_else : ∀ {α} {A : Set α} → Bool → A → A → A
-if_then_else true x y = x
-if_then_else false x y = y
-
-data Nat : Set where
- zero : Nat
- suc : Nat → Nat
-
-{-# BUILTIN NATURAL Nat #-}
-
-data Maybe {α} (A : Set α) : Set α where
- Nothing : Maybe A
- Just : A → Maybe A
-
-postulate Char : Set
-{-# BUILTIN CHAR Char #-}
-
-postulate String : Set
-{-# BUILTIN STRING String #-}
-
-postulate primStringToList : String → List Char
-postulate primStringFromList : List Char → String
-postulate primStringAppend : String → String → String
-postulate primStringEquality : String → String → Bool
-postulate primShowString : String → String
-
-
-postulate primShowChar : Char → String
-
-
-notStr : String
-notStr = "not!"
+open import Data.List
+open import Data.Bool
+open import Data.Nat
+open import Data.Maybe
+open import Data.String
 
 
 {-
@@ -139,8 +59,8 @@ negate₂ false log = (true , (primStringAppend log "not!"))
 
 -- Logging, take 3:
 negate₃ : (x : Bool) → Bool × String
-negate₃ true = (false , notStr)
-negate₃ false = (true , notStr)
+negate₃ true = (false , "not!")
+negate₃ false = (true , "not!")
 
 {-
  Alright, that's cool.
@@ -323,7 +243,7 @@ Parser₃ = String → List (Tree × String)
 -- Different parsers can potentially return different kinds of trees, so we should further
 -- abstract on the specific type of trees:
 
-Parser₄ : Set → Set
+Parser₄ : ∀ {i} → Set i → Set i
 Parser₄ A = String → List ( A × String)
 
 
@@ -337,6 +257,7 @@ result : {A : Set} → A → Parser₄ A
 result v = λ inp → (v , inp) ∷ []
 
 -- This is the same as "succeed" from Schirmer's "Parsers All the Way Down"
+-- Which is also the same as "succeed" from [5]
 succeed : {A : Set} → A → Parser₄ A
 succeed = result
 
@@ -359,6 +280,7 @@ zeroP' : {A : Set} → A → Parser₄ A
 zeroP' v = λ inp → []
 
 -- This is the same as "fail" from Schirmer's "Parsers All the Way Down?"
+-- And also the same as "fail" from [5]
 fail : {A : Set} → Parser₄ A
 fail = zeroP
 
@@ -368,6 +290,7 @@ fail' = zeroP'
 
 {-
 -- "satisfy" from Schirmer's "Parsers All the Way Down?"
+-- which is the same as "satisfy" from [5]
 -}
 
 satisfy' : (P : Char → Bool) → List Char → List (Char × String)
@@ -454,15 +377,56 @@ charEqual c₁ c₂ = primStringEquality (primShowChar c₁) (primShowChar c₂)
 parseChar : Char → Parser₄ Char
 parseChar c x = satisfy (charEqual c) x
 
+-- this is the same as "literal" from [5]
+literal : Char → Parser₄ Char
+literal = parseChar
+
+fcomp : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} →
+        (B → C) → (A → B) → A → C
+fcomp g f x = g (f x)
+
 {-
 -- "alternative" combinator from Schirmer's "Parsers All the Way Down?"
 -}
+
+list-inl : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → List (A × C) → List ((A ⊹ B) × C)
+list-inl {i} {j} {k} {A} {B} {C} [] = []
+list-inl {i} {j} {k} {A} {B} {C} (x ∷ xs) = ((inl (first x)) , (second x)) ∷ (list-inl xs)
+
+list-inr : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → List (B × C) → List ((A ⊹ B) × C)
+list-inr {i} {j} {k} {A} {B} {C} [] = []
+list-inr {i} {j} {k} {A} {B} {C} (x ∷ xs) = ((inr (first x)) , (second x)) ∷ (list-inr xs)
+
+
+alt : ∀ {i j} {A : Set i} {B : Set j} → Parser₄ A → Parser₄ B → Parser₄ (A ⊹ B)
+alt {i} {j} {A} {B} p1 p2 inp = _++_ {i ⊔ j} {(A ⊹ B) × String} (list-inl {i} {j} {lzero} {A} {B} {String} (p1 inp)) (list-inr {i} {j} {lzero} {A} {B} {String} (p2 inp)) 
+
+
 {-
-alt : ∀ {i j} {A : Set i} {B : Set j} → Parser₄ A → Parser₄ B → Parser₄ (A + B)
-alt {i} {j} {A} {B} 
+ You can have exclusive alternation, which means that if the first parser
+ succeeds then the second parser will not be used, and the only possibilities
+ are to obtain either one result or no results.
+
+ The other option is to have inclusive alternation, which means that both
+ parsers can be used, and if they both succeed (as in the case of an
+ ambiguous grammar) then it is possible to have multiple results.
 -}
+
 {-
 -- "next" combinator from Schirmer's "Parsers All the Way Down?"
+-}
+
+{-
+-- "then" combinator from [5]
+-}
+
+{-
+
+-}
+
+{-
+then : ∀ {i j} {A : Set i} {B : Set j} → Parser₄ A → Parser₄ B → Parser₄ (A × B)
+then {i} {j} {A} {B} p1 p2 inp = (p1 inp) (p2 (second (p1 inp)))
 -}
 
 {-
@@ -526,5 +490,16 @@ Parser A = String → Consumed A
 [4] Bartosz Milewski, "Category Theory for Programmers"
     Episode 3.2: Kleisli category
     https://www.youtube.com/watch?v=i9CU4CuHADQ
+
+[5] Graham Hutton
+    "Higher Order Functions for Parsing"
+    http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.63.3555&rep=rep1&type=pdf
+
+   -- succeed
+   -- fail
+   -- satisfy
+   -- literal
+   -- alt
+   -- then
 
 -}

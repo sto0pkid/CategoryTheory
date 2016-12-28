@@ -17,3 +17,6 @@ postulate primShowString : String → String
 
 
 postulate primShowChar : Char → String
+
+charEquality : Char → Char → Bool
+charEquality x y = primStringEquality (primShowChar x) (primShowChar y)

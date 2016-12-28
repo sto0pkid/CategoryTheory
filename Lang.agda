@@ -12,213 +12,6 @@ open import Data.String
 
 
 {-
--- Bartosz Milewski:
--- Category Theory for Programmers
--- Episode 3.2: Kliesli category
-
--- Logging, take 1:
-string log = "";
-
-negate₁ : Bool → Bool
-negate₁ true = false ; and also log+="not!"
-negate₁ false = true ; and also log+="not!"
--}
-
-{-
- But this is not purely functional!
-
- It uses the global stateful variable "string log;"
- If we remove the global variable, then we break our negate₁ function
-
- Something is not right!
--}
-
-
-
-
--- Logging take 2:
-negate₂ : (x : Bool) → (log : String) → Bool × String
-negate₂ true log = (false , (primStringAppend log "not!"))
-negate₂ false log = (true , (primStringAppend log "not!"))
-
-{-
- Cool, now we can handle the logging without globals or state.
- Why does negate₂ know about appending strings?
- If we remove the _++_ definition then we break negate₂.
-
- Also, what happens when we want to memoize this function?
- Every time we call it with a different current log, we get
- a different result.
-
- Something is still not right!
--}
-
-
-
-
-
--- Logging, take 3:
-negate₃ : (x : Bool) → Bool × String
-negate₃ true = (false , "not!")
-negate₃ false = (true , "not!")
-
-{-
- Alright, that's cool.
-
- We've removed the dependency on _++_, and now we can
- reasonably memoize this function. 
-
- But this isn't appending to the log anymore!
- How do we recover that functionality?
-
- The log gets built up as different functions in the
- program are run. These functions are composed together
- to build the whole program. So maybe we can handle the
- log-append inside of our function composition!
--}
-
--- Here's our standard function composition:
--- Composition Take 1:
-compose₁ : ∀ {α β γ} {A : Set α} {B : Set β} {C : Set γ} → (A → B) → (B → C) → (A → C)
-compose₁ f g x = g (f x)
-
-
-
---Composition Take 2:
-compose₂ : ∀ {α β γ} {A : Set α} {B : Set β} {C : Set γ} → (A → B × String) → (B → C × String) → (A → C × String)
-compose₂ f g x = ((first (g (first (f x)))) , (primStringAppend (second (f x)) (second (g (first (f x))))))
-
-someStr : String
-someStr = second ((compose₂ negate₃ negate₃) true)
-
-idLogger : ∀ {α} {A : Set α} → A → A × String
-idLogger x = (x , "")
-
--- Now prove that we have a category!
-kliesliCategory₀ : ∀ {α} → Category₀ {lsuc α} {α}
-kliesliCategory₀ {α} = record {
-  obj = Set α;
-  hom = λ A B → (A → B × String);
-  id = λ A → idLogger {α} { A };
-  comp = λ g f → (compose₂ f g)
- }
-
-π₁[idLogger-x]≡x : ∀ {α} {A : Set α} (x : A) → first (idLogger x) ≡ x
-π₁[idLogger-x]≡x {α} {A} x = refl x
-
-π₂[idLogger-x]≡[] : ∀ {α} {A : Set α} (x : A) → second (idLogger x) ≡ ""
-π₂[idLogger-x]≡[] {α} {A} x = refl ""
-
-{-
-kliesliCategory : ∀ {α} → Category {lsuc α} {α}
-kliesliCategory {α} = record {
-  obj = Set α;
-  hom = λ A B → (A → B × String);
-  id = λ A → idLogger {α} {A};
-  comp = λ g f → (compose₂ f g);
- 
-{-
-  λ f → (λ x → ( first (idLogger (first (f x))) , (second (f x)) ++ (second (idLogger (first (f x))))))
-   by : π₁[idLogger-x]≡x
-  λ f → (λ x → ( first (f x) , (second (f x)) ++ (second (idLogger (first (f x))))) )
-   by : π₂[idLogger-x]≡[]
-  λ f → (λ x → ( first (f x) , (second (f x)) ++ []) )
-   by : x++[]≡x
-  λ f → (λ x → ( first (f x) , second (f x)))
-   by : p≡[π₁-p,π₂-p]
-  λ f → (λ x → f x)
-   by : eta equivalence
-  λ f → f
--}
-
-  left-id = left-id-proof;
-  right-id = right-id-proof;
-  assoc = assoc-proof
-
-
-
- }
- where
-{-
-  π₂fx++[]≡π₂fx : {A B : Set α} → (f : A → B × String) → (x : A) → (second (f x) ++ []) ≡ second (f x)
-  π₂fx++[]≡π₂fx f x = refl (second (f x))
--}
-
-  left-id-proof : {A B : Set α} → (f : A → B × String) → compose₂ idLogger f ≡ f
-  left-id-proof {A} {B} f x = left-id-proof'
-   where
-    π₁[f_]≡π₁fx : (b : B) → Set α
-    π₁[f b ]≡π₁fx = (first (f b)) ≡ (first (f x))   
- 
-    π₁[f[π₁-idLogger-x]]≡π₁fx : (first (f (first (idLogger x)))) ≡ (first (f x))
-    π₁[f[π₁-idLogger-x]]≡π₁fx = [x≡y]→[Px→Py] π₁[f_]≡π₁fx (first (idLogger x)) x π₁[idLogger-x]≡x (refl (first (f (first (idLogger x)))))
-
-    --π₁[f[π₁[idLogger-x]]]
-    left-id-proof'
-  
-
-
-  right-id-proof : {A B : Set α} → (f : A → B × String) → compose₂ f idLogger ≡ f
-  right-id-proof {A} {B} f x = right-id-proof'
-   where
-    π₁[idLogger[π₁fx]]≡π₁fx : {A B : Set α} → (f : A → B × String) → (x : A) → first (idLogger (first (f x))) ≡ first (f x)
-    π₁[idLogger[π₁fx]]≡π₁fx f x = refl (first (f x))
-
-    π₂[idLogger[π₁fx]]≡[] : {A B : Set α} → (f : A → B × String) → (x : A) → second (idLogger (first (f x))) ≡ []
-    π₂[idLogger[π₁fx]]≡[] f x = refl []
-
-    π₂fx++[]≡π₂fx : ((second (f x)) ++ []) ≡ (second (f x))
-    π₂fx++[]≡π₂fx = xs++[]≡xs (second (f x))
-
-    π₂fx++_≡π₂fx : (x : List A) → Set α
-    π₂fx++ l ≡π₂fx = ((second (f x)) ++ l) ≡ (second (f x))
-
-    π₂fx++π₂[idLogger[π₁fx]]≡π₂fx : ((second (f x)) ++ (second (idLogger (first (f x))))) ≡ (second (f x))
-    π₂fx++π₂[idLogger[π₁fx]]≡π₂fx = [x≡y]→[Px→Py] π₂fx++_≡π₂fx [] (second (idLogger (first (f x)))) (≡-↑↓ π₂[idLogger[π₁fx]]≡[]) π₂fx++[]≡π₂fx
-   
-    f∘idLogger-x≡[_,π₂fx++π₂[idLogger[π₁fx]]] : (b : B) → Set α
-    f∘idLogger-x≡[ b ,π₂fx++π₂[idLogger[π₁fx]]] = compose₂ f idLogger ≡ (b , ((second (f x)) ++ (second (idLogger (first (f x))))))
-
-    f∘idLogger-x≡[π₁fx,π₂fx++π₂[idLogger[π₁fx]]] : compose₂ f idLogger ≡ ((first (f x)) , ((second (f x)) ++ (second (idLogger (first (f x))))))
-    f∘idLogger-x≡[π₁fx,π₂fx++π₂[idLogger[π₁fx]]] = 
-     [x≡y]→[Px→Py] 
-      f∘idLogger-x≡[_,π₂fx++π₂[idLogger[π₁fx]]] 
-
-      (first (idLogger (first (f x)))) 
-      (first (f x)) 
-      π₁[idLogger[π₁fx]]≡π₁fx 
-      (refl ((first (idLogger (first (f x)))) , ((second (f x)) ++ (second (idLogger (first (f x)))))))      
-
-    f∘idLogger-x≡[π₁fx,_] : (s : String) → Set α
-    f∘idLogger-x≡[π₁fx, s ] = compose₂ f idLogger ≡ ((first (f x)) , s)
-
-    f∘idLogger-x≡[π₁fx,π₂fx] : compose₂ f idLogger ≡ ((first (f x)) , (second (f x)))
-    f∘idLogger-x≡[π₁fx,π₂fx] = 
-     [x≡y]→[Px→Py] 
-      f∘idLogger-x≡[π₁fx,_] 
-      ((second (f x)) ++ (second (idLogger (first (f x))))) 
-      (second (f x)) 
-      π₂fx++π₂[idLogger[π₁fx]]≡π₂fx
-
-    f∘idLogger-x≡_ : (p : B × String) → Set α 
-    f∘idLogger-x≡_ p = compose₂ f idLogger ≡ p
-
-    right-id-proof' : compose₂ f idLogger ≡ f
-    right-id-proof' = [x≡y]→[Px→Py] f∘idLogger-x≡_ ((first (f x)), (second (f x))) (f x) (≡-↑↓ (p≡[π₁-p,π₂-p] (f x))) f∘idLogger-x≡[π₁fx,π₂fx] 
-    
-  assoc-proof : {A B C D : Set α} → (f : A → B × String) → (g : B → C × String) → (h : C → D × String) → 
-                compose₂ (compose₂ h g) f ≡ compose₂ h (compose₂ g f)
-  assoc-proof = assoc-proof'
-   where
-    assoc-proof'
--}
-
-
-
--- Prove that this "logging" mechanism can be generalized to be able to use any
--- monoid, rather than just (String, _++_), and this will still form a category
-
-{-
 
 --http://www.cs.nott.ac.uk/~pszgmh/monparsing.pdf
 
@@ -246,6 +39,24 @@ Parser₃ = String → List (Tree × String)
 Parser₄ : ∀ {i} → Set i → Set i
 Parser₄ A = String → List ( A × String)
 
+{-
+ This works for the type of the parser, but for building total parser combinators we need
+ to be able to structurally recurse on the input strings, and since Agda doesn't appear to
+ support this directly and instead requires the input strings to be transformed into Lists
+ of Chars first, we'll need to modify the parser type as such:
+-}
+Parser₄' : ∀ {i} → Set i → Set i
+Parser₄' A = List Char → List (A × String)
+
+{-
+ Each parser can be constructed to accept Strings as input for convenience but then call a 
+ "primed" version of itself on the List Char returned from "(primStringToList input)" in
+ order to build the parsers in a structurally recursive form.
+-}
+
+
+
+
 
 -- "result" from Graham & Hutton's "Monadic Parser Combinators"
 -- The three primitive parsers:
@@ -256,8 +67,8 @@ result : {A : Set} → A → String → List (A × String)
 result : {A : Set} → A → Parser₄ A
 result v = λ inp → (v , inp) ∷ []
 
--- This is the same as "succeed" from Schirmer's "Parsers All the Way Down"
--- Which is also the same as "succeed" from [5]
+-- This is the same as "succeed" from [3]
+-- Which is also the same as "succeed" from [4]
 succeed : {A : Set} → A → Parser₄ A
 succeed = result
 
@@ -267,30 +78,19 @@ succeed = result
 -- "zero" from Graham & Hutton's "Monadic Parser Combinators"
 -- shouldn't this be "{A : Set} → A → Parser₄ A" ?
 -- Always fails, regardless of the input
-{-
-zeroP : {A : Set} → String → List (A × String)
--}
 zeroP : {A : Set} → Parser₄ A
 zeroP = λ inp → []
 
-{-
-zeroP' : {A : Set} → A → String → List (A × String)
--}
-zeroP' : {A : Set} → A → Parser₄ A
-zeroP' v = λ inp → []
 
--- This is the same as "fail" from Schirmer's "Parsers All the Way Down?"
--- And also the same as "fail" from [5]
+-- This is the same as "fail" from [3]
+-- And also the same as "fail" from [4]
 fail : {A : Set} → Parser₄ A
 fail = zeroP
 
-fail' : {A : Set} → A → Parser₄ A
-fail' = zeroP'
-
 
 {-
--- "satisfy" from Schirmer's "Parsers All the Way Down?"
--- which is the same as "satisfy" from [5]
+-- "satisfy" from [3]
+-- which is the same as "satisfy" from [4]
 -}
 
 satisfy' : (P : Char → Bool) → List Char → List (Char × String)
@@ -367,7 +167,7 @@ parseUpper : Parser₄ Char
 parseUpper x = satisfy isUpper x
 
 {-
--- "literal" from Schirmer's "Parsers All the Way Down?"
+-- "literal" from [3]
 literal : Parser₄ Char
 -}
 
@@ -377,7 +177,7 @@ charEqual c₁ c₂ = primStringEquality (primShowChar c₁) (primShowChar c₂)
 parseChar : Char → Parser₄ Char
 parseChar c x = satisfy (charEqual c) x
 
--- this is the same as "literal" from [5]
+-- this is the same as "literal" from [4]
 literal : Char → Parser₄ Char
 literal = parseChar
 
@@ -386,57 +186,115 @@ fcomp : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} →
 fcomp g f x = g (f x)
 
 {-
--- "alternative" combinator from Schirmer's "Parsers All the Way Down?"
+-- "alternative" combinator from Schirmer's [3]
+-- this is the same as the "alt" combinator from [4]
 -}
 
-list-inl : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → List (A × C) → List ((A ⊹ B) × C)
-list-inl {i} {j} {k} {A} {B} {C} [] = []
-list-inl {i} {j} {k} {A} {B} {C} (x ∷ xs) = ((inl (first x)) , (second x)) ∷ (list-inl xs)
+{-
+ The "alt" combinator in [4] alternates two parsers of the same type.
+ But the "then" combinator from [4] sequences two parsers of different types.
+ So I've implemented ₁ and ₂ versions of the "alt" parser, for alternating
+ parsers of the same type and different types, respectively.
 
-list-inr : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → List (B × C) → List ((A ⊹ B) × C)
-list-inr {i} {j} {k} {A} {B} {C} [] = []
-list-inr {i} {j} {k} {A} {B} {C} (x ∷ xs) = ((inr (first x)) , (second x)) ∷ (list-inr xs)
+ Due to the fact that the "then" combinator in [4] sequences parsers of two
+ different types, but the "alt" combinator does not, leads me to assume
+ that this is only because it's slightly more difficult to build the two-typed
+ alternation than it is to build the singly-typed alternation, because you have
+ to do unpackage things out of the A × String / B × String pairs, inl/inr them
+ into (A ⊹ B) and then re-pair them with the String into (A ⊹ B) × String pairs
+ in order to make it work.
 
-
-alt : ∀ {i j} {A : Set i} {B : Set j} → Parser₄ A → Parser₄ B → Parser₄ (A ⊹ B)
-alt {i} {j} {A} {B} p1 p2 inp = _++_ {i ⊔ j} {(A ⊹ B) × String} (list-inl {i} {j} {lzero} {A} {B} {String} (p1 inp)) (list-inr {i} {j} {lzero} {A} {B} {String} (p2 inp)) 
-
+ The singly-typed alternation combinator is definitely easier to understand and
+ should be examined first before moving on to the generalized alternation 
+ combinator.
+-}
 
 {-
  You can have exclusive alternation, which means that if the first parser
  succeeds then the second parser will not be used, and the only possibilities
  are to obtain either one result or no results.
+-}
+alt-exc₁ : ∀ {i} {A : Set i} → Parser₄ A → Parser₄ A → Parser₄ A
+alt-exc₁ {i} {A} p1 p2 inp = if (not (isEmpty (p1 inp))) then (p1 inp) else (p2 inp)
 
+alt-exc₂ : ∀ {i j} {A : Set i} {B : Set j} → Parser₄ A → Parser₄ B → Parser₄ (A ⊹ B)
+alt-exc₂ {i} {j} {A} {B} p1 p2 inp = if (not (isEmpty (p1 inp))) then (list-inl {i} {j} {lzero} {A} {B} {String} (p1 inp)) else (list-inr {i} {j} {lzero} {A} {B} {String} (p2 inp))
+
+
+{-
  The other option is to have inclusive alternation, which means that both
  parsers can be used, and if they both succeed (as in the case of an
  ambiguous grammar) then it is possible to have multiple results.
 -}
 
+alt-inc₁ : ∀ {i} {A : Set i} → Parser₄ A → Parser₄ A → Parser₄ A
+alt-inc₁ {i} {A} p1 p2 inp = (p1 inp) ++ (p2 inp)
+
+alt-inc₂ : ∀ {i j} {A : Set i} {B : Set j} → Parser₄ A → Parser₄ B → Parser₄ (A ⊹ B)
+alt-inc₂ {i} {j} {A} {B} p1 p2 inp = _++_ {i ⊔ j} {(A ⊹ B) × String} (list-inl {i} {j} {lzero} {A} {B} {String} (p1 inp)) (list-inr {i} {j} {lzero} {A} {B} {String} (p2 inp)) 
+
 {-
--- "next" combinator from Schirmer's "Parsers All the Way Down?"
+ Both the exclusive and inclusive alternation could be made to operate in parallel.
+-}
+
+
+{-
+-- "next" combinator from [3]
 -}
 
 {-
--- "then" combinator from [5]
+-- "then" combinator from [4]
+ [4] uses "list comprehension notation" to express the set of all pairs from each list
+ [5] shows an implementation of this "allPairs" function
+
+ We need something slightly more general than cartesian products of Lists though.
+ For each element in the list produced by the first parser, we must call the second
+ parser on the remaining input string.
+
+ 
 -}
 
-{-
 
--}
-
-{-
 then : ∀ {i j} {A : Set i} {B : Set j} → Parser₄ A → Parser₄ B → Parser₄ (A × B)
-then {i} {j} {A} {B} p1 p2 inp = (p1 inp) (p2 (second (p1 inp)))
--}
+then {i} {j} {A} {B} p1 p2 inp = concat (listmap (λ x → (listmap (λ y → (((first x) , (first y)) , (second y))) (p2 (second x)))) (p1 inp))
 
-{-
--- "using" combinator from Schirmer's "Parsers All the Way Down?"
--}
+
 
 {-
 -- Non-monadic sequencing combinator:
 _seq'_ : {A B : Set} → Parser₄ A → Parser₄ B → Parser₄ (A × B)
 p seq' q = λ inp → ((
+-}
+
+{-
+-- "using" combinator from [3]
+-- same as the "using" combinator from [4]
+-}
+
+
+using' : ∀ {i j} {A : Set i} {B : Set j} → Parser₄ A → (A → B) → Parser₄ B
+using' {i} {j} {A} {B} p f inp = listmap (λ x → ((f (first x)) , (second x))) (p inp)
+
+{-
+-- "many" combinator from [4]
+
+ the "many" combinator from [4] is not structurally recursive!
+ "many p = ((p $then many p) $using cons) $alt (succeed [])"
+
+ How to make it so? By structural recursion on the input string of course!
+ This might not be entirely straight-forward, however, since a parser may
+ consume multiple characters at a time, we might not be able to do structural
+ recursion directly on the List constructors but might have to defer
+ termination proofs to more general size-change arguments.
+-}
+
+{-
+many' : ∀ {i} {A : Set i} → Parser₄ A → Parser₄' (List A)
+many' {i} {A} p [] = ...?
+many' {i} {A} p (x ∷ xs) = ...?
+
+many : ∀ {i} {A : Set i} → Parser₄ A → Parser₄ (List A)
+many {i} {A} p s = many' {i} {A} p (primStringToList s)
 -}
 
 {-
@@ -487,11 +345,7 @@ Parser A = String → Consumed A
     "Parsers All the Way Down?"
     https://www.youtube.com/watch?v=oU2418-8_KI
 
-[4] Bartosz Milewski, "Category Theory for Programmers"
-    Episode 3.2: Kleisli category
-    https://www.youtube.com/watch?v=i9CU4CuHADQ
-
-[5] Graham Hutton
+[4] Graham Hutton
     "Higher Order Functions for Parsing"
     http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.63.3555&rep=rep1&type=pdf
 
@@ -499,7 +353,38 @@ Parser A = String → Consumed A
    -- fail
    -- satisfy
    -- literal
-   -- alt
+   -- alt (singly-typed ; inclusive)
    -- then
+   -- using
+   -- many
+   -- some
+   -- number
+   -- word
+   -- string
+   -- xthen
+   -- thenx
+   -- nibble
+   -- any
+   -- symbol 
+   -- offside
+   -- into
+
+[5] gallais
+    on list-comprehensions in Agda:
+    http://stackoverflow.com/questions/31394404/agda-forming-all-pairs-x-y-x-in-xs-y-in-ys
+    https://gist.github.com/gallais/2e31c020937198a85529
+
+[6] Nils Anders Danielsson
+    "Total Parser Combinators" (in Agda)
+    http://www.cse.chalmers.se/~nad/publications/danielsson-parser-combinators.pdf
+
+[7] Agda Sized Types
+    http://agda.readthedocs.io/en/latest/language/sized-types.html?highlight=sized%20types
+
+[8] Alexandre Agular, Bassel Mannaa
+    Regular Expressions in Agda
+    http://www.cse.chalmers.se/~bassel/report.pdf
+
+
 
 -}

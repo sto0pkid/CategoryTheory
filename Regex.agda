@@ -1,5 +1,6 @@
 module Regex where
 
+open import Agda.Primitive
 open import BaseLogic
 open import Data.Bool
 open import Data.List
@@ -134,11 +135,26 @@ testExpr : Regex
 testExpr = (((char 'f') && (char 'o')) && (char 'o')) || (((char 'b') && (char 'a')) && (char 'r'))
 
 
+-- formal algebraic-structure definition of CFGs
+-- not sure if this is quite suitable for defining derivative-parsing yet.
+record CFG {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
+ field
+  -- non-terminal symbols
+  V : Set i
+  -- terminal symbols
+  Σ : Set j
+  -- production rules
+  R : List (V × (List (V ∪ Σ)))
+  -- start-symbol.
+  S : V
+
+
+
 
 {-
 
-[1] Regular Expressions in Agda
-    Alexandre Agular, Bassel Mannaa
+[1] Alexandre Agular, Bassel Mannaa
+    "Regular Expressions in Agda"
     http://www.cse.chalmers.se/~bassel/report.pdf
 
 [2] Sized Types; Agda Docs
@@ -169,4 +185,37 @@ testExpr = (((char 'f') && (char 'o')) && (char 'o')) || (((char 'b') && (char '
 [8] Might, Matthew; Darais, David; Spiewak, Daniel
     "Parsing with Derivatives"
     http://matt.might.net/papers/might2011derivatives.pdf
+
+[9] Firsov, Denis; Uustalo, Tarmo
+    "Certified Normalization of Context-Free Grammars"
+    http://cs.ioc.ee/~denis/cert-norm/cfg-norm.pdf
+
+[10] Firsov, Denis; Uustalo, Tarmo
+     "Certified CYK parsing of context-free languages"
+     http://cs.ioc.ee/~tarmo/papers/nwpt12-jlamp.pdf
+
+[11] Younger, Daniel H.
+     "Recognition and Parsing of Context-Free Languages in Time n³"
+     http://ac.els-cdn.com/S001999586780007X/1-s2.0-S001999586780007X-main.pdf?_tid=7fd9ab1e-cc96-11e6-b64e-00000aacb35e&acdnat=1482885924_a614ff04651eedb0a4939386da93f45e
+
+[12] Valiant, Leslie
+     "General context-free recognition in less than cubic time"
+     http://repository.cmu.edu/cgi/viewcontent.cgi?article=2751&context=compsci
+
+[13] Chomsky, Noam
+     "On Certain Formal Properties of Grammars"
+     http://ac.els-cdn.com/S0019995859903626/1-s2.0-S0019995859903626-main.pdf?_tid=791917b4-cc97-11e6-b90d-00000aab0f02&acdnat=1482886342_e7ebc938aed5cf9420ca550e14a7201b
+
+[14] Firsov, Denis; Uustalo, Tarmo
+     "Certified Parsing of Regular Languages"
+     http://cs.ioc.ee/~tarmo/papers/cpp13.pdf
+
+[15] Danielsson, Nils Anders
+     "Total Parser Combinators"
+     http://www.cse.chalmers.se/~nad/publications/danielsson-parser-combinators.pdf
+
+[16] Nolen, David
+     "David Nolen on Parsing with Derivatives"
+     http://paperswelove.org/2016/video/david-nolen-parsing-with-derivatives/
+
 -}

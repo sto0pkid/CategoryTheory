@@ -148,6 +148,18 @@ record CFG {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
   -- start-symbol.
   S : V
 
+{-
+ take the derivative with respect to a terminal symbol.
+ the only tricky part is the left-recursion and nullability
+ we also need to extend this to a parser instead of just a 
+ recognizer.
+-}
+
+{-
+ After CFGs are handled, we can parse sem-web langs.
+ It would be good to extend this to derivatives of parser-combinators
+ though in order to finish up the theoretical side of parsing
+-}
 
 
 
@@ -218,4 +230,7 @@ record CFG {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
      "David Nolen on Parsing with Derivatives"
      http://paperswelove.org/2016/video/david-nolen-parsing-with-derivatives/
 
+[17] Friedman, D.P.; Wise, D.S.
+     "Cons should not evaluate its arguments"
+     http://www.cs.indiana.edu/pub/techreports/TR44.pdf
 -}

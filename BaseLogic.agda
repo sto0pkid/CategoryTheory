@@ -64,6 +64,9 @@ data _≡_ {α} {A : Set α} : A → A → Set α where
 ≡-⇶ : ∀ {α} {A : Set α} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
 ≡-⇶ {α} {A} {x} {.x} {.x} (refl .x) (refl .x) = refl x
 
+_↔_ : ∀ {i j} (A : Set i) (B : Set j) → Set (i ⊔ j)
+A ↔ B = (A → B) ∧ (B → A)
+
 [x≡y]→[fx≡fy] : ∀ {α β} {A : Set α} {B : Set β} (f : A → B) → (x y : A) → x ≡ y → (f x) ≡ (f y)
 [x≡y]→[fx≡fy] {α} {β} {A} {B} f x .x (refl .x) = refl (f x)
 

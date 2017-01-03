@@ -6,13 +6,92 @@ open import Data.Bool
 open import Data.List
 open import Data.String
 
+
+--∥_∥ 
+
 {-
-Formal language:
-a set of strings
-(over an alphabet)
+ Often-times we don't care which proof is given for a proposition, we
+ only care whether the proposition is true. In those cases, we don't
+ really care about the proposition itself, call it A, what we care about
+ is Irr A.
+-}
+record Irr {α} {A : Set α} : Set α where
+ constructor irrelefy
+ field
+  .x : A
+
+{-
+  An alphabet is a set of characters. What are characters?
+  I don't know what are the bounds of characterness & non-characterness,
+  but it seems the only necessary property of characters for the
+  purposes of recognizers/parsers is decidable equality. So we might
+  just define an alphabet as a set with decidable equality.
 -}
 
+{-
+ What is decidable equality? A proposition P : A → Set is decidable if
+ there is a total computable function f : A → Bool that decides inhabitation
+ in P.
+-}
 
+Decidable : ∀ {i j} → {A : Set i} → (P : A → Set j) → Set (j ⊔ i)
+Decidable {i} {j} {A} P = ∃ f ∈ (A → Bool) , ((x : A) → ((((f x) ≡ true) → P x) ∧ (((f x) ≡ false) → (P x → ⊥))))
+
+Decidable' : ∀ {i j} → {A : Set i} → (P : A → Set j) → Set (j ⊔ i)
+Decidable' {i} {j} {A} P = ∃ f ∈ (A → Bool) , ((x : A) → ((((f x) ≡ true) ↔ P x) ∧ (((f x) ≡ false) ↔ (P x → ⊥))))
+
+Decidable₂ : ∀ {i j k} → {A : Set i} → {B : Set j} → (P : A → B → Set k) → Set (k ⊔ (j ⊔ i))
+Decidable₂ {i} {j} {k} {A} {B} P = ∃ f ∈ (A → B → Bool) , ((x : A) → (y : B) → ((((f x y) ≡ true) → P x y) ∧ (((f x y) ≡ false) → (P x y → ⊥))))
+
+Decidable₂' : ∀ {i j k} → {A : Set i} → {B : Set j} → (P : A → B → Set k) → Set (k ⊔ (j ⊔ i))
+Decidable₂' {i} {j} {k} {A} {B} P = ∃ f ∈ (A → B → Bool) , ((x : A) → (y : B) → ((((f x y) ≡ true) ↔ P x y) ∧ (((f x y) ≡ false) ↔ (P x y → ⊥))))
+
+{-
+ What are we really asking for with our alphabet, though? We don't need to bring up anything
+ regarding propositional equality at all, we can use an arbitrary equivalence relation on the
+ the set of characters as long as we can decide whether or not two characters are in the same
+ equivalence class.
+
+ A set equipped with an equivalence relation is a setoid, so we can perhaps just define an
+ alphabet to be a setoid.
+-}
+
+isReflexive : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
+isReflexive {i} {A} r = (x : A) → (r x x ≡ true)
+
+isSymmetric : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
+isSymmetric {i} {A} r = (x y : A) → (r x y ≡ true) → (r y x ≡ true)
+
+isSymmetric' : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
+isSymmetric' {i} {A} r = (x y : A) (z : Bool) → (r x y ≡ z) → (r y x ≡ z)
+
+isTransitive : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
+isTransitive {i} {A} r = (x y z : A) → (r x y ≡ true) → (r y z ≡ true) → (r x z ≡ true)
+
+isEquivalenceRelation : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
+isEquivalenceRelation {i} {A} r = (isReflexive r) ∧ ((isSymmetric r) ∧ (isTransitive r))
+
+record Setoid {i} : Set (lsuc i) where
+ field
+  elems : Set i
+  equiv : ∃ r ∈ (elems → elems → Bool) , (isEquivalenceRelation r)
+
+Alphabet : ∀ {i} → Set (lsuc i)
+Alphabet = Setoid
+
+-- A string is a sequence of characters from an alphabet A
+-- What is a sequence?
+
+-- A language is a set of strings.
+Language : Set₁
+Language = String → Set
+
+
+-- The empty language, ⊘ contains no strings
+-- The null language, ε contains only the length-zero "null" string
+
+-- Given an alphabet A, there's a singleton language for every
+-- character in the alphabet.
 
 
 data Regex : Set where
@@ -78,6 +157,19 @@ record DFA : Set where {
 
 -}
 
+record DFA {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
+ field
+  -- how to impose finiteness
+  Q  : Set i
+  Σ  : Set j
+  δ  : Q × Σ → Q
+  q₀ : Q
+  -- this is a type-theoretic representation of a subset of Q
+  F  : Q → Set
+
+{-
+ Moore machines vs. Mealy machines
+-}
 
 {-
 Myhill-Nerode theorem
@@ -122,6 +214,45 @@ D'' (c ∷ cs) r = D'' cs (D c r)
 D' : String → Regex → Regex
 D' s r = D'' (primStringToList s) r
 
+{-
+ Set-theoretically, the definition of the derivative is as such:
+ D c L ≡ { w | cw ∈ L }
+
+ How do we get from this to the definition given here?
+ How would we "prove" that the derivative is defined "correctly"?
+-}
+
+{-
+ Empty language
+ ⊘        ≡ {}
+
+ Null language
+ ε        ≡ {""}
+
+ If x ∈ Char, then:
+ (char x) ≡ {x}
+
+ L₁ || L₂ ≡ L₁ ∪ L₂
+
+ L₁ && L₂ ≡ {w₁w₂ | w₁ ∈ L₁ ∧ w₂ ∈ L₂}
+
+ 
+ 
+ When i ≠ 0,
+ L^i       ≡ L && L^(i-1)
+
+ What about L^0?
+
+ If we're to assume that "" ∈ L*, for all L, then it must be the 
+ case that ⊘^0 ≡ ε. 
+
+ ⊘^0       ≡ ε
+ ⊘^i       ≡ ⊘ , where i ≠ 0.
+
+ L*       ≡ ⋃ {i ∈ [0,∞)} L^i
+
+-}
+
 D₂ : Char → Regex → Regex
 D₂ c ⊘ = ⊘
 D₂ c ε = ⊘
@@ -129,7 +260,202 @@ D₂ c (char x) = if (charEquality c x) then ε else ⊘
 D₂ c (L₁ || L₂) = (D c L₁) || (D c L₂)
 D₂ c (L *) = (D c L) && (L *)
 D₂ c (L₁ && L₂) = if (δ' L₁) then (((D₂ c L₁) && L₂) || (D₂ c L₂)) else ((D₂ c L₁) && L₂)
--- i still don't really understand the && case
+
+{-
+ Case 1: ⊘
+ --------------------------------
+ D c ⊘ = { w | cw ∈ ⊘ }
+
+ D c {} = { w | cw ∈ {}}
+
+ ∄ w ∈ String , cw ∈ ⊘
+
+ So:
+ D c ⊘ ≡ ⊘ 
+-}
+
+{-
+ Case 2: ε
+ ----------------------------------
+ D c ε = { w | cw ∈ ⊘}
+
+ D c ε = { w | cw ∈ {""}} 
+
+ ∄ w ∈ String , cw ∈ ε
+
+ So:
+ D c ε ≡ ⊘
+-}
+
+{-
+ Case 3: (char x)
+ ------------------------------------------
+ D c (char x) = {w | cw ∈ (char x)}
+
+ If c ≠ x, then ∄ w ∈ String , cw ∈ (char x)
+ If c = x, then cε ≡ c ∈ (char x)
+-}
+
+{-
+ Case 4: L₁ || L₂
+ ------------------------------------------
+ D c (L₁ || L₂) = {w | cw ∈ (L₁ || L₂)}
+                = {w | cw ∈ L₁ ∪ L₂}
+                = {w | cw ∈ L₁} ∪ {w | cw ∈ L₂}
+                = (D c L₁) ∪ (D c L₂)
+                = (D c L₁) || (D c L₂)
+-}
+
+{-
+ Case 5: L*
+ ------------------------------------------
+ D c L*  = {w | cw ∈ L*}
+         = {w | cw ∈ ⋃ {i ∈ [0,∞)} L^i}
+         = ⋃ {i ∈ [0,∞)} {w | cw ∈ L^i}
+         = {w | cw ∈ ε} ∪ {⋃ {i ∈ [1,∞)} {w | cw ∈ L^i}}
+         = ⊘ ∪ {⋃ {i ∈ [1,∞)} {w | cw ∈ L^i}}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ L^i}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ L && L^(i-1)}
+ Assume L = ⊘, then
+ D c L*  = ⋃ {i ∈ [1,∞)} {w | cw ∈ ⊘ && ⊘^(i-1)}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ ⊘}
+         = ⋃ {i ∈ [1,∞)} ⊘
+         = ⊘
+ 
+ Assume L = ε, then
+ D c L*  = ⋃ {i ∈ [1,∞)} {w | cw ∈ ε && ε^(i-1)}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ ε && ε}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ ε}
+         = ⋃ {i ∈ [1,∞)} ⊘
+         = 
+
+ Assume L non-empty and L ≠ ε, then we can split it
+ into two cases, either "" ∈ L, or "" ∉ L.
+
+ Case 1: Assume "" ∉ L, then
+  D c L*  = ⋃ {i ∈ [1,∞)} {w | cw ∈ L && L^(i-1)}
+
+  Since "" ∉ L, we know that if x ∈ && L^(i-1), it must
+  have the form w₁x' where w₁ ≠ "" ∈ L, and x' ∈ L^(i-1).
+  Since w₁ ≠ "", then there exists c' ∈ Char and k ∈ String
+  such that w₁ = c'k, and w₁x' = c'kx'. We can split this
+  up further into two cases:
+  Case 1a: Assume c = c', then D c x = D c c'kx' = D c ckx = kx'
+  Case 1b: Assume c ≠ c', then D c x = D c c'kx' = ⊘
+
+ Case 2: Assume "" ∈ L, then
+  L = ε ∪ L', where "" ∉ L.
+  D c L* = ⋃ {i ∈ [1,∞)} {w | cw ∈ (ε ∪ L') && (ε ∪ L')^(i-1)}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ (ε && (ε ∪ L')^(i-1)) ∪ (L' && (ε ∪ L')^(i-1))}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ ((ε ∪ L')^(i-1)) ∪ (L' && (ε ∪ L')^(i-1))}
+
+  (ε ∪ L')^i = ⋃ {j ∈ [0,i]} L'^j
+
+  D c L* = ⋃ {i ∈ [1,∞)} {w | cw ∈ (⋃ {j ∈ [0,i]} L'^j) ∪ (L' && (⋃ {j ∈ [0,i]} L'^j))}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ (⋃ {j ∈ [0,i]} L'^j) ∪ (⋃ {j ∈ [0,i]} L' && L'^j)}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ (⋃ {j ∈ [0,i]} L'^j) ∪ (⋃ {j ∈ [0,i]} L'^(j+1))}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ (⋃ {j ∈ [0,i]} L'^j) ∪ (⋃ {j ∈ [1,i+1]} L'^j)}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ (⋃ {j ∈ [0,i]} L'^j) ∪ (⋃ {j ∈ [1,i]} L'^(j+1)) ∪ L'^(i+1)}
+
+  We know that x ∪ x = x, so: 
+  D c L* = ⋃ {i ∈ [1,∞)} {w | cw ∈ L'^0 ∪ (⋃ {j ∈ [1,i]} L'^j) ∪ (⋃ {j ∈ [1,i]} L'^j) ∪ L'^(i+1)}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ L'^0 ∪ (⋃ {j ∈ [1,i]} L'^j) ∪ L'^(i+1)}
+         = ⋃ {i ∈ [1,∞)} {w | cw ∈ ⋃ {j ∈ [0,i+1]} L'^j}
+         = ⋃ {i ∈ [1,∞)} {j ∈ [0,i+1]} {w | cw ∈ L'^j}
+         = ⋃ {i ∈ [0,∞)} {w | cw ∈ L'^i}
+         = {w | cw ∈ ε} ∪ (⋃ i ∈ [1,∞)} {w | cw ∈ L'^i}
+         = ⊘ ∪ (⋃ i ∈ [1,∞)} {w | cw ∈ L'^i})
+         = (⋃ i ∈ [1,∞)} {w | cw ∈ L' && L'^(i-1)}
+         = (⋃ i ∈ [0,∞)} {w | cw ∈ L' && L'^i}
+         = {w | cw ∈ L' && L'*}
+  since we know that "" ∉ L', then {w | cw ∈ L' && L'*} = {w | cw ∈ L'} && L'*
+  since L = ε ∪ L', we know that L'* = L*
+  and {w | cw ∈ L'} = {w | cw ∈ L} = D c L, so:
+
+  D c L* = (D c L) && L*
+  
+          
+-}
+
+{-
+ Case 6: L₁ && L₂
+ -------------------------------------------
+ D c (L₁ && L₂) = {w | cw ∈ (L₁ && L₂)}
+               L ≡ L₁ && L₂
+ 
+ If we have w₁ ∈ L₁ and w₂ ∈ L₂, then w₁w₂ ∈ L₁ && L₂. How do we strip
+ the first character off of this? What is the first character of w₁w₂?
+ It will be the first character of w₁, except in the case that w₁ ≡ ε,
+ in which case it will be the first character of w₂. 
+
+ We can split the situation into two cases, the case where L₁ contains
+ the empty string, and the case where it doesn't. (How can we homogenize
+ the two cases?)
+
+ If L₁ doesn't contain the empty string, then the first character in a
+ word w₁w₂ ∈ L₁ && L₂, where w₁ ∈ L₁ and w₂ ∈ L₂ will come from w₁
+           D c L ≡ (D c L₁) && L₂
+
+ If L₁ does contain the empty string, then
+              L₁ ≡ ε ∪ L₁' ,
+ where L₁' doesn't contain the empty string. 
+
+ Substituting this back into the definition for L:
+               L ≡ (ε ∪ L₁') && L₂
+
+ && distributes over ∪, so:
+               L ≡ (ε && L₂) ∪ (L₁' && L₂)
+ (but how do we know that we should do this?)
+ 
+         ε && L₂ ≡ L₂
+               L ≡ L₂ ∪ (L₁' && L₂)
+
+ At this point we have L decomposed into a form where we know how to
+ compute the D c L in terms of the subcomponents of L:
+           D c L ≡ D c (L₂ ∪ (L₁' && L₂)
+
+ We can apply the case for ∪:
+           D c L ≡ (D c L₂) ∪ (D c (L₁' && L₂))
+ D c L₂ is already simplified as far as possible/necessary, so we can
+ move on to D c (L₁' && L₂).
+
+ We know by definition that L₁' doesn't contain the empty string, and
+ we've already derived the case for D c (X && Y) where X doesn't contain
+ the empty string, so:
+ D c (L₁' && L₂) ≡ (D c L₁) && L₂
+
+ substituting this back into the definition for L, we finish the
+ derivation for the case that L₁ contains the empty string. 
+           D c L ≡ (D c L₂) ∪ ((D c L₁') && L₂)
+  
+-}
+
+{-
+Rules to prove:
+ -- Identity
+ ε && L   ≡ L
+ L && ε   ≡ L
+ ⊘ || L   ≡ L
+ 
+ -- Nilpotence
+ ⊘ && L   ≡ ⊘
+ L && ⊘   ≡ ⊘
+
+ -- Idempotence
+ L ∪ L    ≡ L
+
+ -- Symmetry
+ L₁ || L₂ ≡ L₂ || L₁
+
+ -- Distributivity
+ L₁ && (L₂ || L₃) ≡ (L₁ && L₂) || (L₁ && L₃)
+ (L₁ || L₂) && L₃ ≡ (L₁ && L₃) || (L₂ && L₃)
+
+ -- Associativity
+ (L₁ || L₂) || L₃ ≡ L₁ || (L₂ || L₃)
+ (L₁ && L₂) && L₃ ≡ L₁ && (L₂ && L₃)
+
+-}
 
 testExpr : Regex
 testExpr = (((char 'f') && (char 'o')) && (char 'o')) || (((char 'b') && (char 'a')) && (char 'r'))
@@ -165,13 +491,23 @@ record CFG {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
  How this corresponds to regexes:
  you can have an empty grammar, which is the grammar with no
  production rules.
+
  you can have the grammar that accepts only the empty string
- the char constructor is replaced by terminals
+ if the only terminal symbol contained in the grammar is the 
+ "empty-string terminal", ε, then the grammar only accepts the
+ empty string. 
+
+ the char constructor is replaced by the non-ε terminals
+
  the RHS of each production rule is a concatenation of the items in the list
+
  alternation is handled by having multiple production rules for a given
  non-terminal
- kleene star of the RHS of a production rule R → A corresponds to adding
- another rule R → ε and changing the first rule to R → A R
+
+ kleene star of the RHS of a production rule R → A corresponds to the
+ rules: 
+  R* → ε
+  R* → A R*
 -}
 
 {-
@@ -203,8 +539,9 @@ record CFG-noLR {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
 
 
 {-
- we also need to extend this to a parser instead of just a 
- recognizer.
+ we also need to extend this to a parser instead of just a recognizer.
+ Can't quite so easily define the derivative of parser combinators.
+
 -}
 
 {-
@@ -217,6 +554,10 @@ record CFG-noLR {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
  Can we make the derivative easier by first translating into Chomsky
  Normal Form to avoid the left-recursion issues, or will we run into
  issues with nullability even in that case?
+-}
+
+{-
+ We should also be able to take the derivative of an automaton.
 -}
 
 {-
@@ -254,8 +595,16 @@ record CFG-noLR {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
     "Parsing with Derivatives"
     http://matt.might.net/papers/might2011derivatives.pdf
 
+    Matthew Might explains the paper on video:
+    https://www.youtube.com/watch?v=ZzsK8Am6dKU
+
 [9] Firsov, Denis; Uustalo, Tarmo
     "Certified Normalization of Context-Free Grammars"
+
+    Code:
+    http://cs.ioc.ee/~denis/cert-norm/
+
+    Paper:
     http://cs.ioc.ee/~denis/cert-norm/cfg-norm.pdf
 
 [10] Firsov, Denis; Uustalo, Tarmo
@@ -282,6 +631,9 @@ record CFG-noLR {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
      "Total Parser Combinators"
      http://www.cse.chalmers.se/~nad/publications/danielsson-parser-combinators.pdf
 
+     Video: 
+     https://vimeo.com/16541551
+
 [16] Nolen, David
      "David Nolen on Parsing with Derivatives"
      http://paperswelove.org/2016/video/david-nolen-parsing-with-derivatives/
@@ -289,4 +641,34 @@ record CFG-noLR {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
 [17] Friedman, D.P.; Wise, D.S.
      "Cons should not evaluate its arguments"
      http://www.cs.indiana.edu/pub/techreports/TR44.pdf
+
+[18] Rutten, J.J.M.M.
+     "Automata and Coinduction (an exercise in coalgebra)"
+     http://www.math.ucla.edu/~znorwood/290d.2.14s/papers/Rutten-v1.pdf     
+
+[19] "Parsing with Derivatives", ESOP reviews 
+     http://matt.might.net/papers/reviews/esop2010-derivatives.txt
+
+[20] Rutten, J.J.M.M.
+     "Behavioural differential equations: a coinductive calculus of
+     streams, automata, and power series"
+     http://homepages.cwi.nl/~janr/papers/files-of-papers/tcs308.pdf
+
+[21] Chomsky, N; Schutzenberger M. P
+     "The Algebraic Theory of Context-Free Languages"
+     http://www-igm.univ-mlv.fr/~berstel/Mps/Travaux/A/1963-7ChomskyAlgebraic.pdf
+
+[22] Publications of J.J.M.M. Rutten
+     http://homepages.cwi.nl/~janr/papers/
+
+[23] Hansen, Helle Hvid; Costa, David; Rutten, Jan
+     "Synthesis of Mealy Machines Using Derivatives"
+     http://homepages.cwi.nl/~janr/papers/files-of-papers/HCR06.pdf
+
+[24] Abel, Andreas; Chapman, James
+     "Normalization by Evaluation in the Delay Monad:
+      An Extended Case Study for Coinduction via Copatterns and Sized Types"
+     https://pdfs.semanticscholar.org/a714/8780d3c54fff800f6da558bfbb4ddc170d2a.pdf
+
+
 -}

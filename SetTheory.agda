@@ -4,15 +4,21 @@ open import Agda.Primitive
 open import BaseLogic
 open import Data.Bool
 
--- Subsets:
--- Can't switch over set-membership with definition
+{-
+   Subsets:
+   Can't switch over set-membership with this definition. What we can do with this definition
+   though is define a subset by a proposition that it's elements must satisfy in order to be
+   called members of the subset.
+-}
 Powerset : ∀ {α} (A : Set α) → Set (lsuc lzero ⊔ α)
 Powerset {α} A = A → Set
 
--- A subset S ⊂ A is given by S : Powerset A
--- An object a : A is an element of the subset if (S a) has a proof
--- The set of elements of the subset is given by:
--- ∃ a ∈ A , ∥ S a ∥
+{-
+   A subset S ⊂ A is given by S : Powerset A
+   An object a : A is an element of the subset if (S a) has a proof
+   The set of elements of the subset is given by:
+   ∃ a ∈ A , ∥ S a ∥
+-}
 
 [_||_⊆_] : ∀ {α} (X : Set α) (A B : Powerset X) → Set α
 [ X || A ⊆ B ] = (x : X) → A x → B x
@@ -20,12 +26,22 @@ Powerset {α} A = A → Set
 [_||_⊂_] : ∀ {α} (X : Set α) (A B : Powerset X) → Set α
 [ X || A ⊂ B ] = ((x : X) → A x → B x) ∧ (∃ x ∈ X , ((A x → ⊥) ∧ B x))
 
+
 ⊆-trans : ∀ {α} {X : Set α} {A B C : Powerset X} → [ X || A ⊆ B ] → [ X || B ⊆ C ] → [ X || A ⊆ C ]
 ⊆-trans {α} {X} A⊆B B⊆C x Ax = B⊆C x (A⊆B x Ax)
 
--- Subsets with decidable set-membership.
+{- 
+   We can switch over set-membership with this definition. This defines a subset of A by a function
+   A → Bool which returns "true" for elements in the subset and "false" for elements in the complement
+   of the subset. Whereas `Powerset` defines subsets propositionally, `Powerset'` defines subsets
+   algorithmically.
+-} 
 Powerset' : ∀ {α} (A : Set α) → Set α
 Powerset' {α} A = A → Bool
+
+
+
+
 
 FullSet' : ∀ {α} (A : Set α) → Powerset' A
 FullSet' A = λ x → true

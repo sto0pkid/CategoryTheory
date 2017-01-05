@@ -2,6 +2,7 @@ module FormalLanguage where
 
 open import Agda.Primitive
 open import BaseLogic
+open import Relations
 open import Data.Bool
 open import Data.List
 open import SetTheory
@@ -31,21 +32,6 @@ open import SetTheory
  an equivalence relation `glyph → glyph → Bool`. A set equipped with an equivalence relation is called
  a Setoid, so:
 -}
-
-isReflexive : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isReflexive {i} {A} r = (x : A) → (r x x ≡ true)
-
-isSymmetric : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isSymmetric {i} {A} r = (x y : A) → (r x y ≡ true) → (r y x ≡ true)
-
-isSymmetric' : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isSymmetric' {i} {A} r = (x y : A) (z : Bool) → (r x y ≡ z) → (r y x ≡ z)
-
-isTransitive : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isTransitive {i} {A} r = (x y z : A) → (r x y ≡ true) → (r y z ≡ true) → (r x z ≡ true)
-
-isEquivalenceRelation : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isEquivalenceRelation {i} {A} r = (isReflexive r) ∧ ((isSymmetric r) ∧ (isTransitive r))
 
 record Setoid {i} : Set (lsuc i) where
  field
@@ -98,5 +84,5 @@ String A = List (Setoid.elems A)
  More precisely: it is a subset of the set of strings over some alphabet.
 -}
 
-Language : ∀ {i} (A : Alphabet {i}) → Set i
-Language A = Powerset' (String A)
+Language : ∀ {i} (A : Alphabet {i}) → Set (lsuc lzero ⊔ i)
+Language A = Powerset (String A)

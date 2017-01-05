@@ -79,6 +79,24 @@ record Setoid {i} : Set (lsuc i) where
 Alphabet : ∀ {i} → Set (lsuc i)
 Alphabet = Setoid
 
+-- Now a "character" is an equivalence class in this Setoid.
+-- How do we talk about equivalence classes?
+-- We can certainly talk about the equivalence class *of* a particula
+-- element in the Setoid.
+
+EquivClass : ∀ {i} (S : Setoid {i}) (x : Setoid.elems S) → Set i
+EquivClass {i} S x = ∃ x' ∈ S-elems , ((x' == x) ≡ true)
+ where
+  S-elems : Set i
+  S-elems = Setoid.elems S
+ 
+  _==_ : S-elems → S-elems → Bool
+  _==_ = π₁ (Setoid.equiv S) 
+   
+-- Can we define equivalence classes without doing it relative to
+-- a particular element?
+-- Should we?
+
 -- A string is a sequence of characters from an alphabet A
 -- What is a sequence?
 
@@ -105,6 +123,66 @@ data Regex : Set where
  _&&_  : Regex → Regex → Regex {- language obtained by concatenation of a string
                                  of e₁ with a string of e₂ -}
 
+
+
+{-
+Rules to prove:
+ -- Identity
+ ε && L   ≡ L
+ L && ε   ≡ L
+ ⊘ || L   ≡ L
+ 
+ -- Nilpotence
+ ⊘ && L   ≡ ⊘
+ L && ⊘   ≡ ⊘
+
+ -- Idempotence
+ L ∪ L    ≡ L
+
+ -- Symmetry
+ L₁ || L₂ ≡ L₂ || L₁
+
+ -- Distributivity
+ L₁ && (L₂ || L₃) ≡ (L₁ && L₂) || (L₁ && L₃)
+ (L₁ || L₂) && L₃ ≡ (L₁ && L₃) || (L₂ && L₃)
+
+ -- Associativity
+ (L₁ || L₂) || L₃ ≡ L₁ || (L₂ || L₃)
+ (L₁ && L₂) && L₃ ≡ L₁ && (L₂ && L₃)
+
+-}
+
+
+{-
+ Empty language
+ ⊘        ≡ {}
+
+ Null language
+ ε        ≡ {""}
+
+ If x ∈ Char, then:
+ (char x) ≡ {x}
+
+ L₁ || L₂ ≡ L₁ ∪ L₂
+
+ L₁ && L₂ ≡ {w₁w₂ | w₁ ∈ L₁ ∧ w₂ ∈ L₂}
+
+ 
+ 
+ When i ≠ 0,
+ L^i       ≡ L && L^(i-1)
+
+ What about L^0?
+
+ If we're to assume that "" ∈ L*, for all L, then it must be the 
+ case that ⊘^0 ≡ ε. 
+
+ ⊘^0       ≡ ε
+ ⊘^i       ≡ ⊘ , where i ≠ 0.
+
+ L*       ≡ ⋃ {i ∈ [0,∞)} L^i
+
+-}
 
 {-
  But why should regular expressions be limited to strings of Chars?
@@ -180,6 +258,13 @@ DFAs and regexps are equivalent
 DFAs and NFAs are equivalent
 -}
 
+{-
+ δ L = ε iff "" ∈ L
+       ⊘ iff "" ∉ L
+
+ Can we prove the following definition to be "correct"?
+-}
+
 δ : Regex → Regex
 δ ⊘ = ⊘
 δ ε = ε
@@ -188,6 +273,13 @@ DFAs and NFAs are equivalent
 δ (L₁ && L₂) = (δ L₁) && (δ L₂)
 δ (L *) = ε
 
+
+{-
+ δ' L = true  iff "" ∈ L
+        false iff "" ∉ L
+
+ Can we prove the following definition to be "correct"?
+-}
 δ' : Regex → Bool
 δ' ⊘ = false
 δ' ε = true
@@ -220,37 +312,6 @@ D' s r = D'' (primStringToList s) r
 
  How do we get from this to the definition given here?
  How would we "prove" that the derivative is defined "correctly"?
--}
-
-{-
- Empty language
- ⊘        ≡ {}
-
- Null language
- ε        ≡ {""}
-
- If x ∈ Char, then:
- (char x) ≡ {x}
-
- L₁ || L₂ ≡ L₁ ∪ L₂
-
- L₁ && L₂ ≡ {w₁w₂ | w₁ ∈ L₁ ∧ w₂ ∈ L₂}
-
- 
- 
- When i ≠ 0,
- L^i       ≡ L && L^(i-1)
-
- What about L^0?
-
- If we're to assume that "" ∈ L*, for all L, then it must be the 
- case that ⊘^0 ≡ ε. 
-
- ⊘^0       ≡ ε
- ⊘^i       ≡ ⊘ , where i ≠ 0.
-
- L*       ≡ ⋃ {i ∈ [0,∞)} L^i
-
 -}
 
 D₂ : Char → Regex → Regex
@@ -327,7 +388,7 @@ D₂ c (L₁ && L₂) = if (δ' L₁) then (((D₂ c L₁) && L₂) || (D₂ c L
          = ⋃ {i ∈ [1,∞)} {w | cw ∈ ε && ε}
          = ⋃ {i ∈ [1,∞)} {w | cw ∈ ε}
          = ⋃ {i ∈ [1,∞)} ⊘
-         = 
+         = ⊘
 
  Assume L non-empty and L ≠ ε, then we can split it
  into two cases, either "" ∈ L, or "" ∉ L.
@@ -374,6 +435,8 @@ D₂ c (L₁ && L₂) = if (δ' L₁) then (((D₂ c L₁) && L₂) || (D₂ c L
 
   D c L* = (D c L) && L*
   
+ Now we have to retroactively fit all the other cases to this form
+ in order to get a general formula.
           
 -}
 
@@ -428,33 +491,6 @@ D₂ c (L₁ && L₂) = if (δ' L₁) then (((D₂ c L₁) && L₂) || (D₂ c L
  derivation for the case that L₁ contains the empty string. 
            D c L ≡ (D c L₂) ∪ ((D c L₁') && L₂)
   
--}
-
-{-
-Rules to prove:
- -- Identity
- ε && L   ≡ L
- L && ε   ≡ L
- ⊘ || L   ≡ L
- 
- -- Nilpotence
- ⊘ && L   ≡ ⊘
- L && ⊘   ≡ ⊘
-
- -- Idempotence
- L ∪ L    ≡ L
-
- -- Symmetry
- L₁ || L₂ ≡ L₂ || L₁
-
- -- Distributivity
- L₁ && (L₂ || L₃) ≡ (L₁ && L₂) || (L₁ && L₃)
- (L₁ || L₂) && L₃ ≡ (L₁ && L₃) || (L₂ && L₃)
-
- -- Associativity
- (L₁ || L₂) || L₃ ≡ L₁ || (L₂ || L₃)
- (L₁ && L₂) && L₃ ≡ L₁ && (L₂ && L₃)
-
 -}
 
 testExpr : Regex
@@ -554,11 +590,49 @@ record CFG-noLR {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
  Can we make the derivative easier by first translating into Chomsky
  Normal Form to avoid the left-recursion issues, or will we run into
  issues with nullability even in that case?
+
+ Nullability is trivial in CNF. In CNF, a language contains the empty
+ string iff the production rule S → ε is present.
+
+ How do we take the derivative of a CFG in CNF wrt a character c?
+ If the CFG contains the rule S → ε, then remove it.
+ If the CFG contains the rule S → x, where x is a terminal symbol,
+  then remove it if c ≠ x and change it to S → ε if c ≡ x.
+ If the CFG contains the rule S → AB, where A and B are non-terminals,
+ then repeat the process with A instead of S.
 -}
 
 {-
  We should also be able to take the derivative of an automaton.
 -}
+
+{-
+ Relation of CFGs to non-deterministic pushdown automata
+-}
+
+{-
+ Chomsky Normal Form
+ Backus-Naur Form
+ Greibach Normal Form
+-}
+
+{-
+ CYK algorithm
+ Valiant's algorithm
+ Early parser
+-}
+
+{-
+Not all CFGs are good. The following grammar does not accept any
+finite strings.
+L → L ∘ x
+
+Here it's modified to be able to accept a finite sequence of x's.
+L → L ∘ x
+L → ε
+
+-}
+
 
 {-
 
@@ -669,6 +743,22 @@ record CFG-noLR {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
      "Normalization by Evaluation in the Delay Monad:
       An Extended Case Study for Coinduction via Copatterns and Sized Types"
      https://pdfs.semanticscholar.org/a714/8780d3c54fff800f6da558bfbb4ddc170d2a.pdf
+
+[25] 
+     "Parsing with derivatives: Introduction"
+     https://maniagnosis.crsr.net/2012/04/parsing-with-derivatives-introduction.html
+
+[26] Andersen, Leif
+     "Parsing With Derivatives"
+     http://leifandersen.net/papers/andersen2012parsing.pdf
+
+[27] Might, Matthew; Adams, Michael D.; Hollenbeck, Celeste
+     "On the Complexity and Performance of Parsing with Derivatives"
+     https://arxiv.org/pdf/1604.04695v1.pdf
+
+[28] Bernardy, Jean-Philippe; Jansson, Patrik
+     "Certified Context-Free Parsing: A Formalisation of Valiant's Algorithm in Agda"
+     http://www.cse.chalmers.se/~patrikj/papers/ValiantAgda_2014-07-03_preprint.pdf
 
 
 -}

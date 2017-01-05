@@ -51,8 +51,14 @@ syntax ∃ A (λ x → e) = ∃ x ∈ A , e
 proj₁ : ∀ {α β} {A : Set α} {B : A → Set β} (P : ∃ x ∈ A , (B x)) → A
 proj₁ (a , b) = a
 
+π₁ : ∀ {α β} {A : Set α} {B : A → Set β} (P : ∃ x ∈ A , (B x)) → A
+π₁ = proj₁
+
 proj₂ : ∀ {α β} {A : Set α} {B : A →  Set β} (P : ∃ x ∈ A , (B x)) → B (proj₁ P)
 proj₂ (a , b) = b 
+
+π₂ : ∀ {α β} {A : Set α} {B : A →  Set β} (P : ∃ x ∈ A , (B x)) → B (proj₁ P)
+π₂ = proj₂
 
 infixr 3 _≡_
 data _≡_ {α} {A : Set α} : A → A → Set α where

@@ -5,6 +5,7 @@ open import BaseLogic
 open import Data.String
 open import Data.List
 open import Data.Bool
+open import SetTheory
 
 
 {-
@@ -17,39 +18,6 @@ https://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
 _∘_ : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} (g : B → C) (f : A → B) → A → C
 _∘_ {i} {j} {k} {A} {B} {C} g f a = g (f a)
 
-
-record ∥_∥ {α} (A : Set α) : Set α where
- constructor squash
- field
-  .x : A
-
--- Subsets:
--- Can't switch over set-membership with definition
-Powerset : ∀ {α} (A : Set α) → Set (lsuc lzero ⊔ α)
-Powerset {α} A = A → Set
-
--- A subset S ⊂ A is given by S : Powerset A
--- An object a : A is an element of the subset if (S a) has a proof
--- The set of elements of the subset is given by:
--- ∃ a ∈ A , ∥ S a ∥
-
-
--- Subsets with decidable set-membership.
-Powerset' : ∀ {α} (A : Set α) → Set α
-Powerset' {α} A = A → Bool
-
--- A subset S ⊂ A is given by S : Powerset' A
--- An object a : A is an element of the subset if (S a) ≡ true has a proof
--- The set of elements of the subset is given by:
--- ∃ a ∈ A , ∥ Sa ≡ true ∥
--- You can use this version in if-statements, like:
--- if (S a) then .. else ...
--- And you can differentiate between the interior and exterior of the subset:
-Interior : ∀ {α} {A : Set α} → Powerset' A → Set α
-Interior {α} {A} S = ∃ a ∈ A , ∥ S a ≡ true ∥
-
-Exterior : ∀ {α} {A : Set α} → Powerset' A → Set α
-Exterior {α} {A} S = ∃ a ∈ A , ∥ S a ≡ false ∥
 
 {-
    if (S a) then 
@@ -136,9 +104,24 @@ record GroundRDFTriple : Set where
   p : URIRef
   o : URIRef ⊹ LV 
 
+-- This won't do, because it allows repeated triples and is not order-independent
 GroundRDFGraph : Set
 GroundRDFGraph = List GroundRDFTriple
 
+-- This works but graph-membership is not necessarily decidable
+GroundRDFGraph' : Set₁
+GroundRDFGraph' = Powerset GroundRDFTriple
+
+-- This works and graph-membership is decidable.
+GroundRDFGraph'' : Set
+GroundRDFGraph'' = Powerset' GroundRDFTriple
+
+
+EmptyGroundRDFGraph : GroundRDFGraph
+EmptyGroundRDFGraph = []
+
+EmptyGroundRDFGraph'' : GroundRDFGraph''
+EmptyGroundRDFGraph'' = EmptySet' GroundRDFTriple
 
 
 Denotation-Literal : {V : RDFVocabulary} (I : SimpleInterpretation V) → LV → LV
@@ -180,5 +163,6 @@ Denotation-Triple {V} I t with (Denotation-URIRef'' I (GroundRDFTriple.s t)) | (
 ...                          | _               | (inr p)     | _              = false
 
 Denotation-Graph : {V : RDFVocabulary'} (I : SimpleInterpretation' V) → (g : GroundRDFGraph) → Bool
-Denotation-Graph {V} I [] = true
+Denotation-Graph {V} I []       = true
 Denotation-Graph {V} I (t ∷ ts) = (Denotation-Triple I t) and (Denotation-Graph I ts)
+

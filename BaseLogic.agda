@@ -95,3 +95,8 @@ EqChainExtract {α} {A} {x} {y} (p ∷ (end q)) = ≡-⇶ p q
 EqChainExtract {α} {A} {x} {y} (p ∷ (q ∷ rest)) = ≡-⇶ p (≡-⇶ q (EqChainExtract rest))
 
 
+
+record ∥_∥ {α} (A : Set α) : Set α where
+ constructor squash
+ field
+  .x : A

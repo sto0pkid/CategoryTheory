@@ -7,6 +7,16 @@ open import Data.List
 open import Data.Bool
 open import SetTheory
 
+{-
+Unicode version 9.0.0
+http://www.unicode.org/versions/Unicode9.0.0/
+
+URI : RFC 3986
+http://www.rfc-base.org/txt/rfc-3986.txt
+
+IRI : RFC 3987
+http://www.rfc-base.org/txt/rfc-3987.txt
+-}
 
 {-
 The RDF model-theoretic semantics:
@@ -71,7 +81,8 @@ RDFVocabulary = Powerset URIRef
 RDFVocabulary' : Set
 RDFVocabulary' = Powerset' URIRef
 
-
+RDFVocabulary'' : Set
+RDFVocabulary'' = Powerset' RDFName
 
 
 {-
@@ -96,6 +107,12 @@ record SimpleInterpretation' (V : RDFVocabulary') : Set₁ where
  field
   IR : Set
   IS : (∃ w ∈ URIRef , ∥ (V w) ≡ true ∥) → IR
+  IEXT : IR → Powerset' (IR × (IR ⊹ LV))
+
+record SimpleInterpretation'' (V : RDFVocabulary'') : Set₁ where
+ field
+  IR : Set
+  IS : (∃ w ∈ RDFName , ∥ (V w) ≡ true ∥) → IR
   IEXT : IR → Powerset' (IR × (IR ⊹ LV))
 
 record GroundRDFTriple : Set where

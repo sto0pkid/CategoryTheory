@@ -2,12 +2,18 @@ module RDF where
 
 open import Agda.Primitive
 open import BaseLogic
+open import Inspection
 open import Data.String
 open import Data.List
 open import Data.Bool
 open import SetTheory
 
 {-
+ASCII
+UTF-8
+UTF-16
+UTF-32
+
 Unicode version 9.0.0
 http://www.unicode.org/versions/Unicode9.0.0/
 
@@ -16,6 +22,10 @@ http://www.rfc-base.org/txt/rfc-3986.txt
 
 IRI : RFC 3987
 http://www.rfc-base.org/txt/rfc-3987.txt
+
+Language tags: BCP47
+https://tools.ietf.org/html/bcp47
+
 -}
 
 {-
@@ -25,27 +35,6 @@ RDF 1.1:
 https://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
 -}
 
-_∘_ : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} (g : B → C) (f : A → B) → A → C
-_∘_ {i} {j} {k} {A} {B} {C} g f a = g (f a)
-
-
-{-
-   if (S a) then 
-    <would like to have a proof here that S a ≡ true> 
-   else
-    <would like to have a proof here that S a ≡ false>
-
-  Because we'd like to conditionally call functions that may require
-  a proof of S a ≡ true in one branch and S a ≡ false in the other.
-
-  To do this we can use `with` and `inspect`.
--}
-
-data Singleton {α} {A : Set α} (x : A) : Set α where
- _with≡_ : (y : A) → x ≡ y → Singleton x
-
-inspect : ∀ {α} {A : Set α} (x : A) → Singleton x
-inspect x = x with≡ refl x
 
 
 {-
@@ -71,18 +60,55 @@ IRI = String
 RDFName : Set
 RDFName = IRI ⊹ LV
 
+module RDF10-Concepts where
+ RDFVocabulary : Set₁
+ RDFVocabulary = Powerset URIRef
+
+ RDFVocabulary' : Set
+ RDFVocabulary' = Powerset' URIRef
+
+module RDF11-Concepts where
+ RDFVocabulary : Set₁
+ RDFVocabulary = Powerset IRI
+
+ RDFVocabulary' : Set
+ RDFVocabulary' = Powerset' IRI
+
+module RDF11-ModelTheory where
+ RDFVocabulary : Set₁
+ RDFVocabulary = Powerset RDFName
+  
+ RDFVocabulary' : Set
+ RDFVocabulary' = Powerset' RDFName
+
 {-
 Blank nodes??
 -}
 
-RDFVocabulary : Set₁
-RDFVocabulary = Powerset URIRef
+{-
+ RDF Vocabulary according to "RDF 1.1 Concepts":
+ https://www.w3.org/TR/rdf11-concepts/
+ Section 1.4:
+ "An RDF vocabulary is a collection of IRIs intended for use in RDF graphs."
+-}
+RDFVocabulary₁ : Set₁
+RDFVocabulary₁ = Powerset URIRef
 
-RDFVocabulary' : Set
-RDFVocabulary' = Powerset' URIRef
+RDFVocabulary₂ : Set
+RDFVocabulary₂ = Powerset' URIRef
 
-RDFVocabulary'' : Set
-RDFVocabulary'' = Powerset' RDFName
+RDFVocabulary₃ : Set₁
+RDFVocabulary₃ = Powerset IRI
+
+RDFVocabulary₄ : Set
+RDFVocabulary₄ = Powerset' IRI
+
+RDFVocabulary₅ : Set₁
+RDFVocabulary₅ = Powerset RDFName
+
+RDFVocabulary₆ : Set
+RDFVocabulary₆ = Powerset' RDFName
+
 
 
 {-
@@ -96,20 +122,20 @@ A simple interpretation I of a vocabulary V is defined by:
 3. A mapping IS from V into IR
 -}
 
-record SimpleInterpretation (V : RDFVocabulary) : Set₁ where
+record SimpleInterpretation (V : RDFVocabulary₁) : Set₁ where
  field
   IR : Set
   IS : (∃ w ∈ URIRef , ∥ V w ∥) → IR
   IEXT : IR → Powerset (IR × (IR ⊹ LV))
 
 
-record SimpleInterpretation' (V : RDFVocabulary') : Set₁ where
+record SimpleInterpretation' (V : RDFVocabulary₂) : Set₁ where
  field
   IR : Set
   IS : (∃ w ∈ URIRef , ∥ (V w) ≡ true ∥) → IR
   IEXT : IR → Powerset' (IR × (IR ⊹ LV))
 
-record SimpleInterpretation'' (V : RDFVocabulary'') : Set₁ where
+record SimpleInterpretation'' (V : RDFVocabulary₆) : Set₁ where
  field
   IR : Set
   IS : (∃ w ∈ RDFName , ∥ (V w) ≡ true ∥) → IR
@@ -141,37 +167,37 @@ EmptyGroundRDFGraph'' : GroundRDFGraph''
 EmptyGroundRDFGraph'' = EmptySet' GroundRDFTriple
 
 
-Denotation-Literal : {V : RDFVocabulary} (I : SimpleInterpretation V) → LV → LV
+Denotation-Literal : {V : RDFVocabulary₁} (I : SimpleInterpretation V) → LV → LV
 Denotation-Literal {V} I lv = lv
 
-Denotation-Literal' : {V : RDFVocabulary'} (I : SimpleInterpretation' V) → LV → LV
+Denotation-Literal' : {V : RDFVocabulary₂} (I : SimpleInterpretation' V) → LV → LV
 Denotation-Literal' {V} I lv = lv
 
 
 
 
-Denotation-URIRef : {V : RDFVocabulary} (I : SimpleInterpretation V) → (u : URIRef) → (v : V u) → SimpleInterpretation.IR I
+Denotation-URIRef : {V : RDFVocabulary₁} (I : SimpleInterpretation V) → (u : URIRef) → (v : V u) → SimpleInterpretation.IR I
 Denotation-URIRef {V} I u v = (SimpleInterpretation.IS I) (u , squash v)
 
-Denotation-URIRef' : {V : RDFVocabulary'} (I : SimpleInterpretation' V) → (u : URIRef) → (v : (V u) ≡ true) → SimpleInterpretation'.IR I
+Denotation-URIRef' : {V : RDFVocabulary₂} (I : SimpleInterpretation' V) → (u : URIRef) → (v : (V u) ≡ true) → SimpleInterpretation'.IR I
 Denotation-URIRef' {V} I u v = (SimpleInterpretation'.IS I) (u , squash v)
 
 
 -- How does this desugar?
-Denotation-URIRef'' : {V : RDFVocabulary'} (I : SimpleInterpretation' V) → (u : URIRef) → (SimpleInterpretation'.IR I) ⊹ Bool
+Denotation-URIRef'' : {V : RDFVocabulary₂} (I : SimpleInterpretation' V) → (u : URIRef) → (SimpleInterpretation'.IR I) ⊹ Bool
 Denotation-URIRef'' {V} I uri with inspect (V uri) 
 ...                              | true  with≡ eq = inl ((SimpleInterpretation'.IS I) (uri , squash eq))
 ...                              | false with≡ eq = inr false
 
 
-Denotation-GroundObject' : {V : RDFVocabulary'} (I : SimpleInterpretation' V) → (o : URIRef ⊹ LV) → ((SimpleInterpretation'.IR I) ⊹ Bool) ⊹ LV
+Denotation-GroundObject' : {V : RDFVocabulary₂} (I : SimpleInterpretation' V) → (o : URIRef ⊹ LV) → ((SimpleInterpretation'.IR I) ⊹ Bool) ⊹ LV
 Denotation-GroundObject' {V} I (inl uri) = inl (Denotation-URIRef'' I uri)
 Denotation-GroundObject' {V} I (inr lv)  = inr (Denotation-Literal' I lv)
 
 
 -- true if <I(s),I(o)> ∈ IEXT(I(p))
 -- false otherwise
-Denotation-Triple : {V : RDFVocabulary'} (I : SimpleInterpretation' V) → (t : GroundRDFTriple) → Bool
+Denotation-Triple : {V : RDFVocabulary₂} (I : SimpleInterpretation' V) → (t : GroundRDFTriple) → Bool
 Denotation-Triple {V} I t with (Denotation-URIRef'' I (GroundRDFTriple.s t)) | (Denotation-URIRef'' I (GroundRDFTriple.p t)) | (Denotation-GroundObject' I (GroundRDFTriple.o t))
 ...                          | (inl s)         | (inl p)     | (inl (inl o))  = ((SimpleInterpretation'.IEXT I) p) (s , (inl o))
 ...                          | (inl s)         | (inl p)     | (inl (inr o))  = false
@@ -179,7 +205,7 @@ Denotation-Triple {V} I t with (Denotation-URIRef'' I (GroundRDFTriple.s t)) | (
 ...                          | (inr s)         | _           | _              = false
 ...                          | _               | (inr p)     | _              = false
 
-Denotation-Graph : {V : RDFVocabulary'} (I : SimpleInterpretation' V) → (g : GroundRDFGraph) → Bool
+Denotation-Graph : {V : RDFVocabulary₂} (I : SimpleInterpretation' V) → (g : GroundRDFGraph) → Bool
 Denotation-Graph {V} I []       = true
 Denotation-Graph {V} I (t ∷ ts) = (Denotation-Triple I t) and (Denotation-Graph I ts)
 

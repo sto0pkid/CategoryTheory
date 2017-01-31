@@ -242,7 +242,11 @@ get : {A : Set} (n : Nat) → NEVec A (suc n) → (i : Nat) → (i < (suc n)) �
 get {A} zero (end a) zero [𝕫<𝕤𝕫] = a
 
 -- absurd case: (suc x) ≮ 1
-get {A} zero (end a) (suc x) [𝕤x<𝕤𝕫] = a
+get {A} zero (end a) (suc x) [𝕤x<𝕤𝕫] = ω ☢
+ where
+--proof that this is a throwaway case:
+  ☢ : ⊥
+  ☢ = 𝕤x≮1 x [𝕤x<𝕤𝕫]
 
 {-
 Agda doesn't know there's a conflict between zero and (a ∷ as) here

@@ -238,6 +238,19 @@ x≮0 x (z , [x+𝕤z≡0]) = ☢
   ☢ = x≮0 x [x<0]
 
 
+
+NoEmptyNonEmptyVectors : {A : Set} → NEVec A zero → ⊥
+-- Agda knows there's a conflict here:
+-- NoEmptyNonEmptyVectors {A} (end a) = {!!}
+-- Agda knows there's a conflict here:
+-- NoEmptyNonEmptyVectors {A} (a ∷ as) = {!!}
+{- We've exhausted all possible cases, we know that this set NEVec A zero must be empty
+   but Agda doesn't know this: -}
+NoEmptyNonEmptyVectors {A} vec = {!!}
+
+
+
+
 get : {A : Set} (n : Nat) → NEVec A (suc n) → (i : Nat) → (i < (suc n)) → A
 get {A} zero (end a) zero [𝕫<𝕤𝕫] = a
 
@@ -255,17 +268,24 @@ We can operate on the knowledge that this is actually an impossible case
 and just return a throwaway value `a`.
 
 Prove that these are throwaways by proving that the assumptions lead to contradiction
-and using the ☢-elim
+and using the ⊥-elim
 -}
 -- absurd case: no (a ∷ as) of length 1
 get {A} zero (a ∷ as) zero [𝕫<𝕤𝕫] = a
 {-
  where
   ☢ : ⊥
+
+-- Not sure how to prove that NEVec Nat (suc zero) cannot have the form (a ∷ as)
+-- Maybe if we can prove that as : NEVec Nat zero and NEVec Nat zero → ⊥
+
 -}  
 
--- absurd case: no (a ∷ as) of length 1
-get {A} zero (a ∷ as) (suc x) [𝕤x<𝕤𝕫] = a
+-- absurd case: no (a ∷ as) of length 1, and (suc x) ≮ 1
+get {A} zero (a ∷ as) (suc x) [𝕤x<𝕤𝕫] = ω ☢
+ where
+  ☢ : ⊥
+  ☢ = 𝕤x≮1 x [𝕤x<𝕤𝕫]
 
 {-
 Agda knows there's a conflict between (suc n) and (end a) here

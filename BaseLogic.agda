@@ -6,6 +6,9 @@ data ⊥ : Set where
 ω : ∀ {α} {A : Set α} → ⊥ → A
 ω ()
 
+~ : ∀ {α} (A : Set α) → Set α
+~ A = A → ⊥
+
 data ⊤ : Set where
  ● : ⊤
 
@@ -95,6 +98,26 @@ EqChainExtract {α} {A} {x} {y} (p ∷ (end q)) = ≡-⇶ p q
 EqChainExtract {α} {A} {x} {y} (p ∷ (q ∷ rest)) = ≡-⇶ p (≡-⇶ q (EqChainExtract rest))
 
 
+_≠_ : ∀ {α} {A : Set α} (x y : A) → Set α
+x ≠ y = (x ≡ y) → ⊥
+
+≠-↑↓ : ∀ {α} {A : Set α} {x y : A} → x ≠ y → y ≠ x
+≠-↑↓ [x≠y] [y≡x] = ☢
+ where
+  ☢ : ⊥
+  ☢ = [x≠y] (≡-↑↓ [y≡x])
+
+[A≡B]→[A→B] : ∀ {α} {A B : Set α} → A ≡ B → A → B
+[A≡B]→[A→B] (refl A) a = a
+
+⊤≠⊥ : ⊤ ≠ ⊥
+⊤≠⊥ [⊤≡⊥] = ☢ 
+ where
+  [⊤→⊥] : ⊤ → ⊥
+  [⊤→⊥] = [A≡B]→[A→B] [⊤≡⊥]
+
+  ☢ : ⊥
+  ☢ = [⊤→⊥] ●
 
 record ∥_∥ {α} (A : Set α) : Set α where
  constructor squash

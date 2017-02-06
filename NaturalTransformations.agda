@@ -1,10 +1,11 @@
 module NaturalTransformations where
 
 open import Agda.Primitive
-open import BaseLogic
+--open import BaseLogic
 open import Category
 open import Morphisms
 open import Functor
+open import Data.PropositionalEquality
 
 record NaturalTransformation {i j k l} {C : Category {i} {j}} {D : Category {k} {l}} (F G : Functor C D) : Set ((i ⊔ j) ⊔ (k ⊔ l)) where
  field

@@ -3,14 +3,18 @@ module Data.Nat.Proofs where
 open import Agda.Primitive
 open import BaseLogic
 open import Data.Bool
+open import Data.Bool.Proofs
 open import Data.Nat
 open import Data.Nat.Operations
 open import Data.Nat.Relations
 open import Data.Nat.Properties
+open import Data.False
+open import Data.Product
+open import Data.PropositionalEquality
 
 
 𝕤x+y≡𝕤[x+y] : (x y : Nat) → suc x + y ≡ suc (x + y)
-𝕤x+y≡𝕤[x+y] x y = refl (suc (x + y))
+𝕤x+y≡𝕤[x+y] x y = refl
 
 [𝕤x≡𝕤y]→[x≡y] : (x y : Nat) → suc x ≡ suc y → x ≡ y
 [𝕤x≡𝕤y]→[x≡y] x y [𝕤x≡𝕤y] = [x≡y]→[fx≡fy] pred (suc x) (suc y) [𝕤x≡𝕤y]
@@ -39,10 +43,10 @@ open import Data.Nat.Properties
 𝕤x≠0 x [𝕤x≡𝕫] = ☢
  where
   [𝕥≡isZero-𝕫] : true ≡ isZero zero
-  [𝕥≡isZero-𝕫] = refl true
+  [𝕥≡isZero-𝕫] = refl
 
   [isZero-𝕤x≡𝕗] : isZero (suc x) ≡ false
-  [isZero-𝕤x≡𝕗] = refl false
+  [isZero-𝕤x≡𝕗] = refl
 
   [isZero-𝕫≡isZero-𝕤x] : isZero zero ≡ isZero (suc x)
   [isZero-𝕫≡isZero-𝕤x] = [x≡y]→[fx≡fy] isZero zero (suc x) (≡-↑↓ [𝕤x≡𝕫])
@@ -55,7 +59,7 @@ open import Data.Nat.Properties
 
 
 𝕫+𝕤y≡𝕤[𝕫+y] : (y : Nat) → zero + suc y ≡ suc (zero + y)
-𝕫+𝕤y≡𝕤[𝕫+y] y = refl (suc y)
+𝕫+𝕤y≡𝕤[𝕫+y] y = refl
 
 [x+𝕤y≡𝕤[x+y]]→[𝕤x+𝕤y≡𝕤𝕤[x+y]] :
  (x y : Nat) → 
@@ -115,19 +119,19 @@ NoEmptyNonEmptyVectors {A} vec = {!!}
 
 
 1>0 : 1 > 0
-1>0 = (0 , refl 1)
+1>0 = (0 , refl)
 
 [x>0]→[𝕤x>0] : (x : Nat) → x > 0 → suc x > 0
 [x>0]→[𝕤x>0] x (z , [0+𝕤z≡x]) = (suc z , [0+𝕤𝕤z≡𝕤x])
  where
   [𝕤z≡0+𝕤z] : suc z ≡ 0 + suc z
-  [𝕤z≡0+𝕤z] = refl (suc z)
+  [𝕤z≡0+𝕤z] = refl
 
   [𝕤z≡x] : suc z ≡ x
   [𝕤z≡x] = ≡-⇶ [𝕤z≡0+𝕤z] [0+𝕤z≡x]
 
   [0+𝕤𝕤z≡𝕤𝕤z] : 0 + suc (suc z) ≡ suc (suc z)
-  [0+𝕤𝕤z≡𝕤𝕤z] = refl (suc (suc z))
+  [0+𝕤𝕤z≡𝕤𝕤z] = refl
 
   [𝕤𝕤z≡𝕤x] : suc (suc z) ≡ suc x
   [𝕤𝕤z≡𝕤x] = [x≡y]→[fx≡fy] suc (suc z) x [𝕤z≡x]
@@ -151,7 +155,7 @@ NoEmptyNonEmptyVectors {A} vec = {!!}
 
 
 x+0≡x : (x : Nat) → x + 0 ≡ x
-x+0≡x 0 = refl 0
+x+0≡x 0 = refl
 x+0≡x (suc x) = [x+0≡x]→[𝕤x+0≡𝕤x] x (x+0≡x x)
 
 

@@ -4,6 +4,12 @@ open import Agda.Primitive
 open import BaseLogic
 open import Category
 open import Functor
+open import Data.PropositionalEquality
+open import Data.EqChain
+
+{-
+Using Data.Irrelevance i can finish some of the proofs in here.
+-}
 
 record F-algebra {i j} (C : Category {i} {j}) (F : Functor C C) : Set (i ⊔ j) where
  field

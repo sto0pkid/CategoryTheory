@@ -1,8 +1,15 @@
 module SetTheory where
 
 open import Agda.Primitive
-open import BaseLogic
+--open import BaseLogic
+open import Data.False
+open import Data.True
+open import Data.Disjunction
+open import Data.Product
+open import Data.PropositionalEquality
 open import Data.Bool
+open import Data.Bool.Operations
+open import Data.Irrelevance
 
 Powerset : ∀ {α β} (A : Set α) → Set (lsuc β ⊔ α)
 Powerset {α} {β} A = A → Set β

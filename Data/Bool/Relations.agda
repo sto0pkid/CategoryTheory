@@ -3,8 +3,14 @@ module Data.Bool.Relations where
 open import Agda.Primitive
 open import BaseLogic
 open import Data.Bool
+open import Data.Bool.Operations
+open import Data.Bool.Proofs
 open import Data.Nat
 open import Data.Vector
+open import Data.Vector.Operations
+open import Data.False
+open import Data.Product
+open import Data.PropositionalEquality
 open import Relations
 
 -- Equality of bits
@@ -19,16 +25,16 @@ BitEq false false = true
 
 --BitEq is reflexive; the hard way
 BitEq-isRefl : isReflexive BitEq
-BitEq-isRefl true = refl true
-BitEq-isRefl false = refl true
+BitEq-isRefl true = refl
+BitEq-isRefl false = refl
 
 --BitEq is symmetric; the hard way
 BitEq-isSym : isSymmetric BitEq
-BitEq-isSym true true [𝕥≡𝕥]≡𝕥 = refl true
+BitEq-isSym true true [𝕥≡𝕥]≡𝕥 = refl
 BitEq-isSym true false [𝕥≡𝕗]≡𝕥 = ω ☢
  where
   [𝕥≡𝕗]≡𝕗 : BitEq true false ≡ false
-  [𝕥≡𝕗]≡𝕗 = refl false
+  [𝕥≡𝕗]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕥≡𝕗]≡𝕥) [𝕥≡𝕗]≡𝕗
@@ -38,23 +44,23 @@ BitEq-isSym true false [𝕥≡𝕗]≡𝕥 = ω ☢
 BitEq-isSym false true [𝕗≡𝕥]≡𝕥 = ω ☢
  where
   [𝕗≡𝕥]≡𝕗 : BitEq true false ≡ false
-  [𝕗≡𝕥]≡𝕗 = refl false
+  [𝕗≡𝕥]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕗≡𝕥]≡𝕥) [𝕗≡𝕥]≡𝕗
  
   ☢ : ⊥
   ☢ = 𝕥≠𝕗 [𝕥≡𝕗]
-BitEq-isSym false false [𝕗≡𝕗]≡𝕥 = refl true
+BitEq-isSym false false [𝕗≡𝕗]≡𝕥 = refl
 
 
 --BitEq is transitive; the hard way
 BitEq-isTrans : isTransitive BitEq
-BitEq-isTrans true true true prf₁ prf₂ = refl true
+BitEq-isTrans true true true prf₁ prf₂ = refl
 BitEq-isTrans true true false [𝕥≡𝕥]≡𝕥 [𝕥≡𝕗]≡𝕥 = ω ☢
  where
   [𝕥≡𝕗]≡𝕗 : BitEq true false ≡ false
-  [𝕥≡𝕗]≡𝕗 = refl false
+  [𝕥≡𝕗]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕥≡𝕗]≡𝕥) [𝕥≡𝕗]≡𝕗
@@ -64,7 +70,7 @@ BitEq-isTrans true true false [𝕥≡𝕥]≡𝕥 [𝕥≡𝕗]≡𝕥 = ω ☢
 BitEq-isTrans true false b [𝕥≡𝕗]≡𝕥 [𝕗≡b]≡𝕥 = ω ☢
  where
   [𝕥≡𝕗]≡𝕗 : BitEq true false ≡ false
-  [𝕥≡𝕗]≡𝕗 = refl false
+  [𝕥≡𝕗]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕥≡𝕗]≡𝕥) [𝕥≡𝕗]≡𝕗
@@ -74,7 +80,7 @@ BitEq-isTrans true false b [𝕥≡𝕗]≡𝕥 [𝕗≡b]≡𝕥 = ω ☢
 BitEq-isTrans false true b [𝕗≡𝕥]≡𝕥 [𝕥≡b]≡𝕥 = ω ☢
  where
   [𝕗≡𝕥]≡𝕗 : BitEq false true ≡ false
-  [𝕗≡𝕥]≡𝕗 = refl false
+  [𝕗≡𝕥]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕗≡𝕥]≡𝕥) [𝕗≡𝕥]≡𝕗
@@ -84,14 +90,14 @@ BitEq-isTrans false true b [𝕗≡𝕥]≡𝕥 [𝕥≡b]≡𝕥 = ω ☢
 BitEq-isTrans false false true [𝕗≡𝕗]≡𝕥 [𝕗≡𝕥]≡𝕥 = ω ☢
  where
   [𝕗≡𝕥]≡𝕗 : BitEq false true ≡ false
-  [𝕗≡𝕥]≡𝕗 = refl false
+  [𝕗≡𝕥]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕗≡𝕥]≡𝕥) [𝕗≡𝕥]≡𝕗
  
   ☢ : ⊥
   ☢ = 𝕥≠𝕗 [𝕥≡𝕗]   
-BitEq-isTrans false false false prf₁ prf₂ = refl true
+BitEq-isTrans false false false prf₁ prf₂ = refl
 
 
 BitEq-isEquiv₁ : isEquivalenceRelation BitEq
@@ -103,11 +109,11 @@ BitEq-isEquiv₁ = (BitEq-isRefl , (BitEq-isSym , BitEq-isTrans))
 
 -- BitEq x y → x ≡ y
 BitEq-a-b→a≡b : (x y : Bit) → BitEq x y ≡ true → x ≡ y
-BitEq-a-b→a≡b true true BitEq-𝕗𝕗 = refl true
+BitEq-a-b→a≡b true true BitEq-𝕗𝕗 = refl
 BitEq-a-b→a≡b true false BitEq-𝕥𝕗 = ω ☢
  where
   ¬BitEq-𝕥𝕗 : BitEq true false ≡ false
-  ¬BitEq-𝕥𝕗 = refl false
+  ¬BitEq-𝕥𝕗 = refl
 
   𝕥≡𝕗 : true ≡ false 
   𝕥≡𝕗 = ≡-⇶ (≡-↑↓ BitEq-𝕥𝕗) ¬BitEq-𝕥𝕗
@@ -117,22 +123,22 @@ BitEq-a-b→a≡b true false BitEq-𝕥𝕗 = ω ☢
 BitEq-a-b→a≡b false true BitEq-𝕗𝕥 = ω ☢
  where
   ¬BitEq-𝕗𝕥 : BitEq false true ≡ false
-  ¬BitEq-𝕗𝕥 = refl false
+  ¬BitEq-𝕗𝕥 = refl
 
   𝕥≡𝕗 : true ≡ false 
   𝕥≡𝕗 = ≡-⇶ (≡-↑↓ BitEq-𝕗𝕥) ¬BitEq-𝕗𝕥
 
   ☢ : ⊥
   ☢ = 𝕥≠𝕗 𝕥≡𝕗
-BitEq-a-b→a≡b false false BitEq-𝕗𝕗 = refl false
+BitEq-a-b→a≡b false false BitEq-𝕗𝕗 = refl
 
 
 -- x ≡ y → BitEq x y
 a≡b→BitEq-a-b : (x y : Bit) → x ≡ y → BitEq x y ≡ true
-a≡b→BitEq-a-b true true [𝕥≡𝕥] = refl true
+a≡b→BitEq-a-b true true [𝕥≡𝕥] = refl
 a≡b→BitEq-a-b true false [𝕥≡𝕗] = ω (𝕥≠𝕗 [𝕥≡𝕗])
 a≡b→BitEq-a-b false true [𝕗≡𝕥] = ω (𝕥≠𝕗 (≡-↑↓ [𝕗≡𝕥]))
-a≡b→BitEq-a-b false false [𝕗≡𝕗] = refl true
+a≡b→BitEq-a-b false false [𝕗≡𝕗] = refl
 
 {-
 Thus, BitEq decides propositional equality for Bits
@@ -170,14 +176,14 @@ elements.
 [a∷as≡b∷bs]→[as≡bs] {n} {true ∷ as} {true ∷ bs} [𝕥∷as≡𝕥∷bs]≡𝕥 = [as≡bs]≡𝕥
  where
   [𝕥∷as≡𝕥∷bs]≡[as≡bs] : BitVectorEq (true ∷ as) (true ∷ bs) ≡ BitVectorEq as bs
-  [𝕥∷as≡𝕥∷bs]≡[as≡bs] = refl (BitVectorEq as bs)
+  [𝕥∷as≡𝕥∷bs]≡[as≡bs] = refl
 
   [as≡bs]≡𝕥 : BitVectorEq as bs ≡ true
   [as≡bs]≡𝕥 = ≡-⇶ (≡-↑↓ [𝕥∷as≡𝕥∷bs]≡[as≡bs]) [𝕥∷as≡𝕥∷bs]≡𝕥
 [a∷as≡b∷bs]→[as≡bs] {n} {true ∷ as} {false ∷ bs} [𝕥∷as≡𝕗∷bs]≡𝕥 = ω ☢
  where
   [𝕥∷as≡𝕗∷bs]≡𝕗 : BitVectorEq (true ∷ as) (false ∷ bs) ≡ false
-  [𝕥∷as≡𝕗∷bs]≡𝕗 = refl false
+  [𝕥∷as≡𝕗∷bs]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕥∷as≡𝕗∷bs]≡𝕥) [𝕥∷as≡𝕗∷bs]≡𝕗
@@ -187,7 +193,7 @@ elements.
 [a∷as≡b∷bs]→[as≡bs] {n} {false ∷ as} {true ∷ bs} [𝕗∷as≡𝕥∷bs]≡𝕥 = ω ☢
  where
   [𝕗∷as≡𝕥∷bs]≡𝕗 : BitVectorEq (false ∷ as) (true ∷ bs) ≡ false
-  [𝕗∷as≡𝕥∷bs]≡𝕗 = refl false
+  [𝕗∷as≡𝕥∷bs]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕗∷as≡𝕥∷bs]≡𝕥) [𝕗∷as≡𝕥∷bs]≡𝕗
@@ -197,7 +203,7 @@ elements.
 [a∷as≡b∷bs]→[as≡bs] {n} {false ∷ as} {false ∷ bs} [𝕗∷as≡𝕗∷bs]≡𝕥 = [as≡bs]≡𝕥
  where
   [𝕗∷as≡𝕗∷bs]≡[as≡bs] : BitVectorEq (false ∷ as) (false ∷ bs) ≡ BitVectorEq as bs 
-  [𝕗∷as≡𝕗∷bs]≡[as≡bs] = refl (BitVectorEq as bs)
+  [𝕗∷as≡𝕗∷bs]≡[as≡bs] = refl
 
   [as≡bs]≡𝕥 : BitVectorEq as bs ≡ true
   [as≡bs]≡𝕥 = ≡-⇶ (≡-↑↓ [𝕗∷as≡𝕗∷bs]≡[as≡bs]) [𝕗∷as≡𝕗∷bs]≡𝕥
@@ -205,11 +211,11 @@ elements.
 
 -- If two bit vectors are equal by BitVectorEq, then their first elements are equal by BitEq
 [a∷as≡b∷bs]→[BitEq-a-b] : {n : Nat} → {as bs : Vector Bit (suc n)} → BitVectorEq as bs ≡ true → BitEq (Vector-first as) (Vector-first bs) ≡ true
-[a∷as≡b∷bs]→[BitEq-a-b] {n} {true ∷ as} {true ∷ bs} [𝕥∷as≡𝕥∷bs]≡𝕥 = refl true
+[a∷as≡b∷bs]→[BitEq-a-b] {n} {true ∷ as} {true ∷ bs} [𝕥∷as≡𝕥∷bs]≡𝕥 = refl
 [a∷as≡b∷bs]→[BitEq-a-b] {n} {true ∷ as} {false ∷ bs} [𝕥∷as≡𝕗∷bs]≡𝕥 = ω ☢
  where
   [𝕥∷as≡𝕗∷bs]≡𝕗 : BitVectorEq (true ∷ as) (false ∷ bs) ≡ false
-  [𝕥∷as≡𝕗∷bs]≡𝕗 = refl false
+  [𝕥∷as≡𝕗∷bs]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕥∷as≡𝕗∷bs]≡𝕥) [𝕥∷as≡𝕗∷bs]≡𝕗
@@ -219,14 +225,14 @@ elements.
 [a∷as≡b∷bs]→[BitEq-a-b] {n} {false ∷ as} {true ∷ bs} [𝕗∷as≡𝕥∷bs]≡𝕥 = ω ☢
  where
   [𝕗∷as≡𝕥∷bs]≡𝕗 : BitVectorEq (true ∷ as) (false ∷ bs) ≡ false
-  [𝕗∷as≡𝕥∷bs]≡𝕗 = refl false
+  [𝕗∷as≡𝕥∷bs]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕗∷as≡𝕥∷bs]≡𝕥) [𝕗∷as≡𝕥∷bs]≡𝕗
 
   ☢ : ⊥
   ☢ = 𝕥≠𝕗 [𝕥≡𝕗]
-[a∷as≡b∷bs]→[BitEq-a-b] {n} {false ∷ as} {false ∷ bs} [𝕗∷as≡𝕗∷bs]≡𝕥 = refl true
+[a∷as≡b∷bs]→[BitEq-a-b] {n} {false ∷ as} {false ∷ bs} [𝕗∷as≡𝕗∷bs]≡𝕥 = refl
 
 
 
@@ -236,7 +242,7 @@ BitVectorEq-+1 : {n : Nat} → {as bs : Vector Bit n} → {v : Bool} → BitVect
 BitVectorEq-+1 {n} {as} {bs} [as≡bs]≡v true = [[𝕥∷as]≡[𝕥∷bs]]≡v
  where
   [[𝕥∷as]≡[𝕥∷bs]]≡[as≡bs] : BitVectorEq (true ∷ as) (true ∷ bs) ≡ BitVectorEq as bs
-  [[𝕥∷as]≡[𝕥∷bs]]≡[as≡bs] = refl (BitVectorEq as bs)
+  [[𝕥∷as]≡[𝕥∷bs]]≡[as≡bs] = refl
 
   [[𝕥∷as]≡[𝕥∷bs]]≡v = ≡-⇶ [[𝕥∷as]≡[𝕥∷bs]]≡[as≡bs] [as≡bs]≡v
 {-
@@ -251,7 +257,7 @@ BitVectorEq-+1 {n} {as} {bs} [as≡bs]≡v false = [[𝕗∷as]≡[𝕗∷bs]]�
 BitVectorEq-+1 {n} {as} {bs} [as≡bs]≡v false = [[𝕗∷as]≡[𝕗∷bs]]≡v
  where
   [[𝕗∷as]≡[𝕗∷bs]]≡[as≡bs] : BitVectorEq (false ∷ as) (false ∷ bs) ≡ BitVectorEq as bs
-  [[𝕗∷as]≡[𝕗∷bs]]≡[as≡bs] = refl (BitVectorEq as bs)
+  [[𝕗∷as]≡[𝕗∷bs]]≡[as≡bs] = refl
 
   [[𝕗∷as]≡[𝕗∷bs]]≡v = ≡-⇶ [[𝕗∷as]≡[𝕗∷bs]]≡[as≡bs] [as≡bs]≡v
 
@@ -270,7 +276,7 @@ BitVectorEq-isRefl-ind : {n : Nat} → isReflexive (BitVectorEq {n}) → isRefle
 BitVectorEq-isRefl-ind {n} isRefl-n (true ∷ as) = [rxx≡true]
  where
   BitVectorEq-[𝕥∷as][𝕥∷as]≡BitVectorEq-[as][as] : BitVectorEq (true ∷ as) (true ∷ as) ≡ BitVectorEq as as
-  BitVectorEq-[𝕥∷as][𝕥∷as]≡BitVectorEq-[as][as] = refl (BitVectorEq as as)
+  BitVectorEq-[𝕥∷as][𝕥∷as]≡BitVectorEq-[as][as] = refl
 
   BitVectorEq-[as][as]≡true : BitVectorEq as as ≡ true
   BitVectorEq-[as][as]≡true = isRefl-n as
@@ -280,7 +286,7 @@ BitVectorEq-isRefl-ind {n} isRefl-n (true ∷ as) = [rxx≡true]
 BitVectorEq-isRefl-ind {n} isRefl-n (false ∷ as) = [rxx≡true]
  where
   BitVectorEq-[𝕗∷as][𝕗∷as]≡BitVectorEq-[as][as] : BitVectorEq (false ∷ as) (false ∷ as) ≡ BitVectorEq as as
-  BitVectorEq-[𝕗∷as][𝕗∷as]≡BitVectorEq-[as][as] = refl (BitVectorEq as as)
+  BitVectorEq-[𝕗∷as][𝕗∷as]≡BitVectorEq-[as][as] = refl
 
   BitVectorEq-[as][as]≡true : BitVectorEq as as ≡ true
   BitVectorEq-[as][as]≡true = isRefl-n as
@@ -290,7 +296,7 @@ BitVectorEq-isRefl-ind {n} isRefl-n (false ∷ as) = [rxx≡true]
 
 
 BitVectorEq-isRefl : (n : Nat) → isReflexive (BitVectorEq {n})
-BitVectorEq-isRefl zero [] = refl true
+BitVectorEq-isRefl zero [] = refl
 BitVectorEq-isRefl (suc n) = BitVectorEq-isRefl-ind (BitVectorEq-isRefl n)
 
 {-
@@ -326,10 +332,10 @@ BitVectorEq-isSym-ind : {n : Nat} → isSymmetric (BitVectorEq {n}) → isSymmet
 BitVectorEq-isSym-ind {n} isSym-n (true ∷ as) (true ∷ bs) [𝕥∷αs≡𝕥∷bs]≡𝕥 = [𝕥∷bs≡𝕥∷as]≡𝕥
  where
   [𝕥∷as≡𝕥∷bs]≡[as≡bs] : BitVectorEq (true ∷ as) (true ∷ bs) ≡ BitVectorEq as bs
-  [𝕥∷as≡𝕥∷bs]≡[as≡bs] = refl (BitVectorEq as bs)
+  [𝕥∷as≡𝕥∷bs]≡[as≡bs] = refl
   
   [𝕥∷bs≡𝕥∷as]≡[bs≡as] : BitVectorEq (true ∷ bs) (true ∷ as) ≡ BitVectorEq bs as
-  [𝕥∷bs≡𝕥∷as]≡[bs≡as] = refl (BitVectorEq bs as)
+  [𝕥∷bs≡𝕥∷as]≡[bs≡as] = refl
 
   [as≡bs]≡𝕥 : BitVectorEq as bs ≡ true
   [as≡bs]≡𝕥 = ≡-⇶ (≡-↑↓ [𝕥∷as≡𝕥∷bs]≡[as≡bs]) [𝕥∷αs≡𝕥∷bs]≡𝕥
@@ -342,7 +348,7 @@ BitVectorEq-isSym-ind {n} isSym-n (true ∷ as) (true ∷ bs) [𝕥∷αs≡𝕥
 BitVectorEq-isSym-ind {n} isSym-n (true ∷ as) (false ∷ bs) [𝕥∷as≡𝕗∷bs]≡𝕥 = ω ☢
  where
   [𝕥∷as≡𝕗∷bs]≡𝕗 : BitVectorEq (true ∷ as) (false ∷ bs) ≡ false
-  [𝕥∷as≡𝕗∷bs]≡𝕗 = refl false
+  [𝕥∷as≡𝕗∷bs]≡𝕗 = refl
 
   𝕥≡𝕗 : true ≡ false
   𝕥≡𝕗 = ≡-⇶ (≡-↑↓ [𝕥∷as≡𝕗∷bs]≡𝕥) [𝕥∷as≡𝕗∷bs]≡𝕗
@@ -352,7 +358,7 @@ BitVectorEq-isSym-ind {n} isSym-n (true ∷ as) (false ∷ bs) [𝕥∷as≡𝕗
 BitVectorEq-isSym-ind {n} isSym-n (false ∷ as) (true ∷ bs) [𝕗∷as≡𝕥∷bs]≡𝕥 = ω ☢
  where
   [𝕗∷as≡𝕥∷bs]≡𝕗 : BitVectorEq (false ∷ as) (true ∷ bs) ≡ false
-  [𝕗∷as≡𝕥∷bs]≡𝕗 = refl false
+  [𝕗∷as≡𝕥∷bs]≡𝕗 = refl
 
   𝕥≡𝕗 : true ≡ false
   𝕥≡𝕗 = ≡-⇶ (≡-↑↓ [𝕗∷as≡𝕥∷bs]≡𝕥) [𝕗∷as≡𝕥∷bs]≡𝕗
@@ -362,10 +368,10 @@ BitVectorEq-isSym-ind {n} isSym-n (false ∷ as) (true ∷ bs) [𝕗∷as≡𝕥
 BitVectorEq-isSym-ind {n} isSym-n (false ∷ as) (false ∷ bs) [𝕗∷as≡𝕗∷bs]≡𝕥 = [𝕗∷bs≡𝕗∷as]≡𝕥
  where
   [𝕗∷as≡𝕗∷bs]≡[as≡bs] : BitVectorEq (false ∷ as) (false ∷ bs) ≡ BitVectorEq as bs
-  [𝕗∷as≡𝕗∷bs]≡[as≡bs] = refl (BitVectorEq as bs)
+  [𝕗∷as≡𝕗∷bs]≡[as≡bs] = refl
   
   [𝕗∷bs≡𝕗∷as]≡[bs≡as] : BitVectorEq (false ∷ bs) (false ∷ as) ≡ BitVectorEq bs as
-  [𝕗∷bs≡𝕗∷as]≡[bs≡as] = refl (BitVectorEq bs as)
+  [𝕗∷bs≡𝕗∷as]≡[bs≡as] = refl
 
   [as≡bs]≡𝕥 : BitVectorEq as bs ≡ true
   [as≡bs]≡𝕥 = ≡-⇶ (≡-↑↓ [𝕗∷as≡𝕗∷bs]≡[as≡bs]) [𝕗∷as≡𝕗∷bs]≡𝕥
@@ -378,7 +384,7 @@ BitVectorEq-isSym-ind {n} isSym-n (false ∷ as) (false ∷ bs) [𝕗∷as≡�
 
 
 BitVectorEq-isSym : (n : Nat) → isSymmetric (BitVectorEq {n})
-BitVectorEq-isSym zero [] [] [r[][]≡true] = refl true
+BitVectorEq-isSym zero [] [] [r[][]≡true] = refl
 BitVectorEq-isSym (suc n) = BitVectorEq-isSym-ind (BitVectorEq-isSym n)
 
 
@@ -428,22 +434,22 @@ BitVectorEq-as-bs→BitVectorEq-[c∷as][c∷bs] : {n : Nat} → (x y : Vector B
 BitVectorEq-as-bs→BitVectorEq-[c∷as][c∷bs] {n} x y true [x≡y]≡𝕥 = [𝕥∷x≡𝕥∷y]≡𝕥
  where
   [𝕥∷x≡𝕥∷y]≡[x≡y] : BitVectorEq (true ∷ x) (true ∷ y) ≡ BitVectorEq x y
-  [𝕥∷x≡𝕥∷y]≡[x≡y] = refl (BitVectorEq x y)
+  [𝕥∷x≡𝕥∷y]≡[x≡y] = refl
 
   [𝕥∷x≡𝕥∷y]≡𝕥 : BitVectorEq (true ∷ x) (true ∷ y) ≡ true
   [𝕥∷x≡𝕥∷y]≡𝕥 = ≡-⇶ [𝕥∷x≡𝕥∷y]≡[x≡y] [x≡y]≡𝕥
 BitVectorEq-as-bs→BitVectorEq-[c∷as][c∷bs] {n} x y false [x≡y]≡𝕥 = [𝕗∷x≡𝕗∷y]≡𝕥
  where
   [𝕗∷x≡𝕗∷y]≡[x≡y] : BitVectorEq (false ∷ x) (false ∷ y) ≡ BitVectorEq x y
-  [𝕗∷x≡𝕗∷y]≡[x≡y] = refl (BitVectorEq x y)
+  [𝕗∷x≡𝕗∷y]≡[x≡y] = refl
 
   [𝕗∷x≡𝕗∷y]≡𝕥 : BitVectorEq (false ∷ x) (false ∷ y) ≡ true
   [𝕗∷x≡𝕗∷y]≡𝕥 = ≡-⇶ [𝕗∷x≡𝕗∷y]≡[x≡y] [x≡y]≡𝕥
 
 
 BitVectorEq-[c∷as][c∷bs]≡BitVectorEq-as-bs : {n : Nat} → (x y : Vector Bit n) → (b : Bit) → BitVectorEq (b ∷ x) (b ∷ y) ≡ BitVectorEq x y
-BitVectorEq-[c∷as][c∷bs]≡BitVectorEq-as-bs {n} x y true = refl (BitVectorEq x y)
-BitVectorEq-[c∷as][c∷bs]≡BitVectorEq-as-bs {n} x y false = refl (BitVectorEq x y)
+BitVectorEq-[c∷as][c∷bs]≡BitVectorEq-as-bs {n} x y true = refl
+BitVectorEq-[c∷as][c∷bs]≡BitVectorEq-as-bs {n} x y false = refl
 
 
 
@@ -452,7 +458,7 @@ BitVectorEq-[c∷as][c∷bs]≡BitVectorEq-as-bs {n} x y false = refl (BitVector
 -- Proof that BitVectorEq is the decider for propositional equality of Bit vectors:
 -- First a ≡ b → BitVectorEq a b ≡ true
 a≡b→BitVectorEq-a-b : {n : Nat} → (x y : Vector Bit n) → x ≡ y → BitVectorEq x y ≡ true
-a≡b→BitVectorEq-a-b {n} x .x (refl .x) = BitVectorEq-isRefl n x
+a≡b→BitVectorEq-a-b {n} x .x refl = BitVectorEq-isRefl n x
 
 
 
@@ -477,13 +483,13 @@ BitVectorEq-a-b→a≡b-ind {n} x y b hyp [b∷x≡b∷y]≡𝕥 = [b∷x≡b∷
 
   
 BitVectorEq-a-b→a≡b : {n : Nat} → (x y : Vector Bit n) → BitVectorEq x y ≡ true → x ≡ y
-BitVectorEq-a-b→a≡b {zero} [] [] [[]≡[]]≡𝕥 = refl []
+BitVectorEq-a-b→a≡b {zero} [] [] [[]≡[]]≡𝕥 = refl
 BitVectorEq-a-b→a≡b {suc n} (true ∷ as) (true ∷ bs) = BitVectorEq-a-b→a≡b-ind as bs true (BitVectorEq-a-b→a≡b as bs)
 BitVectorEq-a-b→a≡b {suc n} (false ∷ as) (false ∷ bs) = BitVectorEq-a-b→a≡b-ind as bs false (BitVectorEq-a-b→a≡b as bs)
 BitVectorEq-a-b→a≡b {suc n} (true ∷ as) (false ∷ bs) [𝕥∷as≡𝕗∷bs]≡𝕥 = ω ☢
  where
   [𝕥∷as≡𝕗∷bs]≡𝕗 : BitVectorEq (true ∷ as) (false ∷ bs) ≡ false
-  [𝕥∷as≡𝕗∷bs]≡𝕗 = refl false
+  [𝕥∷as≡𝕗∷bs]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕥∷as≡𝕗∷bs]≡𝕥) [𝕥∷as≡𝕗∷bs]≡𝕗
@@ -493,7 +499,7 @@ BitVectorEq-a-b→a≡b {suc n} (true ∷ as) (false ∷ bs) [𝕥∷as≡𝕗�
 BitVectorEq-a-b→a≡b {suc n} (false ∷ as) (true ∷ bs) [𝕗∷as≡𝕥∷bs]≡𝕥 = ω ☢
  where
   [𝕗∷as≡𝕥∷bs]≡𝕗 : BitVectorEq (false ∷ as) (true ∷ bs) ≡ false
-  [𝕗∷as≡𝕥∷bs]≡𝕗 = refl false
+  [𝕗∷as≡𝕥∷bs]≡𝕗 = refl
 
   [𝕥≡𝕗] : true ≡ false
   [𝕥≡𝕗] = ≡-⇶ (≡-↑↓ [𝕗∷as≡𝕥∷bs]≡𝕥) [𝕗∷as≡𝕥∷bs]≡𝕗

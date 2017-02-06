@@ -1,8 +1,9 @@
 module Functor where
 
 open import Agda.Primitive
-open import BaseLogic
+--open import BaseLogic
 open import Category
+open import Data.PropositionalEquality
 
 record Functor₀ {i j k l} (C : Category {i} {j}) (D : Category {k} {l}) : Set ((lsuc (i ⊔ j)) ⊔ (lsuc (k ⊔ l))) where
  field

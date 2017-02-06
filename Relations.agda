@@ -1,10 +1,13 @@
 module Relations where
 
 open import Agda.Primitive
-open import BaseLogic
+open import BaseLogic using (_↔_)
 open import Data.Bool
 open import Data.Nat
 open import Data.Vector
+open import Data.False
+open import Data.Product
+open import Data.PropositionalEquality
 
 data N-ary-relation {α} (A : Set α) : Nat → Set α where
  [in=_,out=_] : {n : Nat} → Vector A n → A → N-ary-relation A (suc n)
@@ -24,21 +27,12 @@ Relation₁ : ∀ {α β} (A : Set α) (n : Nat) → Set (lsuc β ⊔ α)
 Relation₁ {α} {β} A n = Vector A n → Set β
 
 
-
-{-
-≡-⟲ : ∀ {α} {A : Set α} (x : A) → x ≡ x
-≡-⟲ {α} {A} x = refl x
--}
 isReflexive-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
 isReflexive-Set {i} {j} {A} R = (x : A) → R x x
 
 isReflexive : ∀ {i} {A : Set i} (R : A → A → Bool) → Set i
 isReflexive {i} {A} R = (x : A) → (R x x ≡ true)
 
-{-
-≡-↑↓ : ∀ {α} {A : Set α} {x y : A} → x ≡ y → y ≡ x
-≡-↑↓ {α} {A} {x} {.x} (refl .x) = refl x
--}
 isSymmetric-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
 isSymmetric-Set {i} {j} {A} R = {x y : A} → R x y → R y x
 
@@ -48,11 +42,6 @@ isSymmetric {i} {A} R = (x y : A) → (R x y ≡ true) → (R y x ≡ true)
 isSymmetric' : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
 isSymmetric' {i} {A} r = (x y : A) (z : Bool) → (r x y ≡ z) → (r y x ≡ z)
 
-{-
-≡-⇶ : ∀ {α} {A : Set α} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-≡-⇶ {α} {A} {x} {.x} {.x} (refl .x) (refl .x) = refl x
-
--}
 isTransitive-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
 isTransitive-Set {i} {j} {A} R = {x y z : A} → R x y → R y z → R x z
 
@@ -81,7 +70,7 @@ isEqDec-R→isEquiv-R {α} {A} R isEqDec-R = (isRefl-R , (isSym-R , isTrans-R))
   isRefl-R x = Rxx
    where
     x≡x : x ≡ x
-    x≡x = refl x
+    x≡x = refl
 
     x≡x→Rxx : x ≡ x → R x x ≡ true
     x≡x→Rxx = second (isEqDec-R x x)

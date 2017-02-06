@@ -1,12 +1,16 @@
 module FormalLanguage where
 
 open import Agda.Primitive
-open import BaseLogic
+--open import BaseLogic
 open import Relations
 open import Data.Bool
 open import Data.Nat
 open import Data.List
-open import Data.Vector
+open import Data.List.Operations
+--open import Data.Vector
+open import Data.Disjunction
+open import Data.Product
+open import Data.PropositionalEquality
 open import SetTheory
 
 {- 
@@ -160,7 +164,7 @@ lang-union L₁ L₂ = λ s → L₁ s ∨ L₂ s
 
 -- L₁ && L₂ ≡ {w₁w₂ | w₁ ∈ L₁ ∧ w₂ ∈ L₂}
 lang-concat : ∀ {i j k} {A : Alphabet {i}} → Subset {i} {j} (String A) → Subset {i} {k} (String A) → Subset {i} {i ⊔ (j ⊔ k)} (String A)
-lang-concat {i} {j} {k} {A} L₁ L₂ = λ s → ∃ w₁ ∈ (String A) , (∃ w₂ ∈ (String A) , ( [ w₁ ∈ L₁ ] ∧ [ w₂ ∈ L₂ ] ∧ (s ≡ Data.List._++_ w₁ w₂)))
+lang-concat {i} {j} {k} {A} L₁ L₂ = λ s → ∃ w₁ ∈ (String A) , (∃ w₂ ∈ (String A) , ( [ w₁ ∈ L₁ ] ∧ [ w₂ ∈ L₂ ] ∧ (s ≡ w₁ ++ w₂)))
  
 
  --When i ≠ 0,

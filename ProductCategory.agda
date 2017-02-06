@@ -1,9 +1,11 @@
 module ProductCategory where
 
 open import Agda.Primitive
-open import BaseLogic
+open import BaseLogic using (p≡[π₁-p,π₂-p] ; [x≡y]→[Px→Py])
 open import Category
-
+open import Data.Product
+open import Data.PropositionalEquality
+open import Data.EqChain
 
 ProductCategory₀ : ∀ {i j k l} (C : Category {i} {j}) (D : Category {k} {l}) → Category₀ {i ⊔ k} {j ⊔ l}
 ProductCategory₀ {i} {j} {k} {l} C D = 
@@ -81,10 +83,10 @@ ProductCategory {i} {j} {k} {l} C D =
     y⟲∘f≡y⟲∘ g = (y⟲ ∘ f) ≡ (y⟲ ∘ g)
 
     y⟲∘f≡y⟲∘[f₁,f₂] : (y⟲ ∘ f) ≡ (y⟲ ∘ (f₁ , f₂))
-    y⟲∘f≡y⟲∘[f₁,f₂] = [x≡y]→[Px→Py] y⟲∘f≡y⟲∘_ f (f₁ , f₂) f≡[f₁,f₂] (refl (y⟲ ∘ f))
+    y⟲∘f≡y⟲∘[f₁,f₂] = [x≡y]→[Px→Py] y⟲∘f≡y⟲∘_ f (f₁ , f₂) f≡[f₁,f₂] refl
 
     y⟲∘[f₁,f₂]≡[y₁⟲∘f₁,y₂⟲∘f₂] : (y⟲ ∘ (f₁ , f₂)) ≡ ((y₁⟲ ∘₁ f₁) , (y₂⟲ ∘₂ f₂))
-    y⟲∘[f₁,f₂]≡[y₁⟲∘f₁,y₂⟲∘f₂] = refl ((y₁⟲ ∘₁ f₁) , (y₂⟲ ∘₂ f₂))
+    y⟲∘[f₁,f₂]≡[y₁⟲∘f₁,y₂⟲∘f₂] = refl
 
     y₁⟲∘f₁≡f₁ : y₁⟲ ∘₁ f₁ ≡ f₁
     y₁⟲∘f₁≡f₁ = (Category.left-id C) f₁
@@ -96,13 +98,13 @@ ProductCategory {i} {j} {k} {l} C D =
     [ g ,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] = (g , (y₂⟲ ∘₂ f₂)) ≡ (f₁ , (y₂⟲ ∘₂ f₂))
 
     [y₁⟲∘f₁,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] : ((y₁⟲ ∘₁ f₁) , (y₂⟲ ∘₂ f₂)) ≡ (f₁ , (y₂⟲ ∘₂ f₂))
-    [y₁⟲∘f₁,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] = [x≡y]→[Px→Py] [_,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] f₁ (y₁⟲ ∘₁ f₁) (≡-↑↓ y₁⟲∘f₁≡f₁) (refl (f₁ , (y₂⟲ ∘₂ f₂)))
+    [y₁⟲∘f₁,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] = [x≡y]→[Px→Py] [_,y₂⟲∘f₂]≡[f₁,y₂⟲∘f₂] f₁ (y₁⟲ ∘₁ f₁) (≡-↑↓ y₁⟲∘f₁≡f₁) refl
 
     [f₁,_]≡[f₁,f₂] : (g : (Category.hom D) x₂ y₂) → Set (l ⊔ j)
     [f₁, g ]≡[f₁,f₂] = (f₁ , g) ≡ (f₁ , f₂)
 
     [f₁,y₂⟲∘f₂]≡[f₁,f₂] : (f₁ , (y₂⟲ ∘₂ f₂)) ≡ (f₁ , f₂)
-    [f₁,y₂⟲∘f₂]≡[f₁,f₂] = [x≡y]→[Px→Py] [f₁,_]≡[f₁,f₂] f₂ (y₂⟲ ∘₂ f₂) (≡-↑↓ y₂⟲∘f₂≡f₂) (refl (f₁ , f₂))
+    [f₁,y₂⟲∘f₂]≡[f₁,f₂] = [x≡y]→[Px→Py] [f₁,_]≡[f₁,f₂] f₂ (y₂⟲ ∘₂ f₂) (≡-↑↓ y₂⟲∘f₂≡f₂) refl
 
     eq-chain : EqChain (y⟲ ∘ f) f
     eq-chain = 
@@ -164,10 +166,10 @@ ProductCategory {i} {j} {k} {l} C D =
     f∘x⟲≡ g ∘x⟲ = (f ∘ x⟲) ≡ (g ∘ x⟲)
 
     f∘x⟲≡[f₁,f₂]∘x⟲ : (f ∘ x⟲) ≡ ((f₁ , f₂) ∘ x⟲)
-    f∘x⟲≡[f₁,f₂]∘x⟲ = [x≡y]→[Px→Py] f∘x⟲≡_∘x⟲ f (f₁ , f₂) f≡[f₁,f₂] (refl (f ∘ x⟲))
+    f∘x⟲≡[f₁,f₂]∘x⟲ = [x≡y]→[Px→Py] f∘x⟲≡_∘x⟲ f (f₁ , f₂) f≡[f₁,f₂] refl
 
     [f₁,f₂]∘x⟲≡[f₁∘x₁⟲,f₂∘x₂⟲] : ((f₁ , f₂) ∘ x⟲) ≡ ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲))
-    [f₁,f₂]∘x⟲≡[f₁∘x₁⟲,f₂∘x₂⟲] = refl ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲))
+    [f₁,f₂]∘x⟲≡[f₁∘x₁⟲,f₂∘x₂⟲] = refl
 
     f₁∘x₁⟲≡f₁ : (f₁ ∘₁ x₁⟲) ≡ f₁
     f₁∘x₁⟲≡f₁ = Category.right-id C f₁
@@ -179,13 +181,13 @@ ProductCategory {i} {j} {k} {l} C D =
     [f₁∘x₁⟲,f₂∘x₂⟲]≡[ g ,f₂∘x₂⟲] = _≡_ {l ⊔ j} {(Category₀.hom P x y)} ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲)) (g , (f₂ ∘₂ x₂⟲))    
 
     [f₁∘x₁⟲,f₂∘x₂⟲]≡[f₁,f₂∘x₂⟲] : ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲)) ≡ (f₁ , (f₂ ∘₂ x₂⟲))
-    [f₁∘x₁⟲,f₂∘x₂⟲]≡[f₁,f₂∘x₂⟲] = [x≡y]→[Px→Py] [f₁∘x₁⟲,f₂∘x₂⟲]≡[_,f₂∘x₂⟲] (f₁ ∘₁ x₁⟲) f₁ f₁∘x₁⟲≡f₁ (refl ((f₁ ∘₁ x₁⟲) , (f₂ ∘₂ x₂⟲)))
+    [f₁∘x₁⟲,f₂∘x₂⟲]≡[f₁,f₂∘x₂⟲] = [x≡y]→[Px→Py] [f₁∘x₁⟲,f₂∘x₂⟲]≡[_,f₂∘x₂⟲] (f₁ ∘₁ x₁⟲) f₁ f₁∘x₁⟲≡f₁ refl
 
     [f₁,f₂∘x₂⟲]≡[f₁,_] : (g : Category.hom D x₂ y₂) → Set (l ⊔ j)
     [f₁,f₂∘x₂⟲]≡[f₁, g ] = _≡_ {l ⊔ j} {(Category₀.hom P x y)} (f₁ , (f₂ ∘₂ x₂⟲)) (f₁ , g)
 
     [f₁,f₂∘x₂⟲]≡[f₁,f₂] : (f₁ , (f₂ ∘₂ x₂⟲)) ≡ (f₁ , f₂)
-    [f₁,f₂∘x₂⟲]≡[f₁,f₂] = [x≡y]→[Px→Py] [f₁,f₂∘x₂⟲]≡[f₁,_] (f₂ ∘₂ x₂⟲) f₂ f₂∘x₂⟲≡f₂ (refl (f₁ , (f₂ ∘₂ x₂⟲)))
+    [f₁,f₂∘x₂⟲]≡[f₁,f₂] = [x≡y]→[Px→Py] [f₁,f₂∘x₂⟲]≡[f₁,_] (f₂ ∘₂ x₂⟲) f₂ f₂∘x₂⟲≡f₂ refl
 
     eq-chain : EqChain (f ∘ x⟲) f
     eq-chain = 
@@ -265,10 +267,10 @@ ProductCategory {i} {j} {k} {l} C D =
     h∘g≡h∘ g' = compP {y} {z} {w} h g ≡ compP {y} {z} {w} h g'
 
     h∘g≡h∘[g₁,g₂] : compP {y} {z} {w} h g ≡ compP {y} {z} {w} h (g₁ , g₂)
-    h∘g≡h∘[g₁,g₂] = [x≡y]→[Px→Py] h∘g≡h∘_ g (g₁ , g₂) g≡[g₁,g₂] (refl (compP {y} {z} {w} h g))
+    h∘g≡h∘[g₁,g₂] = [x≡y]→[Px→Py] h∘g≡h∘_ g (g₁ , g₂) g≡[g₁,g₂] refl
 
     h∘[g₁,g₂]≡[h₁∘g₁,h₂∘g₂] : compP {y} {z} {w} h (g₁ , g₂) ≡ ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂))
-    h∘[g₁,g₂]≡[h₁∘g₁,h₂∘g₂] = refl ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂))
+    h∘[g₁,g₂]≡[h₁∘g₁,h₂∘g₂] = refl
 
     h∘g≡[h₁∘g₁,h₂∘g₂] : compP {y} {z} {w} h g ≡ ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂))
     h∘g≡[h₁∘g₁,h₂∘g₂] = ≡-⇶ h∘g≡h∘[g₁,g₂] h∘[g₁,g₂]≡[h₁∘g₁,h₂∘g₂]
@@ -283,10 +285,10 @@ ProductCategory {i} {j} {k} {l} C D =
         (compP {y} {z} {w} h g)
         ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂))
         h∘g≡[h₁∘g₁,h₂∘g₂]
-        (refl (compP {x} {y} {w} (compP {y} {z} {w} h g) f))
+        refl
 
     [h₁∘g₁,h₂∘g₂]∘f≡[[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂] : compP {x} {y} {w} ((h₁ ∘₁ g₁) , (h₂ ∘₂ g₂)) f ≡ (((h₁ ∘₁ g₁) ∘₁ f₁) , ((h₂ ∘₂ g₂) ∘₂ f₂))
-    [h₁∘g₁,h₂∘g₂]∘f≡[[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂] = refl (((h₁ ∘₁ g₁) ∘₁ f₁) , ((h₂ ∘₂ g₂) ∘₂ f₂))
+    [h₁∘g₁,h₂∘g₂]∘f≡[[h₁∘g₁]∘f₁,[h₂∘g₂]∘f₂] = refl
 
     [h₁∘g₁]∘f₁≡h₁∘[g₁∘f₁] : ((h₁ ∘₁ g₁) ∘₁ f₁) ≡ (h₁ ∘₁ (g₁ ∘₁ f₁))
     [h₁∘g₁]∘f₁≡h₁∘[g₁∘f₁] = Category.assoc C h₁ g₁ f₁
@@ -304,7 +306,7 @@ ProductCategory {i} {j} {k} {l} C D =
         ((h₁ ∘₁ g₁) ∘₁ f₁)
         (h₁ ∘₁ (g₁ ∘₁ f₁))
         [h₁∘g₁]∘f₁≡h₁∘[g₁∘f₁]
-        (refl (((h₁ ∘₁ g₁) ∘₁ f₁) , ((h₂ ∘₂ g₂) ∘₂ f₂)))
+        refl
 
     [h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁],_] : (q : Category.hom D x₂ w₂) → Set (l ⊔ j)
     [h₁∘[g₁∘f₁],[h₂∘g₂]∘f₂]≡[h₁∘[g₁∘f₁], q ] = _≡_ {l ⊔ j} {Category₀.hom P x w} ((h₁ ∘₁ (g₁ ∘₁ f₁)) , ((h₂ ∘₂ g₂) ∘₂ f₂)) ((h₁ ∘₁ (g₁ ∘₁ f₁)) , q)
@@ -316,16 +318,16 @@ ProductCategory {i} {j} {k} {l} C D =
         ((h₂ ∘₂ g₂) ∘₂ f₂)
         (h₂ ∘₂ (g₂ ∘₂ f₂))
         [h₂∘g₂]∘f₂≡h₂∘[g₂∘f₂]
-        (refl ((h₁ ∘₁ (g₁ ∘₁ f₁)) , ((h₂ ∘₂ g₂) ∘₂ f₂)))
+        refl
 
     g∘f≡g∘_ : (f' : Category₀.hom P x y) → Set (l ⊔ j)
     g∘f≡g∘ f' = compP {x} {y} {z} g f ≡ compP {x} {y} {z} g f'
 
     g∘f≡g∘[f₁,f₂] : compP {x} {y} {z} g f ≡ compP {x} {y} {z} g (f₁ , f₂)
-    g∘f≡g∘[f₁,f₂] = [x≡y]→[Px→Py] g∘f≡g∘_ f (f₁ , f₂) f≡[f₁,f₂] (refl (compP {x} {y} {z} g f))
+    g∘f≡g∘[f₁,f₂] = [x≡y]→[Px→Py] g∘f≡g∘_ f (f₁ , f₂) f≡[f₁,f₂] refl
 
     g∘[f₁,f₂]≡[g₁∘f₁,g₂∘f₂] : compP {x} {y} {z} g (f₁ , f₂) ≡ ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂))
-    g∘[f₁,f₂]≡[g₁∘f₁,g₂∘f₂] = refl ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂))
+    g∘[f₁,f₂]≡[g₁∘f₁,g₂∘f₂] = refl
 
     g∘f≡[g₁∘f₁,g₂∘f₂] : compP {x} {y} {z} g f ≡ ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂))
     g∘f≡[g₁∘f₁,g₂∘f₂] = ≡-⇶ g∘f≡g∘[f₁,f₂] g∘[f₁,f₂]≡[g₁∘f₁,g₂∘f₂]
@@ -334,13 +336,13 @@ ProductCategory {i} {j} {k} {l} C D =
     h∘[g∘f]≡h∘ v = compP {x} {z} {w} h (compP {x} {y} {z} g f) ≡ compP {x} {z} {w} h v
 
     h∘[g∘f]≡h∘[g₁∘f₁,g₂∘f₂] : compP {x} {z} {w} h (compP {x} {y} {z} g f) ≡ compP {x} {z} {w} h ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂))
-    h∘[g∘f]≡h∘[g₁∘f₁,g₂∘f₂] = [x≡y]→[Px→Py] h∘[g∘f]≡h∘_ (compP {x} {y} {z} g f) ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂)) g∘f≡[g₁∘f₁,g₂∘f₂] (refl (compP {x} {z} {w} h (compP {x} {y} {z} g f)))
+    h∘[g∘f]≡h∘[g₁∘f₁,g₂∘f₂] = [x≡y]→[Px→Py] h∘[g∘f]≡h∘_ (compP {x} {y} {z} g f) ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂)) g∘f≡[g₁∘f₁,g₂∘f₂] refl
 
     h∘[g₁∘f₁,g₂∘f₂]≡h∘[g∘f] : compP {x} {z} {w} h ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂)) ≡ compP {x} {z} {w} h (compP {x} {y} {z} g f)
     h∘[g₁∘f₁,g₂∘f₂]≡h∘[g∘f] = ≡-↑↓ h∘[g∘f]≡h∘[g₁∘f₁,g₂∘f₂]
 
     h∘[g₁∘f₁,g₂∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]] : compP {x} {z} {w} h ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂)) ≡ ((h₁ ∘₁ (g₁ ∘₁ f₁)) , (h₂ ∘₂ (g₂ ∘₂ f₂))) 
-    h∘[g₁∘f₁,g₂∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]] = refl ((h₁ ∘₁ (g₁ ∘₁ f₁)) , (h₂ ∘₂ (g₂ ∘₂ f₂)))
+    h∘[g₁∘f₁,g₂∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]] = refl
  
     [h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]]≡h∘[g₁∘f₁,g₂∘f₂] : ((h₁ ∘₁ (g₁ ∘₁ f₁)) , (h₂ ∘₂ (g₂ ∘₂ f₂))) ≡ (compP {x} {z} {w} h ((g₁ ∘₁ f₁) , (g₂ ∘₂ f₂)))
     [h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]]≡h∘[g₁∘f₁,g₂∘f₂] = ≡-↑↓ h∘[g₁∘f₁,g₂∘f₂]≡[h₁∘[g₁∘f₁],h₂∘[g₂∘f₂]]

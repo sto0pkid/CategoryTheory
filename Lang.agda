@@ -1,15 +1,18 @@
 module Lang where
 
 open import Agda.Primitive
-open import BaseLogic
+--open import BaseLogic
 open import Category
 
 open import Data.List
+open import Data.List.Operations
 open import Data.Bool
+open import Data.Bool.Operations
 open import Data.Nat
 open import Data.Maybe
 open import Data.String
-
+open import Data.Disjunction
+open import Data.Product
 
 {-
 

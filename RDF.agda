@@ -1,12 +1,17 @@
 module RDF where
 
 open import Agda.Primitive
-open import BaseLogic
+--open import BaseLogic
 open import Inspection
 open import Data.String
 open import Data.List
 open import Data.Bool
+open import Data.Bool.Operations
 open import SetTheory
+open import Data.Disjunction
+open import Data.Product
+open import Data.Irrelevance
+open import Data.PropositionalEquality
 
 {-
 ASCII

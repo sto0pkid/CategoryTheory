@@ -3,11 +3,24 @@ module Data.Vector.Relations where
 open import Agda.Primitive
 open import BaseLogic
 open import Data.Bool
+open import Data.Bool.Operations
 open import Data.Bool.Relations
+open import Data.Bool.Proofs
 open import Data.Nat
 open import Data.Vector
+open import Data.Vector.Operations
 open import Data.Fin
+open import Data.Fin.Operations
+open import Data.Product
+open import Data.PropositionalEquality
 open import Relations
+open import vec-lem-test
+
+--vec[i]=val : vector x at index y has value val
+data _[_]=_ {α} {A : Set α} : {n : Nat} → Vector A n → Fin n → A → Set α where
+ here : ∀ {n : Nat} {x : A} {xs : Vector A n} → (x ∷ xs) [ zero ]= x
+ there : ∀ {n : Nat} {i : Fin n} {x y : A} {xs : Vector A n} (xs[i]=x : xs [ i ]= x) → (y ∷ xs) [ suc i ]= x
+
 
 {-
 open import Relation.Binary.PropositionalEquality
@@ -54,22 +67,22 @@ Vector-Pointwise-≡' : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n)
 Vector-Pointwise-≡' {α} {A} {n} xs ys = (i : Fin n) → xs [ i ]' ≡ ys [ i ]'
 
 Vector-Pointwise-≡-isRefl : ∀ {α} {A : Set α} {n : Nat} → (xs : Vector A n) → Vector-Pointwise-≡ xs xs
-Vector-Pointwise-≡-isRefl {α} {A} {n} xs i = refl (lookup i xs)
+Vector-Pointwise-≡-isRefl {α} {A} {n} xs i = refl
 
 Vector-Pointwise-≡'-isRefl : ∀ {α} {A : Set α} {n : Nat} → (xs : Vector A n) → Vector-Pointwise-≡' xs xs
-Vector-Pointwise-≡'-isRefl {α} {A} {n} xs i = refl (xs [ i ]')
+Vector-Pointwise-≡'-isRefl {α} {A} {n} xs i = refl
 
 xs≡ys→Vector-Pointwise-≡ : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → xs ≡ ys → Vector-Pointwise-≡ xs ys
-xs≡ys→Vector-Pointwise-≡ {α} {A} {n} xs .xs (refl .xs) = Vector-Pointwise-≡-isRefl xs
+xs≡ys→Vector-Pointwise-≡ {α} {A} {n} xs .xs refl = Vector-Pointwise-≡-isRefl xs
 
 Vector-Pointwise-≡-[x∷xs][y∷ys]→x≡y : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → (x y : A) → Vector-Pointwise-≡ (x ∷ xs) (y ∷ ys) → x ≡ y
 Vector-Pointwise-≡-[x∷xs][y∷ys]→x≡y {α} {A} {n} xs ys x y x∷xs[pw-≡]y∷ys = [x≡y]
  where
   x∷xs[0]≡x : lookup zero (x ∷ xs) ≡ x
-  x∷xs[0]≡x = refl x
+  x∷xs[0]≡x = refl
 
   y∷ys[0]≡y : lookup zero (y ∷ ys) ≡ y
-  y∷ys[0]≡y = refl y
+  y∷ys[0]≡y = refl
 
   x∷xs[0]≡y∷ys[0] : lookup zero (x ∷ xs) ≡ lookup zero (y ∷ ys)
   x∷xs[0]≡y∷ys[0] = x∷xs[pw-≡]y∷ys zero
@@ -84,7 +97,7 @@ Vector-Pointwise-≡-[x∷xs][y∷ys]→Vector-Pointwise-≡-xs-ys {α} {A} {n} 
   xs[pw-≡]ys i = x∷xs[pw-≡]y∷ys (raise 1 i)
 
 [f≡g]→[fx≡gx] : ∀ {α β} {A : Set α} {B : Set β} (f g : A → B) → f ≡ g → (x : A) → f x ≡ g x
-[f≡g]→[fx≡gx] {α} {β} {A} {B} f .f (refl .f) x = refl (f x)
+[f≡g]→[fx≡gx] {α} {β} {A} {B} f .f refl x = refl
 
 
 x≡y→x∷xs≡y∷xs : ∀ {α} {A : Set α} {n : Nat} → (xs : Vector A n) → (x y : A) → x ≡ y → (x ∷ xs) ≡ (y ∷ xs)
@@ -115,7 +128,7 @@ xs≡ys→x∷xs≡x∷ys {α} {A} {n} xs ys [xs≡ys] x = [x∷xs≡x∷ys]
   [x∷xs≡x∷ys] = [x≡y]→[fx≡fy] x∷ xs ys [xs≡ys]
 
 [x≡y]→[f≡g]→[fx≡gy] : ∀ {α β} {A : Set α} {B : Set β} → (x y : A) → x ≡ y → (f g : A → B) → f ≡ g → f x ≡ g y
-[x≡y]→[f≡g]→[fx≡gy] {α} {β} {A} {B} x .x (refl .x) f .f (refl .f) = refl (f x)
+[x≡y]→[f≡g]→[fx≡gy] {α} {β} {A} {B} x .x refl f .f refl = refl
   
 
 xs≡ys→x≡y→x∷xs≡y∷ys : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → (x y : A) → xs ≡ ys → x ≡ y → (x ∷ xs) ≡ (y ∷ ys)
@@ -155,7 +168,7 @@ Vector-Pointwise-≡→xs≡ys-ind {α} {A} {n} xs ys x y hyp x∷xs[pw-≡]y∷
 
 
 Vector-Pointwise-≡→xs≡ys : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → Vector-Pointwise-≡ xs ys → xs ≡ ys
-Vector-Pointwise-≡→xs≡ys {α} {A} {zero} [] [] [][pw-≡][] = refl []
+Vector-Pointwise-≡→xs≡ys {α} {A} {zero} [] [] [][pw-≡][] = refl
 Vector-Pointwise-≡→xs≡ys {α} {A} {suc n} (x ∷ xs) (y ∷ ys) = Vector-Pointwise-≡→xs≡ys-ind xs ys x y  (Vector-Pointwise-≡→xs≡ys {α} {A} {n} xs ys)
 
 Vector-Pointwise-≡⇔≡ : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → (Vector-Pointwise-≡ xs ys) <=> (xs ≡ ys)
@@ -240,11 +253,11 @@ VectorEq-isRefl-ind {α} {A} R isEqDec-R n isRefl-n (a ∷ as) = VectorEq-[a∷a
 
 
 VectorEq-isRefl : ∀ {α} {A : Set α} (R : A → A → Bool) → (isEqDec-R : isEqDec R) → (n : Nat) → (a : Vector A n) → VectorEq R isEqDec-R n a a ≡ true
-VectorEq-isRefl {α} {A} R isEqDec-R zero [] = refl true
+VectorEq-isRefl {α} {A} R isEqDec-R zero [] = refl
 VectorEq-isRefl {α} {A} R isEqDec-R (suc n) = VectorEq-isRefl-ind R isEqDec-R n (VectorEq-isRefl R isEqDec-R n)
 
 a≡b→VectorEq-a-b : ∀ {α} {A : Set α} (R : A → A → Bool) → (isEqDec-R : isEqDec R) → (n : Nat) → (a b : Vector A n) → a ≡ b → VectorEq R isEqDec-R n a b ≡ true
-a≡b→VectorEq-a-b {α} {A} R isEqDec-R n a .a (refl .a) = VectorEq-isRefl R isEqDec-R n a
+a≡b→VectorEq-a-b {α} {A} R isEqDec-R n a .a refl = VectorEq-isRefl R isEqDec-R n a
 
 
 {-
@@ -268,9 +281,10 @@ data Id {α} {A : Set α} (x : A) : A → Set α where
 -}
 
 
+{-
 vec≟-lem : ∀ {α} {A : Set α} {n : Nat} {x y : A} {xs ys : Vector A n} → Id (x ∷ xs) (y ∷ ys) → (Id x y) × (Id xs ys)
 vec≟-lem refl = refl , refl
-
+-}
 
 {-
 vec≟ : ∀ {A : Set} {n} → (_A≟_ : Decidable {A = A} _≡_) → Decidable {A = Vector A n} (_≡_)

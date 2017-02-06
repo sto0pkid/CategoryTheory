@@ -7,8 +7,14 @@ open import Data.Nat.Operations
 open import Data.Nat.Relations
 open import Data.Nat.Proofs
 open import Data.Vector
+open import Data.Vector.Operations
+open import Data.Vector.Relations
 open import Data.Bool
 open import Data.Fin
+open import Data.Fin.Operations
+open import Data.Disjunction
+open import Data.Product
+open import Data.PropositionalEquality
 open import Relations
 {-
 The input/output relations of the general recursive functions are definable in Robinson arithmetic:

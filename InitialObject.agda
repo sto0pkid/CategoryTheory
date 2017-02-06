@@ -1,8 +1,9 @@
 module InitialObject where
 
 open import Agda.Primitive
-open import BaseLogic
 open import Category
+open import Data.Product
+open import Data.PropositionalEquality
 
 record InitialObject {i j} (C : Category {i} {j}) : Set (i ⊔ j) where
  field

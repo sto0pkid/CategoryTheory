@@ -3,6 +3,9 @@ module Decidability where
 open import Agda.Primitive
 open import BaseLogic
 open import Data.Bool
+open import Data.False
+open import Data.Product
+open import Data.PropositionalEquality
 
 Decidable : ∀ {i j} → {A : Set i} → (P : A → Set j) → Set (j ⊔ i)
 Decidable {i} {j} {A} P = ∃ f ∈ (A → Bool) , ((x : A) → ((((f x) ≡ true) → P x) ∧ (((f x) ≡ false) → (P x → ⊥))))

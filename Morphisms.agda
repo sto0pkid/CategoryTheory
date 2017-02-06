@@ -1,8 +1,10 @@
 module Morphisms where
 
 open import Agda.Primitive
-open import BaseLogic
+--open import BaseLogic
 open import Category
+open import Data.Product
+open import Data.PropositionalEquality
 
 iso : ∀ {i j} {C : Category {i} {j}} → {x y : Category.obj C} → ((Category.hom C) x y) → Set j
 iso {i} {j} {C} {x} {y} f = ∃ f⁻¹ ∈ (hom y x) , (((f ∘ f⁻¹) ≡ (id y)) ∧ ((f⁻¹ ∘ f) ≡ (id x)))

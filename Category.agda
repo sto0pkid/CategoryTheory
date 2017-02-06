@@ -1,7 +1,8 @@
 module Category where
 
 open import Agda.Primitive
-open import BaseLogic
+--open import BaseLogic
+open import Data.PropositionalEquality
 
 record Category₀ {i j} : Set (lsuc (i ⊔ j))  where
  field

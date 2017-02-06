@@ -1,6 +1,7 @@
 module Data.Nat.BinPreds where
 
 open import Data.Bool
+open import Data.Bool.Operations
 open import Data.Nat
 
 _eq_ : Nat → Nat → Bool

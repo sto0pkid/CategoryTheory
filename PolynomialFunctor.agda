@@ -1,6 +1,9 @@
 module PolynomialFunctor where
 
-open import BaseLogic
+--open import BaseLogic
+open import Data.True
+open import Data.Disjunction
+open import Data.Product
 
 infixl 6 _⊕_
 infixr 7 _⊗_

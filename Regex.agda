@@ -5,105 +5,9 @@ open import BaseLogic
 open import Data.Bool
 open import Data.List
 open import Data.String
-
-
---∥_∥ 
-
-{-
- Often-times we don't care which proof is given for a proposition, we
- only care whether the proposition is true. In those cases, we don't
- really care about the proposition itself, call it A, what we care about
- is Irr A.
--}
-record Irr {α} {A : Set α} : Set α where
- constructor irrelefy
- field
-  .x : A
-
-{-
-  An alphabet is a set of characters. What are characters?
-  I don't know what are the bounds of characterness & non-characterness,
-  but it seems the only necessary property of characters for the
-  purposes of recognizers/parsers is decidable equality. So we might
-  just define an alphabet as a set with decidable equality.
--}
-
-{-
- What is decidable equality? A proposition P : A → Set is decidable if
- there is a total computable function f : A → Bool that decides inhabitation
- in P.
--}
-
-Decidable : ∀ {i j} → {A : Set i} → (P : A → Set j) → Set (j ⊔ i)
-Decidable {i} {j} {A} P = ∃ f ∈ (A → Bool) , ((x : A) → ((((f x) ≡ true) → P x) ∧ (((f x) ≡ false) → (P x → ⊥))))
-
-Decidable' : ∀ {i j} → {A : Set i} → (P : A → Set j) → Set (j ⊔ i)
-Decidable' {i} {j} {A} P = ∃ f ∈ (A → Bool) , ((x : A) → ((((f x) ≡ true) ↔ P x) ∧ (((f x) ≡ false) ↔ (P x → ⊥))))
-
-Decidable₂ : ∀ {i j k} → {A : Set i} → {B : Set j} → (P : A → B → Set k) → Set (k ⊔ (j ⊔ i))
-Decidable₂ {i} {j} {k} {A} {B} P = ∃ f ∈ (A → B → Bool) , ((x : A) → (y : B) → ((((f x y) ≡ true) → P x y) ∧ (((f x y) ≡ false) → (P x y → ⊥))))
-
-Decidable₂' : ∀ {i j k} → {A : Set i} → {B : Set j} → (P : A → B → Set k) → Set (k ⊔ (j ⊔ i))
-Decidable₂' {i} {j} {k} {A} {B} P = ∃ f ∈ (A → B → Bool) , ((x : A) → (y : B) → ((((f x y) ≡ true) ↔ P x y) ∧ (((f x y) ≡ false) ↔ (P x y → ⊥))))
-
-{-
- What are we really asking for with our alphabet, though? We don't need to bring up anything
- regarding propositional equality at all, we can use an arbitrary equivalence relation on the
- the set of characters as long as we can decide whether or not two characters are in the same
- equivalence class.
-
- A set equipped with an equivalence relation is a setoid, so we can perhaps just define an
- alphabet to be a setoid.
--}
-
-isReflexive : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isReflexive {i} {A} r = (x : A) → (r x x ≡ true)
-
-isSymmetric : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isSymmetric {i} {A} r = (x y : A) → (r x y ≡ true) → (r y x ≡ true)
-
-isSymmetric' : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isSymmetric' {i} {A} r = (x y : A) (z : Bool) → (r x y ≡ z) → (r y x ≡ z)
-
-isTransitive : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isTransitive {i} {A} r = (x y z : A) → (r x y ≡ true) → (r y z ≡ true) → (r x z ≡ true)
-
-isEquivalenceRelation : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
-isEquivalenceRelation {i} {A} r = (isReflexive r) ∧ ((isSymmetric r) ∧ (isTransitive r))
-
-record Setoid {i} : Set (lsuc i) where
- field
-  elems : Set i
-  equiv : ∃ r ∈ (elems → elems → Bool) , (isEquivalenceRelation r)
-
-Alphabet : ∀ {i} → Set (lsuc i)
-Alphabet = Setoid
-
--- Now a "character" is an equivalence class in this Setoid.
--- How do we talk about equivalence classes?
--- We can certainly talk about the equivalence class *of* a particula
--- element in the Setoid.
-
-EquivClass : ∀ {i} (S : Setoid {i}) (x : Setoid.elems S) → Set i
-EquivClass {i} S x = ∃ x' ∈ S-elems , ((x' == x) ≡ true)
- where
-  S-elems : Set i
-  S-elems = Setoid.elems S
- 
-  _==_ : S-elems → S-elems → Bool
-  _==_ = π₁ (Setoid.equiv S) 
-   
--- Can we define equivalence classes without doing it relative to
--- a particular element?
--- Should we?
-
--- A string is a sequence of characters from an alphabet A
--- What is a sequence?
-
--- A language is a set of strings.
-Language : Set₁
-Language = String → Set
-
+open import SetTheory
+open import Relations
+open import FormalLanguage
 
 -- The empty language, ⊘ contains no strings
 -- The null language, ε contains only the length-zero "null" string
@@ -125,6 +29,73 @@ data Regex : Set where
 
 
 
+
+-- Need our own Char & String types
+-- Use the general definitions you were building up in Lang
+--Set-theoretic descriptions:
+--Let's make this real.
+{-
+-- Empty language
+-- ⊘        ≡ {}
+lang-⊘ : Subset String
+lang-⊘ = EmptySet String
+
+
+ -- Null language
+ -- ε        ≡ {""}
+lang-ε : Subset String
+lang-ε = λ s → s ≡ ""
+
+
+-- If x ∈ Char, then:
+-- (char x) ≡ {x}
+lang-char : Char → Subset String
+lang-char c = λ s → s ≡ (primShowChar c)
+
+
+-- L₁ || L₂ ≡ L₁ ∪ L₂
+lang-union : Subset String → Subset String → Subset String
+lang-union L₁ L₂ = λ s → L₁ s ∨ L₂ s
+-- or L₁ || L₂ = subsetUnion L₁ L₂
+
+
+-- L₁ && L₂ ≡ {w₁w₂ | w₁ ∈ L₁ ∧ w₂ ∈ L₂}
+lang-concat : Subset String → Subset String → Subset String
+lang-concat L₁ L₂ = λ s → ∃ w₁ ∈ String , (∃ w₂ ∈ String , ( [ w₁ ∈ L₁ ] ∧ [ w₂ ∈ L₂ ] ∧ (s ≡ w₁ ++ w₂)))
+-} 
+
+ {-
+ --When i ≠ 0,
+ --L^i       ≡ L && L^(i-1)
+ _^_ : Subset String → Nat → Subset String
+ L ^ zero = ε  
+ L ^ (suc x) = L && (L ^ x)
+
+ --What about L^0?
+ --Notice that if the L ^ 0 were ⊘, then L ^ i would be empty for all i, because
+ -- L && ⊘ ≡ ⊘, for all L, but L && ε ≡ L, for all L
+ -- But note that we could also provide a different definition:
+ -- L ^ zero = ⊘
+ -- L ^ (suc zero) = L
+ -- L ^ (suc (suc x)) = L && (L ^ (suc x))
+
+ -- What about ⊘^0?
+ -- If we're to assume that "" ∈ L*, for all L, then it must be the 
+ -- case that ⊘^0 ≡ ε. 
+ -- What if we want ⊘ ^ i ≡ ⊘, for all i, including 0?
+ -- It would make sense that ⊘ ^ 0 ≡ ⊘, rather than ⊘ ^ 0 ≡ ε
+
+ -- ⊘^0       ≡ ε
+ -- ⊘^i       ≡ ⊘ , where i ≠ 0.
+
+ --  L*       ≡ ⋃ {i ∈ [0,∞)} L^i
+ rep : Subset String → Subset String
+ rep L ≡ λ s → ∃ n ∈ Nat , ((L ^ n) s)
+
+-}
+
+
+
 {-
 Rules to prove:
  -- Identity
@@ -137,7 +108,7 @@ Rules to prove:
  L && ⊘   ≡ ⊘
 
  -- Idempotence
- L ∪ L    ≡ L
+ L || L    ≡ L
 
  -- Symmetry
  L₁ || L₂ ≡ L₂ || L₁
@@ -149,40 +120,34 @@ Rules to prove:
  -- Associativity
  (L₁ || L₂) || L₃ ≡ L₁ || (L₂ || L₃)
  (L₁ && L₂) && L₃ ≡ L₁ && (L₂ && L₃)
-
 -}
-
 
 {-
- Empty language
- ⊘        ≡ {}
+ε && L ≡ L
 
- Null language
- ε        ≡ {""}
+ε&&L≡L : (L : Subset String) → ε && L ≡ L
+This probably won't work because of proof-relevance
 
- If x ∈ Char, then:
- (char x) ≡ {x}
+What we need to do is irrelefy all the proofs of set-membership, so that there's only
+one set-membership proof for each member in the set. Then, we probably can't use
+propositional equality and probably need to make an extensional definition of equality
+of subsets.
 
- L₁ || L₂ ≡ L₁ ∪ L₂
+L₁ ≡ L₂ = (s : String) → (L₁ s → L₂ s) ∧ (L₂ s → L₁ s)
 
- L₁ && L₂ ≡ {w₁w₂ | w₁ ∈ L₁ ∧ w₂ ∈ L₂}
+ε&&L≡L : (L : Subset String) → subsetExtEq (ε && L) L
 
- 
- 
- When i ≠ 0,
- L^i       ≡ L && L^(i-1)
+L&&ε≡L : (L : Subset String) → subsetExtEq (L && ε) L
 
- What about L^0?
+⊘∪L≡L : (L : Subset String) → subsetExtEq (⊘ ∪ L) L
 
- If we're to assume that "" ∈ L*, for all L, then it must be the 
- case that ⊘^0 ≡ ε. 
+⊘&&L≡⊘ : (L : Subset String) → subsetExtEq (⊘ && L) L
 
- ⊘^0       ≡ ε
- ⊘^i       ≡ ⊘ , where i ≠ 0.
+⊘&&L≡⊘ : (L : Subset String) → subsetExtEq (L && ⊘) L
 
- L*       ≡ ⋃ {i ∈ [0,∞)} L^i
 
 -}
+
 
 {-
  But why should regular expressions be limited to strings of Chars?
@@ -303,7 +268,7 @@ D'' : List Char → Regex → Regex
 D'' [] r = r
 D'' (c ∷ cs) r = D'' cs (D c r)
 
-D' : String → Regex → Regex
+D' : Data.String.String → Regex → Regex
 D' s r = D'' (primStringToList s) r
 
 {-
@@ -323,6 +288,7 @@ D₂ c (L *) = (D c L) && (L *)
 D₂ c (L₁ && L₂) = if (δ' L₁) then (((D₂ c L₁) && L₂) || (D₂ c L₂)) else ((D₂ c L₁) && L₂)
 
 {-
+
  Case 1: ⊘
  --------------------------------
  D c ⊘ = { w | cw ∈ ⊘ }
@@ -333,9 +299,11 @@ D₂ c (L₁ && L₂) = if (δ' L₁) then (((D₂ c L₁) && L₂) || (D₂ c L
 
  So:
  D c ⊘ ≡ ⊘ 
+
 -}
 
 {-
+
  Case 2: ε
  ----------------------------------
  D c ε = { w | cw ∈ ⊘}
@@ -346,18 +314,22 @@ D₂ c (L₁ && L₂) = if (δ' L₁) then (((D₂ c L₁) && L₂) || (D₂ c L
 
  So:
  D c ε ≡ ⊘
+
 -}
 
 {-
+
  Case 3: (char x)
  ------------------------------------------
  D c (char x) = {w | cw ∈ (char x)}
 
  If c ≠ x, then ∄ w ∈ String , cw ∈ (char x)
  If c = x, then cε ≡ c ∈ (char x)
+
 -}
 
 {-
+
  Case 4: L₁ || L₂
  ------------------------------------------
  D c (L₁ || L₂) = {w | cw ∈ (L₁ || L₂)}
@@ -365,9 +337,11 @@ D₂ c (L₁ && L₂) = if (δ' L₁) then (((D₂ c L₁) && L₂) || (D₂ c L
                 = {w | cw ∈ L₁} ∪ {w | cw ∈ L₂}
                 = (D c L₁) ∪ (D c L₂)
                 = (D c L₁) || (D c L₂)
+
 -}
 
 {-
+
  Case 5: L*
  ------------------------------------------
  D c L*  = {w | cw ∈ L*}
@@ -441,6 +415,7 @@ D₂ c (L₁ && L₂) = if (δ' L₁) then (((D₂ c L₁) && L₂) || (D₂ c L
 -}
 
 {-
+
  Case 6: L₁ && L₂
  -------------------------------------------
  D c (L₁ && L₂) = {w | cw ∈ (L₁ && L₂)}
@@ -549,6 +524,11 @@ record CFG {i j} : Set ((lsuc i) ⊔ (lsuc j)) where
 {-
  take the derivative with respect to a terminal symbol.
  the main tricky part is the left-recursion and nullability
+-}
+
+{-
+To get a better understanding, we should provide the set-theoretic description
+of CFGs and the meaning of the derivative when applied to these sets
 -}
 
 

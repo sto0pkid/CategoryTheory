@@ -4,7 +4,9 @@ open import Agda.Primitive
 open import BaseLogic
 open import Relations
 open import Data.Bool
+open import Data.Nat
 open import Data.List
+open import Data.Vector
 open import SetTheory
 
 {- 
@@ -53,8 +55,7 @@ EquivClass {i} S x = ∃ x' ∈ S-elems , ((x' == x) ≡ true)
   S-elems = Setoid.elems S
  
   _==_ : S-elems → S-elems → Bool
-  _==_ = π₁ (Setoid.equiv S) 
-
+  _==_ = π₁ (Setoid.equiv S)
 {- 
  Can we define equivalence classes without doing it relative to
  a particular element?
@@ -78,6 +79,7 @@ EquivClass {i} S x = ∃ x' ∈ S-elems , ((x' == x) ≡ true)
 String : ∀ {i} → (A : Alphabet {i}) → Set i
 String A = List (Setoid.elems A)
 
+
 {-
  Back to "languages" 
  A language is a set of strings over some alphabet.
@@ -85,4 +87,25 @@ String A = List (Setoid.elems A)
 -}
 
 Language : ∀ {i} (A : Alphabet {i}) → Set (lsuc lzero ⊔ i)
-Language A = Powerset (String A)
+Language A = Subset (String A)
+
+  
+{-
+Now we should have a function that takes the decision function for propositional equality and returns
+a proof that it define a Boolean equivalence relation.
+-}
+
+
+
+
+{-
+ASCII : Alphabet
+ASCII = record {elems = Vector Bit 8 ; equiv = BitVectorEq {8}}
+
+-}
+
+{-
+Obviously this is a little much for a lot of practical purposes, so we should have
+a simpler definition of an Alphabet as just a Set, rather than a Setoid where we have to
+provide an equivalence relation and proof that it actually is an equivalence relation.
+-}

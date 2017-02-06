@@ -67,6 +67,9 @@ infixr 3 _≡_
 data _≡_ {α} {A : Set α} : A → A → Set α where
  refl : (x : A) → x ≡ x
 
+≡-⟲ : ∀ {α} {A : Set α} (x : A) → x ≡ x
+≡-⟲ {α} {A} x = refl x
+
 ≡-↑↓ : ∀ {α} {A : Set α} {x y : A} → x ≡ y → y ≡ x
 ≡-↑↓ {α} {A} {x} {.x} (refl .x) = refl x
 
@@ -121,5 +124,17 @@ x ≠ y = (x ≡ y) → ⊥
 
 record ∥_∥ {α} (A : Set α) : Set α where
  constructor squash
+ field
+  .x : A
+
+
+{-
+ Often-times we don't care which proof is given for a proposition, we
+ only care whether the proposition is true. In those cases, we don't
+ really care about the proposition itself, call it A, what we care about
+ is Irr A.
+-}
+record Irr {α} {A : Set α} : Set α where
+ constructor irrelefy
  field
   .x : A

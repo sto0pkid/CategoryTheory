@@ -67,6 +67,13 @@ infixr 3 _≡_
 data _≡_ {α} {A : Set α} : A → A → Set α where
  refl : (x : A) → x ≡ x
 
+data Id {α} {A : Set α} (x : A) : A → Set α where
+ instance refl : Id x x
+
+{-# BUILTIN EQUALITY Id #-}
+{-# BUILTIN REFL refl #-}
+
+
 ≡-⟲ : ∀ {α} {A : Set α} (x : A) → x ≡ x
 ≡-⟲ {α} {A} x = refl x
 

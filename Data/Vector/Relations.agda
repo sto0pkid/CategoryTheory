@@ -9,6 +9,14 @@ open import Data.Vector
 open import Data.Fin
 open import Relations
 
+{-
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
+open import Data.Vec
+open import Relation.Binary
+open import Data.Product
+-}
+
 VectorEq : ∀ {α} {A : Set α} → (R : A → A → Bool) → isEqDec R → (n : Nat) → Vector A n → Vector A n → Bool
 VectorEq {α} {A} R isEqDec-R zero [] [] = true
 VectorEq {α} {A} R isEqDec-R (suc n) (a ∷ as) (b ∷ bs) = 
@@ -249,4 +257,27 @@ VectorEq-a-b→a≡b-ind {α} {A} R isEqDec-R n a b hyp x y VectorEq-[x∷a][y�
 VectorEq-a-b→a≡b : ∀ {α} {A : Set α} (R : A → A → Bool) → (isEqDec-R : isEqDec R) → (n : Nat) → (a b : Vector A n) → VectorEq R isEqDec-R n a b ≡ true → a ≡ b
 VectorEq-a-b→a≡b {α} {A} R isEqDec-R zero [] [] VectorEq-[][] = refl []
 VectorEq-a-b→a≡b {α} {A} R isEqDec-R (suc n) (a ∷ as) (b ∷ bs) VectorEq-[a∷as][b∷bs] = [a∷as≡b∷bs]
+-}
+
+{-
+data Id {α} {A : Set α} (x : A) : A → Set α where
+ instance refl : Id x x
+
+{-# BUILTIN EQUALITY Id #-}
+{-# BUILTIN REFL refl #-}
+-}
+
+
+vec≟-lem : ∀ {α} {A : Set α} {n : Nat} {x y : A} {xs ys : Vector A n} → Id (x ∷ xs) (y ∷ ys) → (Id x y) × (Id xs ys)
+vec≟-lem refl = refl , refl
+
+
+{-
+vec≟ : ∀ {A : Set} {n} → (_A≟_ : Decidable {A = A} _≡_) → Decidable {A = Vector A n} (_≡_)
+vec≟ _A≟_ [] [] = yes refl
+vec≟ _A≟_ (x ∷ xs) (y ∷ ys) with x A≟ y | vec≟ _A≟_ xs ys
+vec≟ _A≟_ (x ∷ xs) (.x ∷ .xs) | yes refl | (yes refl) = yes refl
+vec≟ _A≟_ (x ∷ xs) (.x ∷ ys) | yes refl | (no ¬p) = no (λ x₁ → ¬p (proj₂ (vec≟-lem x₁)))
+vec≟ _A≟_ (x ∷ xs) (y ∷ .xs) | no ¬p | (yes refl) = no (λ x₁ → ¬p (proj₁ (vec≟-lem x₁)))
+vec≟ _A≟_ (x ∷ xs) (y ∷ ys) | no ¬p | (no ¬p₁) = no (λ x₁ → ¬p (proj₁ (vec≟-lem x₁)))
 -}

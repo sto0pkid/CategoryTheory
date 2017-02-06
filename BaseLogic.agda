@@ -138,3 +138,7 @@ record Irr {α} {A : Set α} : Set α where
  constructor irrelefy
  field
   .x : A
+
+
+_<=>_ : ∀ {α β} (A : Set α) (B : Set β) → Set (α ⊔ β)
+A <=> B = (A → B) ∧ (B → A)

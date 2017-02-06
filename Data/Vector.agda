@@ -18,8 +18,14 @@ A ^ n = Vector A n
 Vector-first : ∀ {α} {A : Set α} {n : Nat} → Vector A (suc n) → A
 Vector-first {α} {A} {n} (a ∷ as) = a
 
+head : ∀ {α} {A : Set α} {n : Nat} → Vector A (suc n) → A
+head = Vector-first
+
 Vector-rest : ∀ {α} {A : Set α} {n : Nat} → Vector A (suc n) → Vector A n
 Vector-rest {α} {A} {n} (a ∷ as) = as
+
+tail : ∀ {α} {A : Set α} {n : Nat} → Vector A (suc n) → Vector A n
+tail = Vector-rest
 
 Vector-coerce-length : ∀ {α} {A : Set α} {m n : Nat} → Vector A m → m ≡ n → Vector A n
 Vector-coerce-length {α} {A} {m} {.m} vec (refl .m) = vec
@@ -32,10 +38,21 @@ _++_ : ∀ {α} {A : Set α} {n m : Nat} → Vector A n → Vector A m → Vecto
 [] ++ ys = ys
 (x ∷ xs) ++ ys = x ∷ (xs ++ ys)
 
+<_> : ∀ {α} {A : Set α} → A → Vector A 1
+< x > = (x ∷ [])
 
 _[_] : ∀ {α} {A : Set α} {n : Nat} → Vector A (suc n) → Fin n → A
 (a ∷ as) [ zero ] =  a
 (a ∷ as) [ suc n ] = as [ n ]
+
+_[_]' : ∀ {α} {A : Set α} {n : Nat} → Vector A n → Fin n → A
+(a ∷ as) [ zero ]' = a
+(a ∷ as) [ suc n ]' = as [ n ]'
+
+lookup : ∀ {α n} {A : Set α} → Fin n → Vector A n → A
+lookup zero (x ∷ xs) = x
+lookup (suc i) (x ∷ xs) = lookup i xs
+
 {-
 Note that computationally this is not ideal. In C++ for example, arrays
 are strings of bitvectors of a particular length <size>. If we want to
@@ -113,3 +130,8 @@ data _[_]=_ {α} {A : Set α} : {n : Nat} → Vector A n → Fin n → A → Set
  here : ∀ {n : Nat} {x : A} {xs : Vector A n} → (x ∷ xs) [ zero ]= x
  there : ∀ {n : Nat} {i : Fin n} {x y : A} {xs : Vector A n} (xs[i]=x : xs [ i ]= x) → (y ∷ xs) [ suc i ]= x
 
+-- x [ i ]:= y ...
+-- replace the value at index i in vector x with the value y
+_[_]:=_ : ∀ {α} {A : Set α} {n : Nat} → Vector A (suc n) → Fin n → A → Vector A (suc n)
+(x ∷ xs) [ zero ]:= y = y ∷ xs
+(x ∷ xs) [ suc i ]:= y = x ∷ (xs [ i ]:= y)

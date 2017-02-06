@@ -6,6 +6,7 @@ open import Data.Bool
 open import Data.Bool.Relations
 open import Data.Nat
 open import Data.Vector
+open import Data.Fin
 open import Relations
 
 VectorEq : ∀ {α} {A : Set α} → (R : A → A → Bool) → isEqDec R → (n : Nat) → Vector A n → Vector A n → Bool
@@ -16,6 +17,147 @@ VectorEq {α} {A} R isEqDec-R (suc n) (a ∷ as) (b ∷ bs) =
  else
   false 
 
+{-
+VectorEq-Pointwise : ∀ {α} {A : Set α} → (R : A → A → Bool) → isEqDec R → (n : Nat) → (x y : Vector A n) → Set α
+VectorEq-Pointwise {α} {A} R isEqDec-R (suc n) x y = (i : Fin n) → (x [ i ]) ≡ (y [ i ])
+-}
+
+Vector-Pointwise-Rel : ∀ {α β} {A : Set α} {n : Nat} → (R : A → A → Set β) → (xs ys : Vector A n) → Set β
+Vector-Pointwise-Rel {α} {β} {A} {n} R xs ys = (i : Fin n) → R (lookup i xs) (lookup i ys)
+
+data Vector-Pointwise-Rel' {α} {β} {A : Set α} (R : A → A → Set β) : {n : Nat} (xs ys : Vector A n) → Set β where
+ [] : Vector-Pointwise-Rel' R [] []
+ _∷_ : {n : Nat} → {x y : A} → {xs ys : Vector A n} → (Rxy : R x y) → Vector-Pointwise-Rel' R xs ys → Vector-Pointwise-Rel' R (x ∷ xs) (y ∷ ys)
+
+{-
+Vector-Pointwise-Rel-Equiv : ∀ {α β} {A : Set α} {n : Nat} → {R : A → A → Set β} → {xs ys : Vector A n} → Vector-Pointwise-Rel R xs ys <=> Vector-Pointwise-Rel' R xs ys
+Vector-Pointwise-Rel-Equiv {α} {β} {A} {n} {R} {xs} {ys} = (Rel→Rel' , Rel'→Rel)
+ where
+  Rel→Rel' : Vector-Pointwise-Rel R xs ys → Vector-Pointwise-Rel' R xs ys
+  
+
+  Rel'→Rel : Vector-Pointwise-Rel' R xs ys → Vector-Pointwise-Rel R xs ys
+-}
+
+Vector-Pointwise-≡ : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → Set α
+Vector-Pointwise-≡ {α} {A} {n} xs ys = (i : Fin n) → (lookup i xs) ≡ (lookup i ys)
+
+Vector-Pointwise-≡' : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → Set α
+Vector-Pointwise-≡' {α} {A} {n} xs ys = (i : Fin n) → xs [ i ]' ≡ ys [ i ]'
+
+Vector-Pointwise-≡-isRefl : ∀ {α} {A : Set α} {n : Nat} → (xs : Vector A n) → Vector-Pointwise-≡ xs xs
+Vector-Pointwise-≡-isRefl {α} {A} {n} xs i = refl (lookup i xs)
+
+Vector-Pointwise-≡'-isRefl : ∀ {α} {A : Set α} {n : Nat} → (xs : Vector A n) → Vector-Pointwise-≡' xs xs
+Vector-Pointwise-≡'-isRefl {α} {A} {n} xs i = refl (xs [ i ]')
+
+xs≡ys→Vector-Pointwise-≡ : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → xs ≡ ys → Vector-Pointwise-≡ xs ys
+xs≡ys→Vector-Pointwise-≡ {α} {A} {n} xs .xs (refl .xs) = Vector-Pointwise-≡-isRefl xs
+
+Vector-Pointwise-≡-[x∷xs][y∷ys]→x≡y : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → (x y : A) → Vector-Pointwise-≡ (x ∷ xs) (y ∷ ys) → x ≡ y
+Vector-Pointwise-≡-[x∷xs][y∷ys]→x≡y {α} {A} {n} xs ys x y x∷xs[pw-≡]y∷ys = [x≡y]
+ where
+  x∷xs[0]≡x : lookup zero (x ∷ xs) ≡ x
+  x∷xs[0]≡x = refl x
+
+  y∷ys[0]≡y : lookup zero (y ∷ ys) ≡ y
+  y∷ys[0]≡y = refl y
+
+  x∷xs[0]≡y∷ys[0] : lookup zero (x ∷ xs) ≡ lookup zero (y ∷ ys)
+  x∷xs[0]≡y∷ys[0] = x∷xs[pw-≡]y∷ys zero
+
+  [x≡y] : x ≡ y
+  [x≡y] = ≡-⇶ (≡-↑↓ x∷xs[0]≡x) (≡-⇶ x∷xs[0]≡y∷ys[0] y∷ys[0]≡y)
+
+Vector-Pointwise-≡-[x∷xs][y∷ys]→Vector-Pointwise-≡-xs-ys : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → (x y : A) → Vector-Pointwise-≡ (x ∷ xs) (y ∷ ys) → Vector-Pointwise-≡ xs ys
+Vector-Pointwise-≡-[x∷xs][y∷ys]→Vector-Pointwise-≡-xs-ys {α} {A} {n} xs ys x y x∷xs[pw-≡]y∷ys = xs[pw-≡]ys
+ where
+  xs[pw-≡]ys : (i : Fin n) → (lookup i xs) ≡ (lookup i ys)
+  xs[pw-≡]ys i = x∷xs[pw-≡]y∷ys (raise 1 i)
+
+[f≡g]→[fx≡gx] : ∀ {α β} {A : Set α} {B : Set β} (f g : A → B) → f ≡ g → (x : A) → f x ≡ g x
+[f≡g]→[fx≡gx] {α} {β} {A} {B} f .f (refl .f) x = refl (f x)
+
+
+x≡y→x∷xs≡y∷xs : ∀ {α} {A : Set α} {n : Nat} → (xs : Vector A n) → (x y : A) → x ≡ y → (x ∷ xs) ≡ (y ∷ xs)
+x≡y→x∷xs≡y∷xs {α} {A} {n} xs x y [x≡y] = x∷xs≡y∷xs
+ where
+  ∙∷ : A → Vector A n → Vector A (suc n)
+  ∙∷ z zs = z ∷ zs
+
+  x∷ : Vector A n → Vector A (suc n)
+  x∷ = ∙∷ x
+
+  y∷ : Vector A n → Vector A (suc n)
+  y∷ = ∙∷ y
+
+  x∷≡y∷ : x∷ ≡ y∷
+  x∷≡y∷ = [x≡y]→[fx≡fy] ∙∷ x y [x≡y]
+
+  x∷xs≡y∷xs : (x ∷ xs) ≡ (y ∷ xs)
+  x∷xs≡y∷xs = [f≡g]→[fx≡gx] x∷ y∷ x∷≡y∷ xs
+
+xs≡ys→x∷xs≡x∷ys : ∀ {α} {A : Set α} {n : Nat} (xs ys : Vector A n) → xs ≡ ys → (x : A) → (x ∷ xs) ≡ (x ∷ ys)
+xs≡ys→x∷xs≡x∷ys {α} {A} {n} xs ys [xs≡ys] x = [x∷xs≡x∷ys]
+ where
+  x∷ : Vector A n → Vector A (suc n)
+  x∷ v = x ∷ v
+
+  [x∷xs≡x∷ys] : (x ∷ xs) ≡ (x ∷ ys)
+  [x∷xs≡x∷ys] = [x≡y]→[fx≡fy] x∷ xs ys [xs≡ys]
+
+[x≡y]→[f≡g]→[fx≡gy] : ∀ {α β} {A : Set α} {B : Set β} → (x y : A) → x ≡ y → (f g : A → B) → f ≡ g → f x ≡ g y
+[x≡y]→[f≡g]→[fx≡gy] {α} {β} {A} {B} x .x (refl .x) f .f (refl .f) = refl (f x)
+  
+
+xs≡ys→x≡y→x∷xs≡y∷ys : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → (x y : A) → xs ≡ ys → x ≡ y → (x ∷ xs) ≡ (y ∷ ys)
+xs≡ys→x≡y→x∷xs≡y∷ys {α} {A} {n} xs ys x y [xs≡ys] [x≡y] = [x∷xs≡y∷ys]
+ where
+  ∙∷ : A → Vector A n → Vector A (suc n)
+  ∙∷ z zs = z ∷ zs
+
+  x∷ : Vector A n → Vector A (suc n)
+  x∷ = ∙∷ x
+
+  y∷ : Vector A n → Vector A (suc n)
+  y∷ = ∙∷ y
+
+  x∷≡y∷ : x∷ ≡ y∷
+  x∷≡y∷ = [x≡y]→[fx≡fy] ∙∷ x y [x≡y]
+
+  [x∷xs≡y∷ys] : (x ∷ xs) ≡ (y ∷ ys)
+  [x∷xs≡y∷ys] = [x≡y]→[f≡g]→[fx≡gy] xs ys [xs≡ys] x∷ y∷ x∷≡y∷
+  
+
+
+Vector-Pointwise-≡→xs≡ys-ind : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → (x y : A) → (Vector-Pointwise-≡ xs ys → xs ≡ ys) → Vector-Pointwise-≡ (x ∷ xs) (y ∷ ys) → (x ∷ xs) ≡ (y ∷ ys)
+Vector-Pointwise-≡→xs≡ys-ind {α} {A} {n} xs ys x y hyp x∷xs[pw-≡]y∷ys = [x∷xs≡y∷ys]
+ where
+  x≡y : x ≡ y
+  x≡y = Vector-Pointwise-≡-[x∷xs][y∷ys]→x≡y xs ys x y x∷xs[pw-≡]y∷ys
+
+  xs[pw-≡]ys : Vector-Pointwise-≡ xs ys
+  xs[pw-≡]ys = Vector-Pointwise-≡-[x∷xs][y∷ys]→Vector-Pointwise-≡-xs-ys xs ys x y x∷xs[pw-≡]y∷ys
+
+  xs≡ys : xs ≡ ys
+  xs≡ys = hyp xs[pw-≡]ys
+  
+  [x∷xs≡y∷ys] : (x ∷ xs) ≡ (y ∷ ys)
+  [x∷xs≡y∷ys] = xs≡ys→x≡y→x∷xs≡y∷ys xs ys x y xs≡ys x≡y
+
+
+Vector-Pointwise-≡→xs≡ys : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → Vector-Pointwise-≡ xs ys → xs ≡ ys
+Vector-Pointwise-≡→xs≡ys {α} {A} {zero} [] [] [][pw-≡][] = refl []
+Vector-Pointwise-≡→xs≡ys {α} {A} {suc n} (x ∷ xs) (y ∷ ys) = Vector-Pointwise-≡→xs≡ys-ind xs ys x y  (Vector-Pointwise-≡→xs≡ys {α} {A} {n} xs ys)
+
+Vector-Pointwise-≡⇔≡ : ∀ {α} {A : Set α} {n : Nat} → (xs ys : Vector A n) → (Vector-Pointwise-≡ xs ys) <=> (xs ≡ ys)
+Vector-Pointwise-≡⇔≡ {α} {A} {n} xs ys = ([pw-≡]→[≡] , [≡]→[pw-≡])
+ where
+  [pw-≡]→[≡] : Vector-Pointwise-≡ xs ys → xs ≡ ys
+  [pw-≡]→[≡] = Vector-Pointwise-≡→xs≡ys xs ys
+
+  [≡]→[pw-≡] : xs ≡ ys → Vector-Pointwise-≡ xs ys
+  [≡]→[pw-≡] = xs≡ys→Vector-Pointwise-≡ xs ys
 
 {-
 -- Not true! Consider the case when a₁≡a₂. 

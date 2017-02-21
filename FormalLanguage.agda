@@ -136,6 +136,7 @@ data Regex₂ (A : Alphabet) : Set where
 -- ⊘        ≡ {}
 lang-⊘ : ∀ {i} → (A : Alphabet {i}) → Subset {i} {lzero} (String A)
 lang-⊘ A = EmptySet (String A)
+--EmptySet (String A) = λ x → ⊥
 
 {-
 EmptySet : ∀ {α} (A : Set α) → Subset {α} {lzero} A
@@ -169,9 +170,9 @@ lang-concat {i} {j} {k} {A} L₁ L₂ = λ s → ∃ w₁ ∈ (String A) , (∃ 
 
  --When i ≠ 0,
  --L^i       ≡ L && L^(i-1)
-rep : ∀ {i j} {A : Alphabet {i}} → Subset {i} {j} (String A) → Nat → Subset {i} {i ⊔ j} (String A)
-rep {i} {j} {A} L zero = lang-ε A  
-rep {i} {j} {A} L (suc n) = lang-concat {i} {j} {i ⊔ j} {A} L (rep {i} {j} {A} L n)
+rep : ∀ {i} {A : Alphabet {i}} → Subset {i} {i} (String A) → Nat → Subset {i} {i} (String A)
+rep {i} {A} L zero = lang-ε A  
+rep {i} {A} L (suc n) = lang-concat {i} {i} {i} {A} L (rep {i} {A} L n)
 
 {-
  --What about L^0?

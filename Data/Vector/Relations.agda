@@ -295,3 +295,6 @@ vec≟ _A≟_ (x ∷ xs) (.x ∷ ys) | yes refl | (no ¬p) = no (λ x₁ → ¬p
 vec≟ _A≟_ (x ∷ xs) (y ∷ .xs) | no ¬p | (yes refl) = no (λ x₁ → ¬p (proj₁ (vec≟-lem x₁)))
 vec≟ _A≟_ (x ∷ xs) (y ∷ ys) | no ¬p | (no ¬p₁) = no (λ x₁ → ¬p (proj₁ (vec≟-lem x₁)))
 -}
+
+-- thanks to pgiarusso
+--https://gist.github.com/Blaisorblade/2c75ca200f0acb5223772406900ac307

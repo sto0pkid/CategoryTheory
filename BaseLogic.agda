@@ -11,6 +11,9 @@ open import Data.Irrelevance
 ~ : ∀ {α} (A : Set α) → Set α
 ~ A = A → ⊥
 
+¬ : ∀ {α} (A : Set α) → Set α
+¬ = ~
+
 _↔_ : ∀ {i j} (A : Set i) (B : Set j) → Set (i ⊔ j)
 A ↔ B = (A → B) ∧ (B → A)
 

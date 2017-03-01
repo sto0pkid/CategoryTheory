@@ -8,6 +8,9 @@ open import Data.Product
 open import Data.PropositionalEquality
 open import Data.Irrelevance
 
+{-
+Move this to Data.False
+-}
 ~ : ∀ {α} (A : Set α) → Set α
 ~ A = A → ⊥
 
@@ -17,15 +20,24 @@ open import Data.Irrelevance
 _↔_ : ∀ {i j} (A : Set i) (B : Set j) → Set (i ⊔ j)
 A ↔ B = (A → B) ∧ (B → A)
 
+{-
+Move this to Data.Functions.Proofs
+-}
 [x≡y]→[fx≡fy] : ∀ {α β} {A : Set α} {B : Set β} (f : A → B) → (x y : A) → x ≡ y → (f x) ≡ (f y)
 [x≡y]→[fx≡fy] {α} {β} {A} {B} f x .x refl = refl
 
 [x≡y]→[Px→Py] : ∀ {α β} {A : Set α} (P : A → Set β) → (x y : A) → x ≡ y → P x → P y
 [x≡y]→[Px→Py] {α} {β} {A} P x .x refl Px = Px
 
+{-
+Move this to Data.Product.Proofs
+-}
 p≡[π₁-p,π₂-p] : ∀ {α β} {A : Set α} {B : Set β} (p : A × B) → p ≡ (first p , second p)
 p≡[π₁-p,π₂-p] {α} {β} {A} {B} (p1 , p2) = refl
 
+{-
+Move this to Data.PropositionalEquality
+-}
 _≠_ : ∀ {α} {A : Set α} (x y : A) → Set α
 x ≠ y = (x ≡ y) → ⊥
 
@@ -34,6 +46,9 @@ x ≠ y = (x ≡ y) → ⊥
  where
   ☢ : ⊥
   ☢ = [x≠y] (≡-↑↓ [y≡x])
+
+≠-sym : ∀ {i} {A : Set i} {x y : A} → x ≠ y → y ≠ x
+≠-sym = ≠-↑↓
 
 [A≡B]→[A→B] : ∀ {α} {A B : Set α} → A ≡ B → A → B
 [A≡B]→[A→B] refl a = a

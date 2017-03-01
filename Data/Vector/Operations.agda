@@ -2,7 +2,7 @@ module Data.Vector.Operations where
 
 open import BaseLogic
 open import Data.Nat
-open import Data.Nat.Operations
+import Data.Nat.Operations
 open import Data.Nat.Relations
 open import Data.Nat.Proofs
 open import Data.Vector
@@ -32,7 +32,7 @@ Vector-coerce-type : ∀ {α} {A B : Set α} {n : Nat} → Vector A n → A ≡ 
 Vector-coerce-type {α} {A} {.A} vec refl = vec
 
 
-_++_ : ∀ {α} {A : Set α} {n m : Nat} → Vector A n → Vector A m → Vector A (n + m)
+_++_ : ∀ {α} {A : Set α} {n m : Nat} → Vector A n → Vector A m → Vector A (Data.Nat.Operations._+_ n m)
 [] ++ ys = ys
 (x ∷ xs) ++ ys = x ∷ (xs ++ ys)
 

@@ -9,6 +9,7 @@ open import Data.Maybe
 open import Data.Nat
 open import Data.Nat.Operations
 open import Data.Nat.BinPreds
+open import Data.Nat.Properties
 open import Data.Product
 open import Data.PropositionalEquality
 

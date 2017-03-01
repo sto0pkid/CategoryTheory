@@ -14,7 +14,6 @@ open import Data.Fin.Operations
 open import Data.Product
 open import Data.PropositionalEquality
 open import Relations
-open import vec-lem-test
 
 --vec[i]=val : vector x at index y has value val
 data _[_]=_ {α} {A : Set α} : {n : Nat} → Vector A n → Fin n → A → Set α where
@@ -46,9 +45,11 @@ VectorEq-Pointwise {α} {A} R isEqDec-R (suc n) x y = (i : Fin n) → (x [ i ]) 
 Vector-Pointwise-Rel : ∀ {α β} {A : Set α} {n : Nat} → (R : A → A → Set β) → (xs ys : Vector A n) → Set β
 Vector-Pointwise-Rel {α} {β} {A} {n} R xs ys = (i : Fin n) → R (lookup i xs) (lookup i ys)
 
+{-
 data Vector-Pointwise-Rel' {α} {β} {A : Set α} (R : A → A → Set β) : {n : Nat} (xs ys : Vector A n) → Set β where
  [] : Vector-Pointwise-Rel' R [] []
  _∷_ : {n : Nat} → {x y : A} → {xs ys : Vector A n} → (Rxy : R x y) → Vector-Pointwise-Rel' R xs ys → Vector-Pointwise-Rel' R (x ∷ xs) (y ∷ ys)
+-}
 
 {-
 Vector-Pointwise-Rel-Equiv : ∀ {α β} {A : Set α} {n : Nat} → {R : A → A → Set β} → {xs ys : Vector A n} → Vector-Pointwise-Rel R xs ys <=> Vector-Pointwise-Rel' R xs ys

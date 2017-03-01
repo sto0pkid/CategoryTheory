@@ -115,8 +115,6 @@ pad-zeroes' (a ∷ as) (suc n) = (a ∷ (pad-zeroes' as n))
 pad-zeroes : BinaryNat → Nat → BinaryNat
 pad-zeroes b n = pad-zeroes' (reverse b) n
 
-
-
 {-
 pad-zeroes-length-lemma : (l1 l2 : BinaryNat) → length (pad-zeroes' l1 (length l2)) ≡ length (pad-zeroes' l2 (length l1))
 -}

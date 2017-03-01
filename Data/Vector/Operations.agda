@@ -9,6 +9,7 @@ open import Data.Vector
 open import Data.Fin
 open import Data.False
 open import Data.PropositionalEquality
+open import Data.Product
 
 _^_ : ∀ {α} (A : Set α) (n : Nat) → Set α
 A ^ n = Vector A n
@@ -128,3 +129,15 @@ data NEVec₂ (A : Set) : (n : Nat) → n > 0 → Set where
 _[_]:=_ : ∀ {α} {A : Set α} {n : Nat} → Vector A (suc n) → Fin n → A → Vector A (suc n)
 (x ∷ xs) [ zero ]:= y = y ∷ xs
 (x ∷ xs) [ suc i ]:= y = x ∷ (xs [ i ]:= y)
+
+map : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → {n : Nat} → Vector A n → Vector B n
+map {i} {j} {A} {B} f {zero} [] = []
+map {i} {j} {A} {B} f {suc n} (a ∷ as) = (f a) ∷ (map f as)
+ 
+flatten : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B → B) → B → {n : Nat} → Vector A n → B
+flatten {i} {j} {A} {B} f b {zero} [] = b
+flatten {i} {j} {A} {B} f b {suc n} (a ∷ as) = f a (flatten f b as)
+
+zip : ∀ {i j} {A : Set i} {B : Set j} → {n : Nat} → Vector A n → Vector B n → Vector (A × B) n
+zip {i} {j} {A} {B} {zero} [] [] = []
+zip {i} {j} {A} {B} {suc n} (a ∷ as) (b ∷ bs) = (a , b) ∷ (zip as bs)

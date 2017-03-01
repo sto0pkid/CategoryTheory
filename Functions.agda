@@ -18,6 +18,14 @@ _∘_ : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → (B → C) → (A →
 ∘-assoc : ∀ {i j k l} {A : Set i} {B : Set j} {C : Set k} {D : Set l} → (h : C → D) → (g : B → C) → (f : A → B) → (h ∘ g) ∘ f ≡ h ∘ (g ∘ f)
 ∘-assoc {i} {j} {k} {l} {A} {B} {C} {D} h g f = refl
 
+curry : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → (A × B → C) → (A → B → C)
+curry {i} {j} {k} {A} {B} {C} f a b = f (a , b)
+
+uncurry : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → (A → B → C) → (A × B → C)
+uncurry {i} {j} {k} {A} {B} {C} f (a , b) = f a b
+
+
+
 surjective : ∀ {i j} {A : Set i} {B : Set j} → (A → B) → Set (i ⊔ j)
 surjective {i} {j} {A} {B} f = (b : B) → ∃ a ∈ A , ((f a) ≡ b)
 

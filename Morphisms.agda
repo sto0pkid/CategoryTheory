@@ -29,3 +29,4 @@ epi {i} {j} {C} {x} {y} f = (z : obj) → (g₁ g₂ : hom y z) → (g₁ ∘ f)
   hom = Category.hom C
   _∘_ = Category.comp C
   id = Category.id C
+

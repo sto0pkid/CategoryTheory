@@ -19,6 +19,9 @@ open import Data.Bool.Operations
   ☢ : ⊥
   ☢ = ⊤≠⊥ [⊤≡⊥]
 
+true≠false : true ≠ false
+true≠false = 𝕥≠𝕗
+
 
 b≡true→if[b]then[a₁]else[a₂]≡a₁ : ∀ {α} {A : Set α} → (a₁ a₂ : A) → (b : Bit) → b ≡ true → if b then a₁ else a₂ ≡ a₁
 b≡true→if[b]then[a₁]else[a₂]≡a₁ {α} {A} a₁ a₂ true 𝕥≡𝕥 = refl

@@ -29,6 +29,12 @@ true and false = false
 false and true = false
 false and false = false
 
+_xor_ : Bool → Bool → Bool
+true xor true = false
+true xor false = true
+false xor true = true
+false xor false = false
+
 if_then_else : ∀ {α} {A : Set α} → Bool → A → A → A
 if_then_else true x y = x
 if_then_else false x y = y

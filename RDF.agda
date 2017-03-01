@@ -44,7 +44,13 @@ https://www.w3.org/TR/2014/REC-rdf11-mt-20140225/
 
 {-
 RDF 1.1 Concepts
+RDF11-CONCEPTS
 https://www.w3.org/TR/rdf11-concepts/
+-}
+
+{-
+RDF Schema
+RDF11-SCHEMA
 -}
 
 

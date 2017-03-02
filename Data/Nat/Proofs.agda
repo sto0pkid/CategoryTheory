@@ -62,6 +62,9 @@ Proofs about successor and addition:
   ☢ : ⊥
   ☢ = 𝕥≠𝕗 [𝕥≡𝕗]
 
+suc-x≠0 : (x : Nat) → (suc x) ≠ zero
+suc-x≠0 = 𝕤x≠0
+
 -- 2) suc is injective
 [𝕤x≡𝕤y]→[x≡y] : (x y : Nat) → suc x ≡ suc y → x ≡ y
 [𝕤x≡𝕤y]→[x≡y] x y [𝕤x≡𝕤y] = [x≡y]→[fx≡fy] pred (suc x) (suc y) [𝕤x≡𝕤y]
@@ -151,6 +154,9 @@ x+1≡𝕤x-ind x hyp = proof
 x+1≡𝕤x : (x : Nat) → x + 1 ≡ suc x
 x+1≡𝕤x 0 = refl
 x+1≡𝕤x (suc x) = x+1≡𝕤x-ind x (x+1≡𝕤x x)
+
+x+1≡suc-x : (x : Nat) → x + 1 ≡ suc x
+x+1≡suc-x = x+1≡𝕤x
 
 -- 16) suc x ≡ x + 1
 𝕤x≡x+1 : (x : Nat) → suc x ≡ x + 1
@@ -788,3 +794,13 @@ x>y→x≮y x y (n , [y+𝕤n≡x]) (m , [x+𝕤m≡y]) = disproof
   [z+[𝕤m+𝕤n]≡[z+𝕤m]+𝕤n] : z + ((suc m) + (suc n)) ≡ (z + (suc m)) + (suc n)
   [z+[𝕤m+𝕤n]≡[z+𝕤m]+𝕤n] = 
 -}
+
+x-minus-0≡x : (x : Nat) → x minus 0 ≡ x
+x-minus-0≡x zero = refl
+x-minus-0≡x (suc n) = refl
+
+0-minus-x≡0 : (x : Nat) → 0 minus x ≡ 0
+0-minus-x≡0 x = refl
+
+suc-x-minus-1≡x : (x : Nat) → (suc x) minus 1 ≡ x
+suc-x-minus-1≡x x = x-minus-0≡x x

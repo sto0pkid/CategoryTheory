@@ -10,6 +10,7 @@ open import Data.Nat
 open import Data.Nat.Operations
 open import Data.Nat.BinPreds
 open import Data.Nat.Properties
+open import Data.Nat.Proofs
 open import Data.Product
 open import Data.PropositionalEquality
 
@@ -134,3 +135,45 @@ flat-length {i} {A} l = flatten op-len zero l
 
 flat-append : ∀ {i} {A : Set i} → List A → List A → List A
 flat-append {i} {A} l1 l2 = flatten op-app l2 l1
+
+
+list-head : ∀ {i} {A : Set i} → List A → Maybe A
+list-head {i} {A} [] = Nothing
+list-head {i} {A} (a ∷ as) = Just a
+
+list-tail : ∀ {i} {A : Set i} → List A → Maybe (List A)
+list-tail {i} {A} [] = Nothing
+list-tail {i} {A} (a ∷ as) = Just as
+
+list-first : ∀ {i} {A : Set i} → List A → Maybe A
+list-first = list-head
+
+list-rest : ∀ {i} {A : Set i} → List A → Maybe (List A)
+list-rest = list-tail
+
+list-last : ∀ {i} {A : Set i} → List A → Maybe A
+list-last {i} {A} [] = Nothing
+list-last {i} {A} (a ∷ []) = Just a
+list-last {i} {A} (a1 ∷ (a2 ∷ as)) = list-last (a2 ∷ as)
+
+nelist-head : ∀ {i} {A : Set i} → (l : List A) → (length l) ≠ 0 → A
+nelist-head {i} {A} [] [0≠0] = ω ([0≠0] refl)
+nelist-head {i} {A} (Data.List._∷_ a as) [length[a∷as]≠0] = a
+
+nelist-tail : ∀ {i} {A : Set i} → (l : List A) → (length l) ≠ 0 → List A
+nelist-tail {i} {A} [] [0≠0] = ω ([0≠0] refl)
+nelist-tail {i} {A} (Data.List._∷_ a as) [length[a∷as]≠0] = as
+
+nelist-first : ∀ {i} {A : Set i} → (l : List A) → (length l) ≠ 0 → A
+nelist-first = nelist-head
+
+nelist-rest : ∀ {i} {A : Set i} → (l : List A) → (length l) ≠ 0 → List A
+nelist-rest = nelist-tail
+
+nelist-last : ∀ {i} {A : Set i} → (l : List A) → (length l) ≠ 0 → A
+nelist-last {i} {A} [] [0≠0] = ω ([0≠0] refl)
+nelist-last {i} {A} (a ∷ []) [1≠0] = a
+nelist-last {i} {A} (a1 ∷ (a2 ∷ as)) [suc[suc|as|]≠0] = nelist-last (a2 ∷ as) [suc|as|≠0]
+ where
+  [suc|as|≠0] : suc (length as) ≠ 0
+  [suc|as|≠0] = suc-x≠0 (length as)

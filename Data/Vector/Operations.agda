@@ -10,6 +10,7 @@ open import Data.Fin
 open import Data.False
 open import Data.PropositionalEquality
 open import Data.Product
+open import Data.Maybe
 
 _^_ : ∀ {α} (A : Set α) (n : Nat) → Set α
 A ^ n = Vector A n
@@ -25,6 +26,44 @@ Vector-rest {α} {A} {n} (a ∷ as) = as
 
 tail : ∀ {α} {A : Set α} {n : Nat} → Vector A (suc n) → Vector A n
 tail = Vector-rest
+
+vec-head : ∀ {i} {A : Set i} {n : Nat} → Vector A n → Maybe A
+vec-head {i} {A} {zero} [] = Nothing
+vec-head {i} {A} {suc n} (a ∷ as) = Just a
+
+vec-tail : ∀ {i} {A : Set i} {n : Nat} → Vector A n → Maybe (Vector A (Data.Nat.Operations.pred n))
+vec-tail {i} {A} {zero} [] = Nothing
+vec-tail {i} {A} {suc n} (a ∷ as) = Just as
+
+vec-first : ∀ {i} {A : Set i} {n : Nat} → Vector A n → Maybe A
+vec-first = vec-head
+
+vec-rest : ∀ {i} {A : Set i} {n : Nat} → Vector A n → Maybe (Vector A (Data.Nat.Operations.pred n))
+vec-rest = vec-tail
+
+vec-last : ∀ {i} {A : Set i} {n : Nat} → Vector A n → Maybe A
+vec-last {i} {A} {zero} [] = Nothing
+vec-last {i} {A} {suc zero} (a ∷ []) = Just a
+vec-last {i} {A} {suc (suc n)} (a1 ∷ (a2 ∷ as)) = vec-last (a2 ∷ as)
+
+nevec-head : ∀ {i} {A : Set i} {n : Nat} → Vector A (suc n) → A
+nevec-head {i} {A} {zero} (a ∷ []) = a
+nevec-head {i} {A} {suc n} (a1 ∷ (a2 ∷ as)) = a1
+
+nevec-tail : ∀ {i} {A : Set i} {n : Nat} → Vector A (suc n) → Vector A n
+nevec-tail {i} {A} {zero} (a ∷ []) = []
+nevec-tail {i} {A} {suc n} (a1 ∷ (a2 ∷ as)) = (a2 ∷ as)
+
+nevec-first : ∀ {i} {A : Set i} {n : Nat} → Vector A (suc n) → A
+nevec-first = nevec-head
+
+nevec-rest : ∀ {i} {A : Set i} {n : Nat} → Vector A (suc n) →  Vector A n
+nevec-rest = nevec-tail
+
+nevec-last : ∀ {i} {A : Set i} {n : Nat} → Vector A (suc n) → A
+nevec-last {i} {A} {zero} (a ∷ []) = a
+nevec-last {i} {A} {suc n} (a1 ∷ (a2 ∷ as)) = nevec-last (a2 ∷ as)
+
 
 Vector-coerce-length : ∀ {α} {A : Set α} {m n : Nat} → Vector A m → m ≡ n → Vector A n
 Vector-coerce-length {α} {A} {m} {.m} vec refl = vec
@@ -130,6 +169,8 @@ _[_]:=_ : ∀ {α} {A : Set α} {n : Nat} → Vector A (suc n) → Fin n → A �
 (x ∷ xs) [ zero ]:= y = y ∷ xs
 (x ∷ xs) [ suc i ]:= y = x ∷ (xs [ i ]:= y)
 
+
+
 map : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → {n : Nat} → Vector A n → Vector B n
 map {i} {j} {A} {B} f {zero} [] = []
 map {i} {j} {A} {B} f {suc n} (a ∷ as) = (f a) ∷ (map f as)
@@ -141,3 +182,36 @@ flatten {i} {j} {A} {B} f b {suc n} (a ∷ as) = f a (flatten f b as)
 zip : ∀ {i j} {A : Set i} {B : Set j} → {n : Nat} → Vector A n → Vector B n → Vector (A × B) n
 zip {i} {j} {A} {B} {zero} [] [] = []
 zip {i} {j} {A} {B} {suc n} (a ∷ as) (b ∷ bs) = (a , b) ∷ (zip as bs)
+
+reverse : ∀ {i} {A : Set i} {n : Nat} → Vector A n → Vector A n
+reverse {i} {A} {zero} [] = []
+reverse {i} {A} {suc n} (a ∷ as) = Vector-coerce-length ((reverse as) ++ (a ∷ [])) (x+1≡suc-x n)
+
+rotate : ∀ {i} {A : Set i} {n : Nat} → Vector A n → Nat → Vector A n
+rotate {i} {A} {zero} [] m = []
+rotate {i} {A} {suc n} (a ∷ as) zero = (a ∷ as)
+rotate {i} {A} {suc n} (a ∷ as) (suc m) = Vector-coerce-length (rotate (as ++ (a ∷ [])) m) (x+1≡suc-x n)
+
+dropl : ∀ {i} {A : Set i} {n : Nat} → Vector A n → (m : Nat) → Vector A (Data.Nat.Operations._minus_ n m)
+dropl {i} {A} {zero} [] m = []
+dropl {i} {A} {suc n} (a ∷ as) zero = (a ∷ as)
+dropl {i} {A} {suc n} (a ∷ as) (suc m) = dropl as m
+
+dropr : ∀ {i} {A : Set i} {n : Nat} → Vector A n → (m : Nat) → Vector A (Data.Nat.Operations._minus_ n m)
+dropr {i} {A} {n} v m = reverse (dropl v m)
+
+shiftr : ∀ {i} {A : Set i} {n : Nat} → A → Vector A n → Nat → Vector A n
+shiftr {i} {A} {zero} a [] m = []
+shiftr {i} {A} {suc n} a (b ∷ bs) zero = (b ∷ bs)
+shiftr {i} {A} {suc n} a (b ∷ bs) (suc m) = Vector-coerce-length (a ∷ (shiftr a (dropr (b ∷ bs) 1) m))[suc[suc[n]-1]≡suc[n]]
+ where
+  [suc[n]-1≡n] : Data.Nat.Operations._minus_ (suc n) 1 ≡ n
+  [suc[n]-1≡n] = suc-x-minus-1≡x n
+
+  [suc[suc[n]-1]≡suc[n]] : suc (Data.Nat.Operations._minus_ (suc n) 1) ≡ suc n
+  [suc[suc[n]-1]≡suc[n]] = [x≡y]→[fx≡fy] suc (Data.Nat.Operations._minus_ (suc n) 1) n [suc[n]-1≡n]
+
+shiftl : ∀ {i} {A : Set i} {n : Nat} → A → Vector A n → Nat → Vector A n
+shiftl {i} {A} {zero} a [] m = []
+shiftl {i} {A} {suc n} a (b ∷ bs) zero = (b ∷ bs)
+shiftl {i} {A} {suc n} a (b ∷ bs) (suc m) = Vector-coerce-length (shiftl a (bs ++ (a ∷ [])) m) (x+1≡suc-x n)

@@ -11,6 +11,7 @@ open import Data.Product
 open import Data.PropositionalEquality
 open import Data.False
 open import Data.True
+open import Data.Fin
 open import Functions
 
 
@@ -241,8 +242,18 @@ record TypeExtension (T : ExtensibleType) (A : Set) : Set₁ where
   cons : A → (ExtensibleType.carrier T)
   cons-inj : injective cons
   cons-type : (a : A) → (ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) (cons a)) ≡ A
-  get-val : (x : (ExtensibleType.carrier T)) → (ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x) ≡ A → A 
-  get-val-harmony-elim : (x : (ExtensibleType.carrier T)) → (p : ((ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x) ≡ A)) → x ≡ cons (get-val x p)
+  get-val : (x : (ExtensibleType.carrier T)) → (ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x) ≡ A → A
+  get-val-harmony-elim : (x : (ExtensibleType.carrier T)) → (p : ((ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x)) ≡ A) → x ≡ cons (get-val x p)
+  get-val-harmony-intro : (a : A) → get-val (cons a) (cons-type a) ≡ a
+
+record TypeExtension₂ (T : ExtensibleType) (A : Set) : Set₁ where
+ field
+  type-label : ∃ label ∈ (ExtensibleType.type-label T) , ((ExtensibleType.type-interpretation T) label ≡ A)
+  cons : A → (ExtensibleType.carrier T)
+  cons-inj : injective cons
+  cons-type : (a : A) → ((ExtensibleType.val-type T) (cons a)) ≡ (π₁ type-label)
+  get-val : (x : (ExtensibleType.carrier T)) → ((ExtensibleType.val-type T) x) ≡ (π₁ type-label) → A
+  get-val-harmony-elim : (x : (ExtensibleType.carrier T)) → (p : ((ExtensibleType.val-type T) x) ≡ (π₁ type-label)) → x ≡ cons (get-val x p)
   get-val-harmony-intro : (a : A) → get-val (cons a) (cons-type a) ≡ a
 
 
@@ -397,18 +408,18 @@ record upto-S3-1 : Set₁ where
   triple-component-object : ExtensibleType.carrier triple → ExtensibleType.carrier object
   triple-all-possible-components : (s : (ExtensibleType.carrier subject)) → (p : (ExtensibleType.carrier property)) → (o : (ExtensibleType.carrier object)) → ∃ t ∈ (ExtensibleType.carrier triple) , ((triple-component-subject t ≡ s) ∧ (triple-component-property t ≡ p) ∧ (triple-component-object t ≡ o))
   triplelist : ExtensibleType
-  triplelist-def : TypeExtension triplelist (List (ExtensibleType.carrier triple))
+  triplelist-def : TypeExtension₂ triplelist (List (ExtensibleType.carrier triple))
   URI : ExtensibleType
   blank-node : ExtensibleType
-  subject-def₁ : TypeExtension subject (ExtensibleType.carrier URI)
-  subject-def₂ : TypeExtension subject (ExtensibleType.carrier blank-node)
-  subject-def₃ : TypeExtension subject (ExtensibleType.carrier triplelist)
-  property-def₁ : TypeExtension property (ExtensibleType.carrier URI)
-  property-def₂ : TypeExtension property (ExtensibleType.carrier blank-node)
-  property-def₃ : TypeExtension property (ExtensibleType.carrier triplelist)
-  object-def₁ : TypeExtension object (ExtensibleType.carrier URI)
-  object-def₂ : TypeExtension object (ExtensibleType.carrier blank-node)
-  object-def₃ : TypeExtension object (ExtensibleType.carrier triplelist)
+  subject-def₁ : TypeExtension₂ subject (ExtensibleType.carrier URI)
+  subject-def₂ : TypeExtension₂ subject (ExtensibleType.carrier blank-node)
+  subject-def₃ : TypeExtension₂ subject (ExtensibleType.carrier triplelist)
+  property-def₁ : TypeExtension₂ property (ExtensibleType.carrier URI)
+  property-def₂ : TypeExtension₂ property (ExtensibleType.carrier blank-node)
+  property-def₃ : TypeExtension₂ property (ExtensibleType.carrier triplelist)
+  object-def₁ : TypeExtension₂ object (ExtensibleType.carrier URI)
+  object-def₂ : TypeExtension₂ object (ExtensibleType.carrier blank-node)
+  object-def₃ : TypeExtension₂ object (ExtensibleType.carrier triplelist)
 
 data triple-interp₂ : Set
 
@@ -443,73 +454,173 @@ triple-component-object-interp₂ : triple-interp₂ → object-interp₂
 triple-component-object-interp₂ (_ , _ , o) = o
 
 data resource-type-labels : Set where
- uri : resource-type-labels
- bnode : resource-type-labels
- triplelist : resource-type-labels
+ uri-label : resource-type-labels
+ bnode-label : resource-type-labels
+ triplelist-label : resource-type-labels
 
 is-uri : resource-type-labels → Bool
-is-uri uri = true
-is-uri bnode = false
-is-uri triplelist = false
+is-uri uri-label = true
+is-uri bnode-label = false
+is-uri triplelist-label = false
 
 is-bnode : resource-type-labels → Bool
-is-bnode uri = false
-is-bnode bnode = true
-is-bnode triplelist = false
+is-bnode uri-label = false
+is-bnode bnode-label = true
+is-bnode triplelist-label = false
 
 is-triplelist : resource-type-labels → Bool
-is-triplelist uri = false
-is-triplelist bnode = false
-is-triplelist triplelist = true
+is-triplelist uri-label = false
+is-triplelist bnode-label = false
+is-triplelist triplelist-label = true
 
-uri≠bnode : uri ≠ bnode
-uri≠bnode [uri≡bnode] = true≠false ([x≡y]→[fx≡fy] is-uri uri bnode [uri≡bnode])
+uri≠bnode : uri-label ≠ bnode-label
+uri≠bnode [uri≡bnode] = true≠false ([x≡y]→[fx≡fy] is-uri uri-label bnode-label [uri≡bnode])
 
-uri≠triplelist : uri ≠ triplelist
-uri≠triplelist [uri≡triplelist] = true≠false ([x≡y]→[fx≡fy] is-uri uri triplelist [uri≡triplelist])
+uri≠triplelist : uri-label ≠ triplelist-label
+uri≠triplelist [uri≡triplelist] = true≠false ([x≡y]→[fx≡fy] is-uri uri-label triplelist-label [uri≡triplelist])
 
-bnode≠triplelist : bnode ≠ triplelist
-bnode≠triplelist [bnode≡triplelist] = true≠false ([x≡y]→[fx≡fy] is-bnode bnode triplelist [bnode≡triplelist])
+bnode≠triplelist : bnode-label ≠ triplelist-label
+bnode≠triplelist [bnode≡triplelist] = true≠false ([x≡y]→[fx≡fy] is-bnode bnode-label triplelist-label [bnode≡triplelist])
+
+URI-interp₂≡bnode-interp₂ : URI-interp₂ ≡ blank-node-interp₂
+URI-interp₂≡bnode-interp₂ = refl
+
+coerce-type : ∀ {i} {A B : Set i} → A → A ≡ B → B
+coerce-type {i} {A} {B} a refl = a
 
 resource-type-labels-interp : resource-type-labels → Set
-resource-type-labels-interp uri = URI-interp₂
-resource-type-labels-interp bnode = blank-node-interp₂
-resource-type-labels-interp triplelist = triplelist-interp₂
+resource-type-labels-interp uri-label = URI-interp₂
+resource-type-labels-interp bnode-label = blank-node-interp₂
+resource-type-labels-interp triplelist-label = triplelist-interp₂
 
 subject-type-label-interp : subject-interp₂ → resource-type-labels
-subject-type-label-interp (inl v) = uri
-subject-type-label-interp (inr (inl v)) = bnode
-subject-type-label-interp (inr (inr v)) = triplelist
+subject-type-label-interp (inl v) = uri-label
+subject-type-label-interp (inr (inl v)) = bnode-label
+subject-type-label-interp (inr (inr v)) = triplelist-label
 
 subject-get-val : (s : subject-interp₂) → (resource-type-labels-interp (subject-type-label-interp s))
 subject-get-val (inl v) = v
 subject-get-val (inr (inl v)) = v
 subject-get-val (inr (inr v)) = v
 
-subject-get-uri : (s : subject-interp₂) → (subject-type-label-interp s ≡ uri) → URI-interp₂
+{-
+subject-get-uri : (s : subject-interp₂) → (resource-type-labels-interp (subject-type-label-interp s)) ≡ URI-interp₂ → URI-interp₂
 subject-get-uri (inl v) [s-label≡uri] = v
-subject-get-uri (inr (inl v)) [s-label≡uri] = ω ((≠-sym uri≠bnode) [s-label≡uri])
+subject-get-uri (inr (inl v)) [s-label≡uri] = coerce-type v URI-interp₂≡bnode-interp₂
 subject-get-uri (inr (inr v)) [s-label≡uri] = ω ((≠-sym uri≠triplelist) [s-label≡uri])
+-}
+subject-get-uri₂ : (s : subject-interp₂) → (subject-type-label-interp s) ≡ uri-label → URI-interp₂
+subject-get-uri₂ (inl v) [s-label≡uri] = v
+subject-get-uri₂ (inr (inl v)) [s-label≡uri] = ω ((≠-sym uri≠bnode) [s-label≡uri])
+subject-get-uri₂ (inr (inr v)) [s-label≡uri] = ω ((≠-sym uri≠triplelist) [s-label≡uri])
+
+subject-uri-elim-harmony : (s : subject-interp₂) → (p : (subject-type-label-interp s) ≡ uri-label) → s ≡ inl (subject-get-uri₂ s p)
+subject-uri-elim-harmony (inl v) [s-label≡uri] = refl
+subject-uri-elim-harmony (inr (inl v)) [s-label≡uri] = ω ((≠-sym uri≠bnode) [s-label≡uri])
+subject-uri-elim-harmony (inr (inr v)) [s-label≡uri] = ω ((≠-sym uri≠triplelist) [s-label≡uri])
+
+subject-get-bnode₂ : (s : subject-interp₂) → (subject-type-label-interp s) ≡ bnode-label → blank-node-interp₂
+subject-get-bnode₂ (inl v) [s-label≡bnode] = ω (uri≠bnode [s-label≡bnode])
+subject-get-bnode₂ (inr (inl v)) [s-label≡bnode] = v
+subject-get-bnode₂ (inr (inr v)) [s-label≡bnode] = ω ((≠-sym bnode≠triplelist) [s-label≡bnode])
+
+subject-bnode-elim-harmony : (s : subject-interp₂) → (p : (subject-type-label-interp s) ≡ bnode-label) → s ≡ (inr ∘ inl) (subject-get-bnode₂ s p)
+subject-bnode-elim-harmony (inl v) [s-label≡bnode] = ω (uri≠bnode [s-label≡bnode])
+subject-bnode-elim-harmony (inr (inl v)) [s-label≡bnode] = refl
+subject-bnode-elim-harmony (inr (inr v)) [s-label≡bnode] = ω ((≠-sym bnode≠triplelist) [s-label≡bnode])
+
+subject-get-triplelist₂ : (s : subject-interp₂) → (subject-type-label-interp s) ≡ triplelist-label → triplelist-interp₂
+subject-get-triplelist₂ (inl v) [s-label≡triplelist] = ω (uri≠triplelist [s-label≡triplelist])
+subject-get-triplelist₂ (inr (inl v)) [s-label≡triplelist] = ω (bnode≠triplelist [s-label≡triplelist])
+subject-get-triplelist₂ (inr (inr v)) [s-label≡triplelist] = v
+
+subject-triplelist-elim-harmony : (s : subject-interp₂) → (p : (subject-type-label-interp s) ≡ triplelist-label) → s ≡ (inr ∘ inr) (subject-get-triplelist₂ s p)
+subject-triplelist-elim-harmony (inl v) [s-label≡triplelist] = ω (uri≠triplelist [s-label≡triplelist])
+subject-triplelist-elim-harmony (inr (inl v)) [s-label≡triplelist] = ω (bnode≠triplelist [s-label≡triplelist])
+subject-triplelist-elim-harmony (inr (inr v)) [s-label≡triplelist] = refl
 
 property-type-label-interp : property-interp₂ → resource-type-labels
-property-type-label-interp (inl v) = uri
-property-type-label-interp (inr (inl v)) = bnode
-property-type-label-interp (inr (inr v)) = triplelist
+property-type-label-interp (inl v) = uri-label
+property-type-label-interp (inr (inl v)) = bnode-label
+property-type-label-interp (inr (inr v)) = triplelist-label
 
 property-get-val : (p : property-interp₂) → (resource-type-labels-interp (property-type-label-interp p))
 property-get-val (inl v) = v
 property-get-val (inr (inl v)) = v
 property-get-val (inr (inr v)) = v
 
+property-get-uri₂ : (p : property-interp₂) → (property-type-label-interp p) ≡ uri-label → URI-interp₂
+property-get-uri₂ (inl v) [p-label≡uri] = v
+property-get-uri₂ (inr (inl v)) [p-label≡uri] = ω ((≠-sym uri≠bnode) [p-label≡uri])
+property-get-uri₂ (inr (inr v)) [p-label≡uri] = ω ((≠-sym uri≠triplelist) [p-label≡uri])
+
+property-uri-elim-harmony : (p : property-interp₂) → (eq : (property-type-label-interp p) ≡ uri-label) → p ≡ inl (property-get-uri₂ p eq)
+property-uri-elim-harmony (inl v) [p-label≡uri] = refl
+property-uri-elim-harmony (inr (inl v)) [p-label≡uri] = ω ((≠-sym uri≠bnode) [p-label≡uri])
+property-uri-elim-harmony (inr (inr v)) [p-label≡uri] = ω ((≠-sym uri≠triplelist) [p-label≡uri])
+
+property-get-bnode₂ : (p : property-interp₂) → (property-type-label-interp p) ≡ bnode-label → blank-node-interp₂
+property-get-bnode₂ (inl v) [p-label≡bnode] = ω (uri≠bnode [p-label≡bnode])
+property-get-bnode₂ (inr (inl v)) [p-label≡bnode] = v
+property-get-bnode₂ (inr (inr v)) [p-label≡bnode] = ω ((≠-sym bnode≠triplelist) [p-label≡bnode])
+
+property-bnode-elim-harmony : (p : property-interp₂) → (eq : (property-type-label-interp p) ≡ bnode-label) → p ≡ (inr ∘ inl) (property-get-bnode₂ p eq)
+property-bnode-elim-harmony (inl v) [p-label≡bnode] = ω (uri≠bnode [p-label≡bnode])
+property-bnode-elim-harmony (inr (inl v)) [p-label≡bnode] = refl
+property-bnode-elim-harmony (inr (inr v)) [p-label≡bnode] = ω ((≠-sym bnode≠triplelist) [p-label≡bnode])
+
+property-get-triplelist₂ : (p : property-interp₂) → (property-type-label-interp p) ≡ triplelist-label → triplelist-interp₂
+property-get-triplelist₂ (inl v) [p-label≡triplelist] = ω (uri≠triplelist [p-label≡triplelist])
+property-get-triplelist₂ (inr (inl v)) [p-label≡triplelist] = ω (bnode≠triplelist [p-label≡triplelist])
+property-get-triplelist₂ (inr (inr v)) [p-label≡triplelist] = v
+
+property-triplelist-elim-harmony : (p : property-interp₂) → (eq : (property-type-label-interp p) ≡ triplelist-label) → p ≡ (inr ∘ inr) (property-get-triplelist₂ p eq)
+property-triplelist-elim-harmony (inl v) [p-label≡triplelist] = ω (uri≠triplelist [p-label≡triplelist])
+property-triplelist-elim-harmony (inr (inl v)) [p-label≡triplelist] = ω (bnode≠triplelist [p-label≡triplelist])
+property-triplelist-elim-harmony (inr (inr v)) [p-label≡triplelist] = refl
+
+
+
 object-type-label-interp : object-interp₂ → resource-type-labels
-object-type-label-interp (inl v) = uri
-object-type-label-interp (inr (inl v)) = bnode
-object-type-label-interp (inr (inr v)) = triplelist
+object-type-label-interp (inl v) = uri-label
+object-type-label-interp (inr (inl v)) = bnode-label
+object-type-label-interp (inr (inr v)) = triplelist-label
 
 object-get-val : (o : object-interp₂) → (resource-type-labels-interp (object-type-label-interp o))
 object-get-val (inl v) = v
 object-get-val (inr (inl v)) = v
 object-get-val (inr (inr v)) = v
+
+object-get-uri₂ : (o : object-interp₂) → (object-type-label-interp o) ≡ uri-label → URI-interp₂
+object-get-uri₂ (inl v) [o-label≡uri] = v
+object-get-uri₂ (inr (inl v)) [o-label≡uri] = ω ((≠-sym uri≠bnode) [o-label≡uri])
+object-get-uri₂ (inr (inr v)) [o-label≡uri] = ω ((≠-sym uri≠triplelist) [o-label≡uri])
+
+object-uri-elim-harmony : (o : object-interp₂) → (eq : (object-type-label-interp o) ≡ uri-label) → o ≡ inl (object-get-uri₂ o eq)
+object-uri-elim-harmony (inl v) [o-label≡uri] = refl
+object-uri-elim-harmony (inr (inl v)) [o-label≡uri] = ω ((≠-sym uri≠bnode) [o-label≡uri])
+object-uri-elim-harmony (inr (inr v)) [o-label≡uri] = ω ((≠-sym uri≠triplelist) [o-label≡uri])
+
+object-get-bnode₂ : (o : object-interp₂) → (object-type-label-interp o) ≡ bnode-label → blank-node-interp₂
+object-get-bnode₂ (inl v) [o-label≡bnode] = ω (uri≠bnode [o-label≡bnode])
+object-get-bnode₂ (inr (inl v)) [o-label≡bnode] = v
+object-get-bnode₂ (inr (inr v)) [o-label≡bnode] = ω ((≠-sym bnode≠triplelist) [o-label≡bnode])
+
+object-bnode-elim-harmony : (o : object-interp₂) → (eq : (object-type-label-interp o) ≡ bnode-label) → o ≡ (inr ∘ inl) (object-get-bnode₂ o eq)
+object-bnode-elim-harmony (inl v) [o-label≡bnode] = ω (uri≠bnode [o-label≡bnode])
+object-bnode-elim-harmony (inr (inl v)) [o-label≡bnode] = refl
+object-bnode-elim-harmony (inr (inr v)) [o-label≡bnode] = ω ((≠-sym bnode≠triplelist) [o-label≡bnode])
+
+object-get-triplelist₂ : (o : object-interp₂) → (object-type-label-interp o) ≡ triplelist-label → triplelist-interp₂
+object-get-triplelist₂ (inl v) [o-label≡triplelist] = ω (uri≠triplelist [o-label≡triplelist])
+object-get-triplelist₂ (inr (inl v)) [o-label≡triplelist] = ω (bnode≠triplelist [o-label≡triplelist])
+object-get-triplelist₂ (inr (inr v)) [o-label≡triplelist] = v
+
+object-triplelist-elim-harmony : (o : object-interp₂) → ( eq : (object-type-label-interp o) ≡ triplelist-label) → o ≡ (inr ∘ inr) (object-get-triplelist₂ o eq)
+object-triplelist-elim-harmony (inl v) [o-label≡triplelist] = ω (uri≠triplelist [o-label≡triplelist])
+object-triplelist-elim-harmony (inr (inl v)) [o-label≡triplelist] = ω (bnode≠triplelist [o-label≡triplelist])
+object-triplelist-elim-harmony (inr (inr v)) [o-label≡triplelist] = refl
+
 
 inl-inj : ∀ {i j} {A : Set i} {B : Set j} → injective {i} {i ⊔ j} {A} {A ⊹ B} inl 
 inl-inj {i} {j} {A} {B} a .a refl = refl
@@ -567,19 +678,6 @@ upto-S3-1-interp =
    type-interpretation = λ label → triplelist-interp₂ ;
    get-val = λ tl → tl
   } ;
-
-{-
-record TypeExtension (T : ExtensibleType) (A : Set) : Set₁ where
- field
-  type-label : ∃ label ∈ (ExtensibleType.type-label T) , ((ExtensibleType.type-interpretation T) label ≡ A)
-  cons : A → (ExtensibleType.carrier T)
-  cons-inj : injective cons
-  cons-type : (a : A) → (ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) (cons a)) ≡ A
-  get-val : (x : (ExtensibleType.carrier T)) → (ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x) ≡ A → A 
-  get-val-harmony-elim : (x : (ExtensibleType.carrier T)) → (p : ((ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x) ≡ A)) → x ≡ cons (get-val x p)
-  get-val-harmony-intro : (a : A) → get-val (cons a) (cons-type a) ≡ a
--}
-
   triplelist-def = record {
    type-label = (● , refl) ;
    cons = λ tl → tl ;
@@ -604,23 +702,301 @@ record TypeExtension (T : ExtensibleType) (A : Set) : Set₁ where
    get-val = λ bnode → bnode
   } ;
   subject-def₁ = record {
-   type-label = (uri , refl) ;
+   type-label = (uri-label , refl) ;
    cons = inl ;
    cons-inj = inl-inj ;
    cons-type = λ s → refl ;
-   get-val = subject-get-uri ;
-   get-val-harmony-elim = λ s → (λ right-type → refl) ;
+   get-val = subject-get-uri₂ ;
+   get-val-harmony-elim = subject-uri-elim-harmony ;
    get-val-harmony-intro = λ s → refl
+  } ;
+  subject-def₂ = record {
+   type-label = (bnode-label , refl) ;
+   cons = inr ∘ inl ;
+   cons-inj = inr∘inl-inj ;
+   cons-type = λ s → refl ;
+   get-val = subject-get-bnode₂ ;
+   get-val-harmony-elim = subject-bnode-elim-harmony ;
+   get-val-harmony-intro = λ s → refl
+  } ;
+  subject-def₃ = record {
+   type-label = (triplelist-label , refl) ;
+   cons = inr ∘ inr ;
+   cons-inj = inr∘inr-inj ;
+   cons-type = λ s → refl ;
+   get-val = subject-get-triplelist₂ ;
+   get-val-harmony-elim = subject-triplelist-elim-harmony ;
+   get-val-harmony-intro = λ s → refl
+  } ;
+  property-def₁ = record {
+   type-label = (uri-label , refl) ;
+   cons = inl ;
+   cons-inj = inl-inj ;
+   cons-type = λ p → refl ;
+   get-val = property-get-uri₂ ;
+   get-val-harmony-elim = property-uri-elim-harmony ;
+   get-val-harmony-intro = λ s → refl 
+  } ;
+  property-def₂ = record {
+   type-label = (bnode-label , refl) ;
+   cons = inr ∘ inl ;
+   cons-inj = inr∘inl-inj ;
+   cons-type = λ p → refl ;
+   get-val = property-get-bnode₂ ;
+   get-val-harmony-elim = property-bnode-elim-harmony ;
+   get-val-harmony-intro = λ p → refl 
+  } ;
+  property-def₃ = record {
+   type-label = (triplelist-label , refl) ;
+   cons = inr ∘ inr ;
+   cons-inj = inr∘inr-inj ;
+   cons-type = λ p → refl ;
+   get-val = property-get-triplelist₂ ;
+   get-val-harmony-elim = property-triplelist-elim-harmony ;
+   get-val-harmony-intro = λ p → refl 
+  } ;
+  object-def₁ = record {
+   type-label = (uri-label , refl) ;
+   cons = inl ;
+   cons-inj = inl-inj ;
+   cons-type = λ o → refl ;
+   get-val = object-get-uri₂ ;
+   get-val-harmony-elim = object-uri-elim-harmony ;
+   get-val-harmony-intro = λ o → refl 
+  } ;
+  object-def₂ = record {
+   type-label = (bnode-label , refl) ;
+   cons = inr ∘ inl ;
+   cons-inj = inr∘inl-inj ;
+   cons-type = λ o → refl ;
+   get-val = object-get-bnode₂ ;
+   get-val-harmony-elim = object-bnode-elim-harmony ;
+   get-val-harmony-intro = λ o → refl 
+  } ;
+  object-def₃ = record {
+   type-label = (triplelist-label , refl) ;
+   cons = inr ∘ inr ;
+   cons-inj = inr∘inr-inj ;
+   cons-type = λ o → refl ;
+   get-val = object-get-triplelist₂ ;
+   get-val-harmony-elim = object-triplelist-elim-harmony ;
+   get-val-harmony-intro = λ o → refl 
   }
-  {-
-  subject-def₂ : TypeExtension subject blank-node
-  subject-def₃ : TypeExtension subject triplelist
-  property-def₁ : TypeExtension property URI
-  property-def₂ : TypeExtension property blank-node
-  property-def₃ : TypeExtension property triplelist
-  object-def₁ : TypeExtension object URI
-  object-def₂ : TypeExtension object blank-node
-  object-def₃ : TypeExtension object triplelist
--}
  }
 
+
+{-
+Sentence 4:
+An object can also be a literal.
+-}
+
+record upto-S4-1 : Set₁ where
+ field 
+  triple : ExtensibleType
+  subject : ExtensibleType
+  property : ExtensibleType
+  object : ExtensibleType
+  triple-component-subject : ExtensibleType.carrier triple → ExtensibleType.carrier subject
+  triple-component-property : ExtensibleType.carrier triple → ExtensibleType.carrier property
+  triple-component-object : ExtensibleType.carrier triple → ExtensibleType.carrier object
+  triple-all-possible-components : (s : (ExtensibleType.carrier subject)) → (p : (ExtensibleType.carrier property)) → (o : (ExtensibleType.carrier object)) → ∃ t ∈ (ExtensibleType.carrier triple) , ((triple-component-subject t ≡ s) ∧ (triple-component-property t ≡ p) ∧ (triple-component-object t ≡ o))
+  triplelist : ExtensibleType
+  triplelist-def : TypeExtension₂ triplelist (List (ExtensibleType.carrier triple))
+  URI : ExtensibleType
+  blank-node : ExtensibleType
+  subject-def₁ : TypeExtension₂ subject (ExtensibleType.carrier URI)
+  subject-def₂ : TypeExtension₂ subject (ExtensibleType.carrier blank-node)
+  subject-def₃ : TypeExtension₂ subject (ExtensibleType.carrier triplelist)
+  property-def₁ : TypeExtension₂ property (ExtensibleType.carrier URI)
+  property-def₂ : TypeExtension₂ property (ExtensibleType.carrier blank-node)
+  property-def₃ : TypeExtension₂ property (ExtensibleType.carrier triplelist)
+  object-def₁ : TypeExtension₂ object (ExtensibleType.carrier URI)
+  object-def₂ : TypeExtension₂ object (ExtensibleType.carrier blank-node)
+  object-def₃ : TypeExtension₂ object (ExtensibleType.carrier triplelist)
+  literal : ExtensibleType
+  object-def₄ : TypeExtension₂ object (ExtensibleType.carrier literal)
+
+
+data triple-interp₃ : Set
+
+URI-interp₃ : Set
+URI-interp₃ = Nat
+
+blank-node-interp₃ : Set
+blank-node-interp₃ = Nat
+
+literal-interp₃ : Set
+literal-interp₃ = Nat
+
+triplelist-interp₃ : Set
+triplelist-interp₃ = List triple-interp₃
+
+subject-interp₃ : Set
+subject-interp₃ = URI-interp₃ ⊹ (blank-node-interp₃ ⊹ triplelist-interp₃)
+
+property-interp₃ : Set
+property-interp₃ = URI-interp₃ ⊹ (blank-node-interp₃ ⊹ triplelist-interp₃)
+
+object-interp₃ : Set
+object-interp₃ = URI-interp₃ ⊹ (blank-node-interp₃ ⊹ (triplelist-interp₃ ⊹ literal-interp₃))
+
+data triple-interp₃ where
+ _,_,_ : subject-interp₃ → property-interp₃ → object-interp₃ → triple-interp₃
+
+triple-component-subject-interp₃ : triple-interp₃ → subject-interp₃
+triple-component-subject-interp₃ (s , _ , _) = s
+
+triple-component-property-interp₃ : triple-interp₃ → property-interp₃
+triple-component-property-interp₃ (_ , p , _) = p
+
+triple-component-object-interp₃ : triple-interp₃ → object-interp₃
+triple-component-object-interp₃ (_ , _ , o) = o
+
+simple-ext-type : Set → ExtensibleType
+simple-ext-type A =
+ record {
+  carrier = A ;
+  type-label = ⊤ ;
+  val-type = λ a → ● ;
+  type-interpretation = λ label → A ;
+  get-val = λ a → a
+ }
+
+{-
+is-uri₃ : Fin 4 → Bool
+is-uri₃ zero = true
+is-uri₃ (suc zero) = false
+is-uri₃ (suc (suc zero)) = false
+is-uri₃ (suc (suc (suc zero))) = false
+-}
+
+{-
+upto-S4-1-interp : upto-S4-1
+upto-S4-1-interp =
+ record {
+  triple = simple-ext-type triple-interp₃ ;
+
+  subject = record {
+   carrier = subject-interp₃ ;
+   type-label = resource-type-labels ;
+   val-type = subject-type-label-interp ;
+   type-interpretation = resource-type-labels-interp ;
+   get-val = subject-get-val
+  } ;
+  property = record {
+   carrier = property-interp₂ ;
+   type-label = resource-type-labels ;
+   val-type = property-type-label-interp ;
+   type-interpretation = resource-type-labels-interp ;
+   get-val = property-get-val 
+  } ;
+  object = record {
+   carrier = object-interp₂ ;
+   type-label = resource-type-labels ;
+   val-type = object-type-label-interp ;
+   type-interpretation = resource-type-labels-interp ;
+   get-val = object-get-val
+  } ;
+  triple-component-subject = triple-component-subject-interp₂ ;
+  triple-component-property = triple-component-property-interp₂ ;
+  triple-component-object = triple-component-object-interp₂ ;
+  triple-all-possible-components = λ s → (λ p → (λ o → ((s , p , o) , (refl , (refl , refl))))) ;
+
+  triplelist = simple-ext-type triplelist-interp₃ ; 
+
+  triplelist-def = record {
+   type-label = (● , refl) ;
+   cons = λ tl → tl ;
+   cons-inj = λ a1 → (λ a2 → (λ [fa1≡fa2] → [fa1≡fa2])) ;
+   cons-type = λ tl → refl ;
+   get-val = λ tl → (λ right-type → tl) ;
+   get-val-harmony-elim = λ tl → (λ right-type → refl) ;
+   get-val-harmony-intro = λ tl → refl
+  } ;
+
+  URI = simple-ext-type URI-interp₃ ; 
+  blank-node = simple-ext-type blank-node-interp₃ ; 
+
+  subject-def₁ = record {
+   type-label = (uri-label , refl) ;
+   cons = inl ;
+   cons-inj = inl-inj ;
+   cons-type = λ s → refl ;
+   get-val = subject-get-uri₂ ;
+   get-val-harmony-elim = subject-uri-elim-harmony ;
+   get-val-harmony-intro = λ s → refl
+  } ;
+  subject-def₂ = record {
+   type-label = (bnode-label , refl) ;
+   cons = inr ∘ inl ;
+   cons-inj = inr∘inl-inj ;
+   cons-type = λ s → refl ;
+   get-val = subject-get-bnode₂ ;
+   get-val-harmony-elim = subject-bnode-elim-harmony ;
+   get-val-harmony-intro = λ s → refl
+  } ;
+  subject-def₃ = record {
+   type-label = (triplelist-label , refl) ;
+   cons = inr ∘ inr ;
+   cons-inj = inr∘inr-inj ;
+   cons-type = λ s → refl ;
+   get-val = subject-get-triplelist₂ ;
+   get-val-harmony-elim = subject-triplelist-elim-harmony ;
+   get-val-harmony-intro = λ s → refl
+  } ;
+  property-def₁ = record {
+   type-label = (uri-label , refl) ;
+   cons = inl ;
+   cons-inj = inl-inj ;
+   cons-type = λ p → refl ;
+   get-val = property-get-uri₂ ;
+   get-val-harmony-elim = property-uri-elim-harmony ;
+   get-val-harmony-intro = λ s → refl 
+  } ;
+  property-def₂ = record {
+   type-label = (bnode-label , refl) ;
+   cons = inr ∘ inl ;
+   cons-inj = inr∘inl-inj ;
+   cons-type = λ p → refl ;
+   get-val = property-get-bnode₂ ;
+   get-val-harmony-elim = property-bnode-elim-harmony ;
+   get-val-harmony-intro = λ p → refl 
+  } ;
+  property-def₃ = record {
+   type-label = (triplelist-label , refl) ;
+   cons = inr ∘ inr ;
+   cons-inj = inr∘inr-inj ;
+   cons-type = λ p → refl ;
+   get-val = property-get-triplelist₂ ;
+   get-val-harmony-elim = property-triplelist-elim-harmony ;
+   get-val-harmony-intro = λ p → refl 
+  } ;
+  object-def₁ = record {
+   type-label = (uri-label , refl) ;
+   cons = inl ;
+   cons-inj = inl-inj ;
+   cons-type = λ o → refl ;
+   get-val = object-get-uri₂ ;
+   get-val-harmony-elim = object-uri-elim-harmony ;
+   get-val-harmony-intro = λ o → refl 
+  } ;
+  object-def₂ = record {
+   type-label = (bnode-label , refl) ;
+   cons = inr ∘ inl ;
+   cons-inj = inr∘inl-inj ;
+   cons-type = λ o → refl ;
+   get-val = object-get-bnode₂ ;
+   get-val-harmony-elim = object-bnode-elim-harmony ;
+   get-val-harmony-intro = λ o → refl 
+  } ;
+  object-def₃ = record {
+   type-label = (triplelist-label , refl) ;
+   cons = inr ∘ inr ;
+   cons-inj = inr∘inr-inj ;
+   cons-type = λ o → refl ;
+   get-val = object-get-triplelist₂ ;
+   get-val-harmony-elim = object-triplelist-elim-harmony ;
+   get-val-harmony-intro = λ o → refl 
+  } ;
+ }
+-}

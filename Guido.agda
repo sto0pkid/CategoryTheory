@@ -6,6 +6,9 @@ open import Data.Nat
 open import Data.Bool
 open import Data.Bool.Operations
 open import Data.Product
+open import Data.PropositionalEquality
+open import BoolNat
+
 {-
 Chapter 5 will explain the meaning of inferencing in connection with RDF. Two aspects will be interwoven: the
 theory of inferencing on RDF data and the specification of an inference engine, RDFEngine, in Haskell.
@@ -18,39 +21,119 @@ RDFEngine possesses the characteristics of soundness, completeness, and monotoni
 series of lemmas.
 -}
 
-String : Set
-String = List Nat
 
 data Vare : Set where
- UVar : String → Vare
- EVar : String → Vare
- GVar : String → Vare
- GEVar : String → Vare
+ UVar : List Bool → Vare
+ EVar : List Bool → Vare
+ GVar : List Bool → Vare
+ GEVar : List Bool → Vare
 
+data URI : Set where
+ cons : List Bool → URI
+
+data IRI : Set where
+ cons : List Bool → IRI
+
+data Literal : Set where
+ cons : List Bool → Literal
+
+
+
+{-
+S-5.2,pr-2,s-3:
+A triple is composed of a subject, a property, and an object.
+data Triple where
+ _,_,_ : Subject → Property → Object → Triple
+-}
 data Triple : Set
+data Subject : Set
+data Property : Set
+data Object : Set
 
+record upto-S-5,2/pr-2/s-3 : Set₁ where
+ field
+  triple : Set
+  subject : Set
+  property : Set
+  object : Set
+  triple-component-subject : triple → subject
+  triple-component-property : triple → property
+  triple-component-object : triple → object
+  triple-all-possible-components : (s : subject) → (p : property) → (o : object) → ∃ t ∈ triple , ((triple-component-subject t ≡ s) ∧ (triple-component-property t ≡ p) ∧ (triple-component-object t ≡ o))
+  
+
+
+{-
+record Triple where
+ field
+  component-subject : Subject
+  component-property : Property
+  component-object : Object
+-}
+
+{-
+S-5.2,pr-2,s-4:
+A triplelist is a list of triples. 
+-}
 TripleList : Set
 TripleList = List Triple
 
-data Resource : Set where
- URI-cons : String → Resource
- Literal-cons : String → Resource
- Var : Vare → Resource
- TripleList-cons : TripleList → Resource
- ResNil : Resource
+{-
+S-5.2,pr-2,s-5:
+Subject, property, and object can have as value a URI, a blank node, or a triplelist.
+-}
 
-Subject : Set
-Subject = Resource
+data Subject where
+ URI-cons : URI → Subject
+ Var-cons : Vare → Subject
+ TripleList-cons : TripleList → Subject
 
-Object : Set
-Object = Resource
+data Property where
+ URI-cons : URI → Property
+ Var-cons : Vare → Property
+ TripleList-cons : TripleList → Property
 
-Predicate : Set
-Predicate = Resource
+data Object where
+ URI-cons : URI → Object
+ Var-cons : Vare → Object
+ TripleList-cons : TripleList → Object
 
 data Triple where
- _,_,_ : Subject → Predicate → Object → Triple
+ _,_,_ : Subject → Property → Object → Triple
 
+{-
+S-5.2,pr-2,s-6:
+An object can also be a literal.
+-}
+
+data Object₂ : Set where
+ URI-cons : URI → Object₂
+ Var-cons : Vare → Object₂
+ TripleList-cons : TripleList → Object₂
+ Literal-cons : Literal → Object₂
+
+data Triple₂ : Set where
+ _,_,_ : Subject → Property → Object₂ → Triple₂
+
+TripleList₂ : Set
+TripleList₂ = List Triple₂
+ 
+{-
+S-5.2,pr-2,s-7:
+The property is also often called 'predicate'.
+-}
+
+Predicate : Set
+Predicate = Property
+
+data Triple₃ : Set where
+ _,_,_ : Subject → Predicate → Object₂ → Triple₃
+
+TripleList₃ : Set
+TripleList₃ = List Triple₃
+{-
+
+-}
 
 {-
 A query is a triplelist.
@@ -65,17 +148,17 @@ RDF.
 -}
 TripleList-containsVars-dec : List Triple → Bool
 TripleList-containsVars-dec [] = false
-TripleList-containsVars-dec ((Var v , _ , _ ) ∷ rest) = true
-TripleList-containsVars-dec ((_ , Var v , _ ) ∷ rest) = true
-TripleList-containsVars-dec ((_ , _ , Var v ) ∷ rest) = true
+TripleList-containsVars-dec ((Var-cons v , _ , _ ) ∷ rest) = true
+TripleList-containsVars-dec ((_ , Var-cons v , _ ) ∷ rest) = true
+TripleList-containsVars-dec ((_ ,  _ , Var-cons v ) ∷ rest) = true
 TripleList-containsVars-dec (t ∷ rest) = TripleList-containsVars-dec rest
 
 TripleList-isRDFGraph-dec : List Triple → Bool
 TripleList-isRDFGraph-dec [] = true
-TripleList-isRDFGraph-dec ((Var v , _ , _ ) ∷ rest) = false
-TripleList-isRDFGraph-dec ((_ , Var v , _ ) ∷ rest) = false
-TripleList-isRDFGraph-dec ((_ , _ , Var v) ∷ rest) = false
-TripleList-isRDFGraph-dec ((_ , _ , _ ) ∷ rest) = TripleList-isRDFGraph-dec rest
+TripleList-isRDFGraph-dec ((Var-cons v , _ , _ ) ∷ rest) = false
+TripleList-isRDFGraph-dec ((_ , Var-cons v , _ ) ∷ rest) = false
+TripleList-isRDFGraph-dec ((_ , _ , Var-cons v) ∷ rest) = false
+TripleList-isRDFGraph-dec (t ∷ rest) = TripleList-isRDFGraph-dec rest
 
 TripleList-isRDFGraph-dec' : List Triple → Bool
 TripleList-isRDFGraph-dec' t = not (TripleList-containsVars-dec t)
@@ -95,11 +178,6 @@ variables of the query are replaced by URI's, if the query did have variables. I
 triples of the query are existing triples. I will give later a more precise definition of solutions.
 -}
 
-data URI : Set where
- cons : String → URI
-
-data Literal : Set where
- cons : String → Literal
 
 Substitution : Set
 Substitution = Vare × (URI ⊹ Literal)
@@ -122,7 +200,7 @@ variables.
 A grounded triple is a triple of which subject and property are URI's and the object is a URI or literal.
 -}
 
-Triple-isGrounded-dec : Triple → Bool
+Triple-isGrounded-dec : Triple₂ → Bool
 Triple-isGrounded-dec (URI-cons s , URI-cons p , URI-cons o) = true
 Triple-isGrounded-dec (URI-cons s , URI-cons p , Literal-cons o) = true
 Triple-isGrounded-dec t = false
@@ -130,7 +208,7 @@ Triple-isGrounded-dec t = false
 {-
 A grounded triplelist contains only grounded triples.
 -}
-TripleList-isGrounded-dec : TripleList → Bool
+TripleList-isGrounded-dec : TripleList₂ → Bool
 TripleList-isGrounded-dec [] = true
 TripleList-isGrounded-dec (t ∷ ts) = if (Triple-isGrounded-dec t) then (TripleList-isGrounded-dec ts) else false
 

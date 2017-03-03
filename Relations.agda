@@ -1,13 +1,15 @@
 module Relations where
 
 open import Agda.Primitive
-open import BaseLogic using (_↔_)
+open import BaseLogic using (_↔_ ; ¬)
 open import Data.Bool
+open import Data.Bool.Operations
 open import Data.Nat
 open import Data.Vector
 open import Data.False
 open import Data.Product
 open import Data.PropositionalEquality
+open import Data.Disjunction
 
 data N-ary-relation {α} (A : Set α) : Nat → Set α where
  [in=_,out=_] : {n : Nat} → Vector A n → A → N-ary-relation A (suc n)
@@ -42,17 +44,54 @@ isSymmetric {i} {A} R = (x y : A) → (R x y ≡ true) → (R y x ≡ true)
 isSymmetric' : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
 isSymmetric' {i} {A} r = (x y : A) (z : Bool) → (r x y ≡ z) → (r y x ≡ z)
 
+isAntisymmetric-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
+isAntisymmetric-Set {i} {j} {A} R = (x y : A) → R x y → ¬ (R y x)
+
+isAntisymmetric-Bool : ∀ {i} {A : Set i} (R : A → A → Bool) → Set i
+isAntisymmetric-Bool {i} {A} R = (x y : A) → R x y ≡ true → R y x ≡ false
+
+
 isTransitive-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
 isTransitive-Set {i} {j} {A} R = {x y z : A} → R x y → R y z → R x z
 
 isTransitive : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
 isTransitive {i} {A} r = (x y z : A) → (r x y ≡ true) → (r y z ≡ true) → (r x z ≡ true)
 
+isPreorder-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
+isPreorder-Set {i} {j} {A} R = (isReflexive-Set R) ∧ (isTransitive-Set R)
+
+isPreorder-Bool : ∀ {i} {A : Set i} (R : A → A → Bool) → Set i
+isPreorder-Bool {i} {A} r = (isReflexive r) ∧ (isTransitive r)
+
+isPartialOrder-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
+isPartialOrder-Set {i} {j} {A} R = (isReflexive-Set R) ∧ (isAntisymmetric-Set R) ∧ (isTransitive-Set R)
+
+isPartialOrder-Bool : ∀ {i} {A : Set i} (R : A → A → Bool) → Set i
+isPartialOrder-Bool {i} {A} r = (isReflexive r) ∧ (isAntisymmetric-Bool r) ∧ (isTransitive r)
+
 isEquivalence-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
 isEquivalence-Set {i} {j} {A} R = (isReflexive-Set R) ∧ ((isSymmetric-Set R) ∧ (isTransitive-Set R))
 
 isEquivalenceRelation : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
 isEquivalenceRelation {i} {A} r = (isReflexive r) ∧ ((isSymmetric r) ∧ (isTransitive r))
+
+isTotal-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
+isTotal-Set {i} {j} {A} R = (x y : A) → (R x y) ∨ (R y x)
+
+isTotal : ∀ {i} {A : Set i} (R : A → A → Bool) → Set i
+isTotal {i} {A} R = (x y : A) → (R x y ≡ true) ∨ (R y x ≡ true)
+
+isTotal' : ∀ {i} {A : Set i} (R : A → A → Bool) →  Set i
+isTotal' {i} {A} R = (x y : A) → ((R x y) or (R y x)) ≡ true
+
+isTotalOrder-Set : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
+isTotalOrder-Set {i} {j} {A} R = (isAntisymmetric-Set R) ∧ ((isTransitive-Set R) ∧ (isTotal-Set R))
+
+isTotalOrder-Bool : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
+isTotalOrder-Bool {i} {A} r = (isAntisymmetric-Bool r) ∧ ((isTransitive r) ∧ (isTotal r))
+
+isTotalOrder-Bool' : ∀ {i} {A : Set i} (r : A → A → Bool) → Set i
+isTotalOrder-Bool' {i} {A} r = (isAntisymmetric-Bool r) ∧ ((isTransitive r) ∧ (isTotal' r))
 
 
 isEqDec : ∀ {α} {A : Set α} → (R : A → A → Bool) → Set α

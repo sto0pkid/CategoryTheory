@@ -201,3 +201,7 @@ bitvector-adder {n} v1 v2 = strip-leading-zeroes-vec (bitvector-adder' v1 v2)
 {-
 pad-zeroes-length-lemma : (l1 l2 : BinaryNat) → length (pad-zeroes' l1 (length l2)) ≡ length (pad-zeroes' l2 (length l1))
 -}
+
+Memory : (n : Nat) → Set
+Memory n = BitVector n
+

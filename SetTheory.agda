@@ -1,7 +1,7 @@
 module SetTheory where
 
 open import Agda.Primitive
---open import BaseLogic
+open import BaseLogic
 open import Data.False
 open import Data.True
 open import Data.Disjunction
@@ -9,6 +9,7 @@ open import Data.Product
 open import Data.PropositionalEquality
 open import Data.Bool
 open import Data.Bool.Operations
+open import Data.Bool.Proofs
 open import Data.Irrelevance
 
 Powerset : ∀ {α β} (A : Set α) → Set (lsuc β ⊔ α)
@@ -107,13 +108,49 @@ subsetUnion' {α} {X} A B = λ x → (A x) or (B x)
 
 
 
+A⊆A∪B : ∀ {i} {X : Set i} (A B : Subset' X) → [ X || A ⊆ (subsetUnion' A B) ]'
+A⊆A∪B {i} {X} A B x Ax = proof
+ where
+  or-Bx : Bool → Bool
+  or-Bx b = b or (B x)
+
+  [Ax-or-Bx≡true-or-Bx] : (A x) or (B x) ≡ true or (B x)
+  [Ax-or-Bx≡true-or-Bx] = [x≡y]→[fx≡fy] or-Bx (A x) true Ax
+
+  [true-or-Bx≡true] : true or (B x) ≡ true
+  [true-or-Bx≡true] = true-or-x≡true (B x)
+
+  proof : (A x) or (B x) ≡ true
+  proof = ≡-trans [Ax-or-Bx≡true-or-Bx] [true-or-Bx≡true]
+   
+
+B⊆A∪B : ∀ {i} {X : Set i} (A B : Subset' X) → [ X || B ⊆ (subsetUnion' A B) ]'
+B⊆A∪B {i} {X} A B x Bx = proof
+ where
+  Ax-or : Bool → Bool
+  Ax-or b = (A x) or b
+
+  [Ax-or-Bx≡Ax-or-true] : (A x) or (B x) ≡ (A x) or true
+  [Ax-or-Bx≡Ax-or-true] = [x≡y]→[fx≡fy] Ax-or (B x) true Bx
+
+  [Ax-or-true≡true] : (A x) or true ≡ true
+  [Ax-or-true≡true] = x-or-true≡true (A x)
+
+  proof : (A x) or (B x) ≡ true
+  proof = ≡-trans [Ax-or-Bx≡Ax-or-true] [Ax-or-true≡true]
+
 subsetIntersection : ∀ {α β} {X : Set α} (A B : Subset {α} {β} X) → Subset X
 subsetIntersection {α} {β} {X} A B = λ x → (A x) ∧ (B x)
 
 subsetIntersection' : ∀ {α} {X : Set α} (A B : Powerset' X) → Powerset' X
 subsetIntersection' {α} {X} A B = λ x → (A x) and (B x)
 
+{-
+A∩B⊆A : ∀ {i} {X : Set i} (A B : Subset' X) → [ X || (subsetIntersection' A B) ⊆ A ]'
+A∩B⊆A {i} {X} A B x A∩Bx = 
 
+A∩B⊆B 
+-}
 
 
 subsetComplement : ∀ {α β} {X : Set α} (A : Subset {α} {β} X) → Subset X

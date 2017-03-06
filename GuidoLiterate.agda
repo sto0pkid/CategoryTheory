@@ -228,23 +228,64 @@ injective : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → Set (i ⊔ j
 injective {i} {j} {A} {B} f = (a1 a2 : A) → (f a1) ≡ (f a2) → a1 ≡ a2
 -}
 
+disjunct-return : ∀ {i} {A B : Set i} → A ⊹ B → Set i
+disjunct-return {i} {A} {B} (inl a) = A
+disjunct-return {i} {A} {B} (inr b) = B
+
+disjunct-getval : ∀ {i} {A B : Set i} → (d : A ⊹ B) → disjunct-return d
+disjunct-getval {i} {A} {B} (inl a) = a
+disjunct-getval {i} {A} {B} (inr b) = b
+
+
+-- These two record types allow you to make an extensible disjunction of types
 record ExtensibleType : Set₁ where
  field
+  -- this is the underlying set
   carrier : Set
+
+  -- this is a set of labels for indicating what kind of value an object in carrier has
   type-label : Set
+
+  -- this takes an object in carrier and tells us what kind of value it is
   val-type : carrier → type-label
+
+  -- this takes a label and tells us the type it refers to
   type-interpretation : type-label → Set
+  
+  -- this takes an object in carrier and returns its value
   get-val : (x : carrier) → type-interpretation (val-type x)
 
 record TypeExtension (T : ExtensibleType) (A : Set) : Set₁ where
  field
+  -- adds a constraint to T saying that there must be a label for values
+  -- of type A, and this label must be interpreted by T as indicating the
+  -- type A.
   type-label : ∃ label ∈ (ExtensibleType.type-label T) , ((ExtensibleType.type-interpretation T) label ≡ A)
+
+  -- we need to be able to take objects of type A and construct objects
+  -- of type T from them
   cons : A → (ExtensibleType.carrier T)
+
+  -- if the constructor function is injective then we can construct a
+  -- distinct object of type T for every distinct object of type A
   cons-inj : injective cons
+
+  -- if we construct an object (cons a) of type T from an object a of type
+  -- A, then we must be able to recognize (cons a) as having a value of type A.
   cons-type : (a : A) → (ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) (cons a)) ≡ A
+
+  -- this function should extract the value from an object of type T which has a value of type A
   get-val : (x : (ExtensibleType.carrier T)) → (ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x) ≡ A → A
+
+  -- if we have an object x of type T, extract its value, and then construct a new object x' from this extracted value, then
+  -- we should have that x == x'
   get-val-harmony-elim : (x : (ExtensibleType.carrier T)) → (p : ((ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x)) ≡ A) → x ≡ cons (get-val x p)
+
+  -- if we have an object a of type A and use it to construct an object of type T, and then extract the value from this
+  -- object, then we should get out the same value that we put in.
   get-val-harmony-intro : (a : A) → get-val (cons a) (cons-type a) ≡ a
+
+
 
 record TypeExtension₂ (T : ExtensibleType) (A : Set) : Set₁ where
  field
@@ -255,6 +296,40 @@ record TypeExtension₂ (T : ExtensibleType) (A : Set) : Set₁ where
   get-val : (x : (ExtensibleType.carrier T)) → ((ExtensibleType.val-type T) x) ≡ (π₁ type-label) → A
   get-val-harmony-elim : (x : (ExtensibleType.carrier T)) → (p : ((ExtensibleType.val-type T) x) ≡ (π₁ type-label)) → x ≡ cons (get-val x p)
   get-val-harmony-intro : (a : A) → get-val (cons a) (cons-type a) ≡ a
+
+type-coerce : ∀ {i} {A B : Set i} → A ≡ B → A → B
+type-coerce {i} {A} {.A} refl a = a
+
+
+
+record TypeExtension₃ (T : ExtensibleType) (A : Set) : Set₁ where
+ field
+  type-label : ∃ label ∈ (ExtensibleType.type-label T), ((ExtensibleType.type-interpretation T) label ≡ A)
+  cons : A → (ExtensibleType.carrier T)
+  cons-inj : injective cons
+  cons-type : (a : A) → ((ExtensibleType.val-type T) (cons a)) ≡ (π₁ type-label)
+  get-val : (x : (ExtensibleType.carrier T)) → ((ExtensibleType.val-type T) x) ≡ (π₁ type-label) → A
+  get-val-harmony-elim : (x : ExtensibleType.carrier T) → (p : ((ExtensibleType.val-type T) x) ≡ (π₁ type-label)) → x ≡ cons (get-val x p)
+  get-val-harmony-intro : (a : A) → get-val (cons a) (cons-type a) ≡ a
+  get-val-coherence : (x : (ExtensibleType.carrier T)) → (p : ((ExtensibleType.val-type T) x) ≡ (π₁ type-label)) → (type-coerce (π₂ type-label) (type-coerce ([x≡y]→[fx≡fy] (ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x) (π₁ type-label) p) ((ExtensibleType.get-val T) x))) ≡  (get-val x p)
+
+--type-interpretation (val-type x)
+--(p : ((ExtensibleType.val-type T) x) ≡ (π₁ type-label))
+--[x≡y]→[fx≡fy] (ExtensibleType.type-interpretation T) ((ExtensibleType.val-type T) x) (π₁ type-label) p
+
+-- having a separate get-val function for each TypeExtension probably isn't necessary; really we should probably just be
+-- adding constraints to the definition of get-val in ExtensibleType
+
+
+{-
+Need conjunctive extensions as well. If we alternate conjunction and disjunction, does it matter which one comes first?
+A conjunction can be interpreted as just one of the options of a disjunction.
+A disjunction can be interpreted as just one of the components of a conjunction.
+So it seems it doesn't matter: if you assume one of them comes first, then the other could have actually came first without
+changing anything.
+
+-}
+
 
 
 data List₂ (E : ExtensibleType) : Set where
@@ -799,9 +874,13 @@ record upto-S4-1 : Set₁ where
   triple-component-subject : ExtensibleType.carrier triple → ExtensibleType.carrier subject
   triple-component-property : ExtensibleType.carrier triple → ExtensibleType.carrier property
   triple-component-object : ExtensibleType.carrier triple → ExtensibleType.carrier object
-  triple-all-possible-components : (s : (ExtensibleType.carrier subject)) → (p : (ExtensibleType.carrier property)) → (o : (ExtensibleType.carrier object)) → ∃ t ∈ (ExtensibleType.carrier triple) , ((triple-component-subject t ≡ s) ∧ (triple-component-property t ≡ p) ∧ (triple-component-object t ≡ o))
+  triple-all-possible-components : (s : (ExtensibleType.carrier subject)) → (p : (ExtensibleType.carrier property)) → (o : (ExtensibleType.carrier object)) → ∃ t ∈ (ExtensibleType.carrier triple) , ((triple-component-subject t ≡ s) ∧ (triple-component-property t ≡ p) ∧ (triple-component-object t  ≡ o))
+
+
   triplelist : ExtensibleType
   triplelist-def : TypeExtension₂ triplelist (List (ExtensibleType.carrier triple))
+
+
   URI : ExtensibleType
   blank-node : ExtensibleType
   subject-def₁ : TypeExtension₂ subject (ExtensibleType.carrier URI)
@@ -813,6 +892,8 @@ record upto-S4-1 : Set₁ where
   object-def₁ : TypeExtension₂ object (ExtensibleType.carrier URI)
   object-def₂ : TypeExtension₂ object (ExtensibleType.carrier blank-node)
   object-def₃ : TypeExtension₂ object (ExtensibleType.carrier triplelist)
+
+
   literal : ExtensibleType
   object-def₄ : TypeExtension₂ object (ExtensibleType.carrier literal)
 
@@ -1000,3 +1081,4 @@ upto-S4-1-interp =
   } ;
  }
 -}
+

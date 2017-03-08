@@ -12,6 +12,7 @@ open import Data.Nat.BinPreds
 open import Data.False
 open import Data.Product
 open import Data.PropositionalEquality
+open import Functions renaming (_^_ to _^^_)
 
 {-
 Proofs about successor and addition:
@@ -804,3 +805,53 @@ x-minus-0≡x (suc n) = refl
 
 suc-x-minus-1≡x : (x : Nat) → (suc x) minus 1 ≡ x
 suc-x-minus-1≡x x = x-minus-0≡x x
+
+
+x>y→x+k>y : (x y : Nat) → x > y → (k : Nat) → (x + k) > y
+x>y→x+k>y x y (n , [y+suc-n≡x]) k = ((n + k) , [y+suc[n+k]≡x+k])
+ where
+  suc[n+k]≡suc[n]+k : suc (n + k) ≡ (suc n) + k
+  suc[n+k]≡suc[n]+k = refl
+
+  +k : Nat → Nat
+  +k z = z + k
+
+  y+ : Nat → Nat
+  y+ z = y + z
+
+  [y+suc[n+k]≡y+[suc[n]+k]] : y + suc (n + k) ≡ y + ((suc n) + k)
+  [y+suc[n+k]≡y+[suc[n]+k]] = continuity y+ (suc (n + k)) ((suc n) + k) suc[n+k]≡suc[n]+k
+
+  [y+[suc[n]+k]≡[y+suc[n]]+k] : y + ((suc n) + k) ≡ (y + (suc n)) + k
+  [y+[suc[n]+k]≡[y+suc[n]]+k] = a+[b+c]≡[a+b]+c y (suc n) k
+
+  [[y+suc[n]]+k≡x+k] : (y + (suc n)) + k ≡ x + k
+  [[y+suc[n]]+k≡x+k] = continuity +k (y + (suc n)) x [y+suc-n≡x]
+
+  [y+suc[n+k]≡x+k] : y + suc (n + k) ≡ x + k
+  [y+suc[n+k]≡x+k] = ≡-trans [y+suc[n+k]≡y+[suc[n]+k]] (≡-trans [y+[suc[n]+k]≡[y+suc[n]]+k]  [[y+suc[n]]+k≡x+k])
+
+
+x>y→x≮y : (x y : Nat) → x > y → ¬ (x < y)
+x>y→x≮y x y (n , [y+suc-n≡x]) (m , [x+suc-m≡y]) = disproof
+ where
+  +suc-n : Nat → Nat
+  +suc-n z = z + (suc n)
+
+  [x+suc-m]+suc-n≡y+suc-n : (x + (suc m)) + (suc n) ≡ y + (suc n)
+  [x+suc-m]+suc-n≡y+suc-n = continuity +suc-n (x + (suc m)) y [x+suc-m≡y]
+
+  [x+suc-m]+suc-n≡x+[suc[m+suc-n]] : (x + (suc m)) + (suc n) ≡ x + (suc (m + (suc n)))
+  [x+suc-m]+suc-n≡x+[suc[m+suc-n]] = [a+b]+c≡a+[b+c] x (suc m) (suc n)
+
+  x+[suc[m+suc-n]]≡x : x + (suc (m + (suc n))) ≡ x
+  x+[suc[m+suc-n]]≡x = ≡-trans (≡-sym [x+suc-m]+suc-n≡x+[suc[m+suc-n]]) (≡-trans [x+suc-m]+suc-n≡y+suc-n [y+suc-n≡x])
+
+  x>x : x > x
+  x>x = ((m + (suc n)) , x+[suc[m+suc-n]]≡x)
+
+  disproof : ⊥
+  disproof = x≯x x x>x
+
+x<y→x≯y : (x y : Nat) → x < y → ¬ (x > y)
+x<y→x≯y x y [x<y] [x>y] = x>y→x≮y y x [x<y] [x>y]

@@ -327,7 +327,47 @@ A conjunction can be interpreted as just one of the options of a disjunction.
 A disjunction can be interpreted as just one of the components of a conjunction.
 So it seems it doesn't matter: if you assume one of them comes first, then the other could have actually came first without
 changing anything.
+It seems reasonable to take conjunctions as the outer-most layer, since this corresponds to specifications being
+a conjunction of statements.
 
+Each component of the conjunction needs:
+1) A projection function to extract that value
+2) Logical harmony rules; trickier than the disjunctive case because you can't express
+    the logical harmony in isolation from the other components. 
+3) For every combination of component objects, there should be an object of type T which
+    has those components.
+4) Needs a cons function; takes an object from each component type and returns an object of type T
+    The cons function should be injective
+5) projᵢ (cons(..., aᵢ ,...)) = aᵢ, forall i, aᵢ
+6) cons (... , projᵢ(x), ....) = x, forall x
+
+There's a set of component types.
+The components will be labeled, so this is like a record type.
+There will be a set of labels to store these.
+There will be an interpretation function that takes a label and returns the type of the component
+ corresponding to that label.
+Have a general projection function that takes a label and returns the specific projection function
+ which projects the record onto the component corresponding to that label.
+There will be a general cons function that takes a product of all the component types and returns
+ an object of type T (it should be injective).
+To add a component, we'll create a type-extension that takes T as a parameter.
+The type-extension should assert the existence of a label corresponding to this component
+It should also assert that the interpretation function returns the correct type when supplied with this label.
+
+
+The extensible disjunctions allow us to handle cases like: "An object can be a URI. An object can also be a literal."
+ * Relation between disjunction and "being"
+The extensible conjunctions allow us to handle cases like "A triple has a subject. A triple also has an object."
+ * Relation between conjunction and "having"
+
+There are many situations where an object can be multiple different things (meaning it can have different types), 
+but not simultaneously. This is a mutually exclusive disjunction of possibilities. There are also situations where an 
+object can be multiple different  things simultaneously. This is still not a conjunction: we don't interpret the object 
+as being a tuple where each component is an instance of the object for each different type it can have.
+
+On the other hand, an object can *have* multiple different components simultaneously. This is a conjunction.
+From this perspective, it seems reasonable to have disjunction be the outer-most layer when giving the
+description of an object.
 -}
 
 
@@ -561,7 +601,7 @@ URI-interp₂≡bnode-interp₂ : URI-interp₂ ≡ blank-node-interp₂
 URI-interp₂≡bnode-interp₂ = refl
 
 coerce-type : ∀ {i} {A B : Set i} → A → A ≡ B → B
-coerce-type {i} {A} {B} a refl = a
+coerce-type {i} {A} {.A} a refl = a
 
 resource-type-labels-interp : resource-type-labels → Set
 resource-type-labels-interp uri-label = URI-interp₂

@@ -91,6 +91,11 @@ lookup : ∀ {α n} {A : Set α} → Fin n → Vector A n → A
 lookup zero (x ∷ xs) = x
 lookup (suc i) (x ∷ xs) = lookup i xs
 
+lookup' : ∀ {i} {A : Set i} {n : Nat} → Vector A n → (m : Nat) → m < n → A
+lookup' {i} {A} {0} [] m [m<0] = ω ((x≮0 m) [m<0])
+lookup' {i} {A} {suc n} (a ∷ as) 0 [0<suc-n] = a
+lookup' {i} {A} {suc n} (a ∷ as) (suc m) [suc-m<suc-n] = lookup' as m (𝕤x>𝕤y→x>y n m [suc-m<suc-n])
+
 {-
 Note that computationally this is not ideal. In C++ for example, arrays
 are strings of bitvectors of a particular length <size>. If we want to

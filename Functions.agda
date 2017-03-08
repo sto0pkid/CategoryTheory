@@ -1,6 +1,7 @@
 module Functions where
 
 open import Agda.Primitive
+open import Data.Nat
 open import Data.Product
 open import Data.PropositionalEquality
 
@@ -10,6 +11,12 @@ Functions behave functorially with respect to propositional equality.
 -}
 continuity : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → (x y : A) → x ≡ y → (f x) ≡ (f y)
 continuity {i} {j} {A} {B} f x .x refl = refl
+
+[f≡g]→[fx≡gx] : ∀ {i j} {A : Set i} {B : Set j} → (f g : A → B) → f ≡ g → (x : A) → (f x) ≡ (g x)
+[f≡g]→[fx≡gx] {i} {j} {A} {B} f .f refl x = refl
+
+[x≡y]→[f≡g]→[fx≡gy] : ∀ {i j} {A : Set i} {B : Set j} → (x y : A) → x ≡ y → (f g : A → B) → f ≡ g → (f x) ≡ (g y)
+[x≡y]→[f≡g]→[fx≡gy] {i} {j} {A} {B} x .x refl f .f refl = refl
 
 
 _∘_ : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → (B → C) → (A → B) → (A → C)
@@ -25,6 +32,13 @@ uncurry : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → (A → B → C) �
 uncurry {i} {j} {k} {A} {B} {C} f (a , b) = f a b
 
 
+id : ∀ {i} {A : Set i} → A → A
+id {i} {A} a = a
+
+_^_ : ∀ {i} {A : Set i} → (A → A) → Nat → A → A
+f ^ 0 = id
+(f ^ (suc n)) a = f ((f ^ n) a)
+
 
 surjective : ∀ {i j} {A : Set i} {B : Set j} → (A → B) → Set (i ⊔ j)
 surjective {i} {j} {A} {B} f = (b : B) → ∃ a ∈ A , ((f a) ≡ b)
@@ -35,10 +49,16 @@ injective {i} {j} {A} {B} f = (a1 a2 : A) → (f a1) ≡ (f a2) → a1 ≡ a2
 bijective : ∀ {i j} {A : Set i} {B : Set j} → (A → B) → Set (i ⊔ j)
 bijective {i} {j} {A} {B} f = (injective f) × (surjective f)
 
+∃surjection : ∀ {i j} (A : Set i) (B : Set j) → Set (i ⊔ j)
+∃surjection {i} {j} A B = ∃ f ∈ (A → B) , (surjective f)
+
+∃injection : ∀ {i j} (A : Set i) (B : Set j) → Set (i ⊔ j)
+∃injection {i} {j} A B = ∃ f ∈ (A → B) , (injective f)
+
+∃bijection : ∀ {i j} (A : Set i) (B : Set j) → Set (i ⊔ j)
+∃bijection {i} {j} A B = ∃ f ∈ (A → B) , (bijective f)
 
 
-id : ∀ {i} {A : Set i} → A → A
-id {i} {A} a = a
 
 id-injective : ∀ {i} {A : Set i} → injective (id {i} {A})
 id-injective a1 a2 ida1≡ida2 = ida1≡ida2
@@ -60,12 +80,20 @@ inv-weak {i} {j} {A} {B} f g = ((a : A) → (g (f a)) ≡ a) × ((b : B) → (f 
 injectivity-refl : ∀ {i} {A : Set i} → ∃ f ∈ (A → A) , (injective f)
 injectivity-refl {i} {A} = (id , id-injective)
 
+∃injection-refl : ∀ {i} {A : Set i} → ∃injection A A
+∃injection-refl = injectivity-refl
+
 surjectivity-refl : ∀ {i} {A : Set i} → ∃ f ∈ (A → A) , (surjective f)
 surjectivity-refl {i} {A} = (id , id-surjective)
+
+∃surjection-refl : ∀ {i} {A : Set i} → ∃surjection A A
+∃surjection-refl = surjectivity-refl
 
 bijectivity-refl : ∀ {i} {A : Set i} → ∃ f ∈ (A → A) , (bijective f)
 bijectivity-refl {i} {A} = (id , id-bijective)
 
+∃bijection-refl : ∀ {i} {A : Set i} → ∃bijection A A
+∃bijection-refl {i} {A} = bijectivity-refl
 
 
 surjectivity-trans : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → (f : A → B) → surjective f → (g : B → C) → surjective g → surjective (g ∘ f)
@@ -89,6 +117,9 @@ surjectivity-trans {i} {j} {k} {A} {B} {C} f f-surj g g-surj c = (a , gfa≡c)
   gfa≡c : (g (f a)) ≡ c
   gfa≡c = ≡-trans gfa≡gb gb≡c
 
+∃surjection-trans : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → ∃surjection A B → ∃surjection B C → ∃surjection A C
+∃surjection-trans {i} {j} {k} {A} {B} {C} (f , f-surj) (g , g-surj) = ((g ∘ f) , surjectivity-trans f f-surj g g-surj)
+
 injectivity-trans : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → (f : A → B) → injective f → (g : B → C) → injective g → injective (g ∘ f)
 injectivity-trans {i} {j} {k} {A} {B} {C} f f-inj g g-inj a1 a2 gfa1≡gfa2 = a1≡a2
  where
@@ -98,12 +129,57 @@ injectivity-trans {i} {j} {k} {A} {B} {C} f f-inj g g-inj a1 a2 gfa1≡gfa2 = a1
   a1≡a2 : a1 ≡ a2
   a1≡a2 = f-inj a1 a2 fa1≡fa2
 
+∃injection-trans : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → ∃injection A B → ∃injection B C → ∃injection A C
+∃injection-trans (f , f-inj) (g , g-inj) = ((g ∘ f) , injectivity-trans f f-inj g g-inj)
 
 bijectivity-trans : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → (f : A → B) → bijective f → (g : B → C) → bijective g → bijective (g ∘ f)
 bijectivity-trans {i} {j} {k} {A} {B} {C} f f-bij g g-bij = (injectivity-trans f (first f-bij) g (first g-bij) , surjectivity-trans f (second f-bij) g (second g-bij))
 
+∃bijection-trans : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → ∃bijection A B → ∃bijection B C → ∃bijection A C
+∃bijection-trans (f , f-bij) (g , g-bij) = ((g ∘ f) , bijectivity-trans f f-bij g g-bij)
+
+
+∃bijection-sym : ∀ {i j} {A : Set i} {B : Set j} → ∃bijection A B → ∃bijection B A
+∃bijection-sym {i} {j} {A} {B} (f , (f-inj , f-surj)) = (f⁻¹ , (f⁻¹-inj , f⁻¹-surj))
+ where
+  f⁻¹ : B → A
+  f⁻¹ b = π₁ (f-surj b)
+
+  f⁻¹-inj : injective f⁻¹
+  f⁻¹-inj b₁ b₂ [f⁻¹-b₁≡f⁻¹-b₂] = proof
+   where
+    [f∘f⁻¹]b₁≡b₁ : f (f⁻¹ b₁) ≡ b₁
+    [f∘f⁻¹]b₁≡b₁ = π₂ (f-surj b₁)
+
+    [f∘f⁻¹]b₂≡b₂ : f (f⁻¹ b₂) ≡ b₂
+    [f∘f⁻¹]b₂≡b₂ = π₂ (f-surj b₂)
+
+    [f∘f⁻¹]b₁≡[f∘f⁻¹]b₂ : f (f⁻¹ b₁) ≡ f (f⁻¹ b₂)
+    [f∘f⁻¹]b₁≡[f∘f⁻¹]b₂ = continuity f (f⁻¹ b₁) (f⁻¹ b₂) [f⁻¹-b₁≡f⁻¹-b₂]
+
+    proof : b₁ ≡ b₂ 
+    proof = ≡-trans (≡-sym [f∘f⁻¹]b₁≡b₁) (≡-trans [f∘f⁻¹]b₁≡[f∘f⁻¹]b₂  [f∘f⁻¹]b₂≡b₂)
+
+  f⁻¹-surj : surjective f⁻¹
+  f⁻¹-surj a = ((f a) , proof)
+   where
+    [f⁻¹∘f]a : A
+    [f⁻¹∘f]a = f⁻¹ (f a)
+
+    [f∘f⁻¹∘f]a : B
+    [f∘f⁻¹∘f]a = f (f⁻¹ (f a))
+
+    [f∘f⁻¹∘f]a≡[f]a : f (f⁻¹ (f a)) ≡ (f a)
+    [f∘f⁻¹∘f]a≡[f]a = π₂ (f-surj (f a))
+
+    proof : f⁻¹ (f a) ≡ a
+    proof = f-inj [f⁻¹∘f]a a [f∘f⁻¹∘f]a≡[f]a
+
+
+
 HEquiv : ∀ {i j} {A : Set i} {B : Set j} → (f g : A → B) → Set (i ⊔ j)
 HEquiv {i} {j} {A} {B} f g = (a1 a2 : A) → (f a1) ≡ (f a2) → a1 ≡ a2
+
 
 {-
 General reflexivity

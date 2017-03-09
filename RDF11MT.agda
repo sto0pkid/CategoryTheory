@@ -13,35 +13,56 @@ record RDF11Concepts : Set₃ where
   subject : Set
   predicate : Set
   object : Set
+
   Resource : Set
-  -- Unicode; RFC 3987
-  -- is actually not a Set but instead the Subset of Unicode strings satisfying the requirements in RFC 3987
-  IRI : Set
-  denotation-IRI : IRI → Resource
-  referent : IRI → Resource
+
+  Unicode-String : Set
+  US-ASCII-String : Set
+  --relationship between these two...
+
+
+  -- is the subset of Unicode strings satisfying the requirements in RFC 3987
+  IRI : Subset {lzero} {lzero} Unicode-String
+  denotation-IRI : (∃ s ∈ Unicode-String , (IRI s)) → Resource
+  referent : (∃ s ∈ Unicode-String , (IRI s)) → Resource
   referent-def : referent ≡ denotation-IRI
 
   -- is not a Set but instead the Subset of Unicode strings satisfying the definition in RDF11Concepts section 3.3 Literals
+  -- actually literals aren't defined in section 3.3 as a subset of Unicode strings, they're instead defined as complex objects
+  -- composed of a 'lexical form', a 'data-type IRI' and optionally a  'language-tag'.
   literal : Set
   denotation-literal : literal → Resource
   literal-value : literal → Resource
   literal-value-def : literal-value ≡ denotation-literal
+  literal-syntax : Subset {lzero} {lzero} Unicode-String
+
   -- Unicode String; Normal Form C
-  lexical-form : Set
-  data-type-IRI : Subset {lzero} {lzero} IRI
+  lexical-form : Subset {lzero} {lzero} Unicode-String
+  data-type-IRI : ∃ S ∈ (Subset {lzero} {lzero} Unicode-String) , ( [ Unicode-String || S ⊆ IRI ] )
   datatype : Set
   lexical-space : datatype → Set
   value-space : datatype → Set
+
+  -- this isn't quite how they define it, though it's semantically equivalent to how they define it.
   lexical-to-value-mapping : (dt : datatype) → (lexical-space dt) → (value-space dt)
+
   -- section 2.2.9 of [BCP47]
-  language-tag : Set
-  literal-def : literal ≡  (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt))) ⊹ (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt)) × language-tag)
-  XMLSchema#String : ∃ iri ∈ IRI , (data-type-IRI iri) 
-  simple-literal : Set
+  --language-tags apparently use US-ASCII rather than Unicode ?
+  {-"Although [RFC5234] refers to octets, the language tags described in
+   this document are sequences of characters from the US-ASCII [ISO646]
+   repertoire."
+  -}
+  -- need to bring in the relationship between US-ASCII and Unicode. US-ASCII is a subset of Unicode, for some appropriate
+  -- notion of "subset". Need to figure out what that notion is.
+  language-tag : Subset {lzero} {lzero} US-ASCII-String
+  --literal-def : literal ≡  (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt))) ⊹ (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt)) × language-tag)
+  literal-def : literal ≡ ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt-iri ∈ Unicode-String , ((π₁ data-type-IRI) dt-iri))) ⊹ ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt-iri ∈ Unicode-String , ((π₁ data-type-IRI) dt-iri)) × (∃ tag ∈ US-ASCII-String , (language-tag tag)))
+  XMLSchema#String : ∃ s ∈ Unicode-String , ((π₁ data-type-IRI) s) 
+  simple-literal : Subset {lzero} {lzero} Unicode-String
   simple-literal-def : simple-literal ≡ lexical-form
 
   -- note how Agda doesn't know that simple-literal ≡ lexical-form. maybe we can use coercion?
-  lexical-form-to-literal : lexical-form →  (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt))) ⊹ (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt)) × language-tag)
+  lexical-form-to-literal : (∃ lex ∈ Unicode-String , (lexical-form lex)) →  ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt ∈ Unicode-String , ((π₁ data-type-IRI) dt))) ⊹ ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt ∈ Unicode-String , ((π₁ data-type-IRI) dt)) × (∃ tag ∈ US-ASCII-String , (language-tag tag)))
   lexical-form-to-literal-def : lexical-form-to-literal ≡ λ lex → (inl (lex , XMLSchema#String))
   language-tagged-string : Subset' literal
   --language-tagged-string-def : language-tagged-string ≡ λ (inl lit) → false ; (inr lit) → true
@@ -53,9 +74,29 @@ record RDF11Concepts : Set₃ where
   -- we might want to attribute some more properties to blank-nodes though; for example, the Set should probably be infinite, but only countably so, and it
   -- might be desirable to distinguish between bnodes.
   blank-node : Set
+  blank-node-syntax : Subset {lzero} {lzero} Unicode-String
+
+  {-
   subject-def : subject ≡ IRI ⊹ blank-node
   predicate-def : predicate ≡ IRI
   object-def : subject ≡ IRI ⊹ (literal ⊹ blank-node)
+  -}
+  -- what's the right notion of "or" to use here?
+  -- seems to be a subset-union of these syntactic forms of Unicode strings in a given concrete syntax.
+  -- this would imply that subject/predicate/object need to be defined as syntactic forms as well.
+  subject-syntax : Subset {lzero} {lzero} Unicode-String
+  subject-syntax-def : subject-syntax ≡ subsetUnion IRI blank-node-syntax
+
+  predicate-syntax : Subset {lzero} {lzero} Unicode-String
+  predicate-syntax-def : predicate-syntax ≡ IRI
+
+  object-syntax : Subset {lzero} {lzero} Unicode-String
+  object-syntax-def : object-syntax ≡ subsetUnion IRI (subsetUnion literal-syntax blank-node-syntax)
+
+  {-
+  An alternative interpretation is that the resource denoted by a subject can be the resource denoted by
+  some IRI, or the resource denoted by some blank-node.
+  -}
 
   triple-subject : triple → subject
   triple-predicate : triple → predicate
@@ -66,8 +107,12 @@ record RDF11Concepts : Set₃ where
   --should probably have an abstract definition of edge-labeled/node-labeled graphs
   --so that we can map between triple-sets and abstract graphs, as is done in RDF11Concepts
 
+  {-
   term : Set
   term-def : term ≡ IRI ⊹ (literal ⊹ blank-node)
+  -}
+  term : Subset {lzero} {lzero} Unicode-String
+  term-def : term ≡ subsetUnion IRI (subsetUnion literal-syntax blank-node-syntax)
 
   nodes : graph → Set
   --Agda doesn't know that `graph ≡ Subset {lzero} {lzero} triple`, so it can't recognize `g` as a function
@@ -81,21 +126,41 @@ record RDF11Concepts : Set₃ where
   --nodes'-def : nodes' ≡ (λ g → ∃ node ∈ term , (∃ t ∈ triple , ((g t) × (((triple-subject t) ≡ node) ⊹ ((triple-object t) ≡ node)))))
 
   -- RFC3987: Simple String Comparison ("character-by-character", not "bit-by-bit" or "byte-by-byte")
-  IRI-equality : IRI → IRI → Set
-  lexical-form-equality : lexical-form → lexical-form → Set
-  language-tag-equality : language-tag → language-tag → Set
+  IRI-Simple-String-Comparison : (∃ iri₁ ∈ Unicode-String , (IRI iri₁)) → (∃ iri₂ ∈ Unicode-String , (IRI iri₂)) → Set
+  lexical-form-equality : (∃ lex₁ ∈ Unicode-String , (lexical-form lex₁)) → (∃ lex₂ ∈ Unicode-String , (lexical-form lex₂)) → Set
+  language-tag-equality : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁)) → (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂)) → Set
   literal-term-equality : literal → literal → Set
   -- note that we can't enforce the coherence between `lexical-form-equality`, `language-tag-equality` and `literal-term-equality`
   -- needs something like the extensible types from GuidoLiterate
 
+  {-
   IRIs-disjoint-from-literals : IRI ≠ literal
   IRIs-disjoint-from-blank-nodes : IRI ≠ blank-node
   literals-disjoint-from-blank-nodes : literal ≠ blank-node
+  -}
   -- propositional inequality isn't the right notion of disjointness here
   -- each of these is going to be a subset of Unicode strings; we want to make sure those subsets are disjoints using
   -- a notion of disjoint subsets of a the type of Unicode strings
 
-  --skolem-IRIs
+  -- Still not right.
+  -- IRIs are a subset of Unicode strings
+  -- blank-nodes are an abstract set
+  -- literals are complex objects
+  -- I think what is meant here is that the syntactic forms for expressing these in a concrete syntax are each disjoint,
+  -- i.e. the set of labels that represent IRIs is disjoint from the set of labels representing blank-nodes and both
+  -- are disjoint from the set of labels that represent literals.
+  -- Need to bring in the relation between the abstract & concrete syntax in order to formalize that (assuming it's
+  -- even the right interpretation of the specs..)
+  IRIs-disjoint-from-literals : (s : Unicode-String) → ¬ ((subsetIntersection IRI literal-syntax) s)
+  IRIs-disjoint-from-blank-nodes : (s : Unicode-String) → ¬ ((subsetIntersection IRI blank-node-syntax) s)
+  literals-disjoint-from-blank-nodes : (s : Unicode-String) → ¬ ((subsetIntersection literal-syntax blank-node-syntax) s)
+
+  {-
+  An alternative interpretation is to say that the subset of resources denoted by IRIs is disjoint from the subset of resources
+  denoted by literals / blank-nodes.
+  -}
+
+  --skolem-IRIs: an optional mapping from blank nodes to IRIs
   {-
   graph-isomorphism : graph → graph → Set
   graph-isomorphism 

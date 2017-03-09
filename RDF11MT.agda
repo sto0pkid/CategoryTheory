@@ -14,11 +14,34 @@ record RDF11Concepts : Set₃ where
   predicate : Set
   object : Set
 
+  {-
+  why don't we say "triple-def : triple ≡ subject × predicate × object" ?
+  because this ascribes too much specifics to the representation of triples.
+  this formal specification should be as abstract as possible. we shouldn't require
+  any specific representation unless it's actually called for in some standards docs.
+  we don't care what specific representation you use to store your triples, we only
+  care that you can handle all the required behaviors for triples:
+
+
+  you need to have a constructor function that takes an s, p, o and returns a triple.
+  this is essentially the "intro rule" for triples.
+
+  you have projection functions that take a triple and return it's subject or
+  its predicate or its object. these are essentially the "elim rules" for triples.
+
+  your intros and elims need to be in "logical harmony", meaning:
+  1) if i have an s, p, o and cons- it into a triple, t, then i should be able to
+      project the s, p, o back out of it.
+  2) if i have a triple t, and project some s, p, o out of it, i should be able to
+      cons- these back into the same triple t.
+  -}
+
   Resource : Set
 
   Unicode-String : Set
   US-ASCII-String : Set
-  --relationship between these two...
+  --US-ASCII is a subset of Unicode, for some appropriate notion of "subset". need to
+  -- properly define that notion.
 
 
   -- is the subset of Unicode strings satisfying the requirements in RFC 3987
@@ -43,7 +66,9 @@ record RDF11Concepts : Set₃ where
   lexical-space : datatype → Set
   value-space : datatype → Set
 
-  -- this isn't quite how they define it, though it's semantically equivalent to how they define it.
+  -- this isn't quite how they define it, though it's semantically equivalent to how they define it, and simpler.
+  -- they even mention the equivalence. we should use their version though, just for the sake of having
+  -- this formalization correspond as directly as possible to what's being described in the RDF 11 Concepts doc.
   lexical-to-value-mapping : (dt : datatype) → (lexical-space dt) → (value-space dt)
 
   -- section 2.2.9 of [BCP47]
@@ -52,8 +77,6 @@ record RDF11Concepts : Set₃ where
    this document are sequences of characters from the US-ASCII [ISO646]
    repertoire."
   -}
-  -- need to bring in the relationship between US-ASCII and Unicode. US-ASCII is a subset of Unicode, for some appropriate
-  -- notion of "subset". Need to figure out what that notion is.
   language-tag : Subset {lzero} {lzero} US-ASCII-String
   --literal-def : literal ≡  (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt))) ⊹ (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt)) × language-tag)
   literal-def : literal ≡ ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt-iri ∈ Unicode-String , ((π₁ data-type-IRI) dt-iri))) ⊹ ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt-iri ∈ Unicode-String , ((π₁ data-type-IRI) dt-iri)) × (∃ tag ∈ US-ASCII-String , (language-tag tag)))
@@ -98,9 +121,15 @@ record RDF11Concepts : Set₃ where
   some IRI, or the resource denoted by some blank-node.
   -}
 
+  {-
   triple-subject : triple → subject
   triple-predicate : triple → predicate
   triple-object : triple → object
+  -}
+  -- needed to change this up so that we can define `graph-nodes'-def` below..
+  triple-subject : triple → ∃ s ∈ Unicode-String , (subject-syntax s)
+  triple-predicate : triple → ∃ p ∈ Unicode-String , (predicate-syntax p)
+  triple-object : triple → ∃ o ∈ Unicode-String , (object-syntax o)
 
   graph : Set₁
   graph-def : graph ≡ Subset {lzero} {lzero} triple
@@ -114,16 +143,16 @@ record RDF11Concepts : Set₃ where
   term : Subset {lzero} {lzero} Unicode-String
   term-def : term ≡ subsetUnion IRI (subsetUnion literal-syntax blank-node-syntax)
 
-  nodes : graph → Set
+  graph-nodes : graph → Set
   --Agda doesn't know that `graph ≡ Subset {lzero} {lzero} triple`, so it can't recognize `g` as a function
   --maybe we can apply coercion
   --nodes-def : nodes ≡ (λ g → ∃ node ∈ term , (∃ t ∈ triple , ((g t) × (((triple-subject t) ≡ node) ⊹ ((triple-object t) ≡ node)))))
 
-  nodes' : Subset {lzero} {lzero} triple → Set
+  graph-nodes' : Subset {lzero} {lzero} triple → Set
   
   --This still doesn't work because of lack of coherence between `term` and `subject`/`predicate`/`object`:
   -- term !=< subject of type Set when checking that the expression `node` has type `subject.
-  --nodes'-def : nodes' ≡ (λ g → ∃ node ∈ term , (∃ t ∈ triple , ((g t) × (((triple-subject t) ≡ node) ⊹ ((triple-object t) ≡ node)))))
+  graph-nodes'-def : graph-nodes' ≡ (λ g → (∃ node ∈ Unicode-String , ((term node) × (∃ t ∈ triple , ((g t) × (((π₁ (triple-subject t)) ≡ node) ⊹ ((π₁ (triple-object t)) ≡ node)))))))
 
   -- RFC3987: Simple String Comparison ("character-by-character", not "bit-by-bit" or "byte-by-byte")
   IRI-Simple-String-Comparison : (∃ iri₁ ∈ Unicode-String , (IRI iri₁)) → (∃ iri₂ ∈ Unicode-String , (IRI iri₂)) → Set
@@ -131,6 +160,7 @@ record RDF11Concepts : Set₃ where
   language-tag-equality : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁)) → (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂)) → Set
   literal-term-equality : literal → literal → Set
   -- note that we can't enforce the coherence between `lexical-form-equality`, `language-tag-equality` and `literal-term-equality`
+  -- why exactly can't we do that?
   -- needs something like the extensible types from GuidoLiterate
 
   {-

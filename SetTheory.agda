@@ -11,6 +11,7 @@ open import Data.Bool
 open import Data.Bool.Operations
 open import Data.Bool.Proofs
 open import Data.Irrelevance
+open import Level
 
 Powerset : ∀ {α β} (A : Set α) → Set (lsuc β ⊔ α)
 Powerset {α} {β} A = A → Set β
@@ -105,6 +106,10 @@ subsetUnion {α} {β} {X} A B = λ x → (A x) ∨ (B x)
 subsetUnion' : ∀ {α} {X : Set α} (A B : Powerset' X) → Powerset' X
 subsetUnion' {α} {X} A B = λ x → (A x) or (B x)
 
+subsetUnion₂ : ∀ {i j k l} {X : Set i} {Y : Set k} (A : Subset {i} {j} X) (B : Subset {k} {l} Y) → Subset {i ⊔ k} {j ⊔ l} (X ⊹ Y)
+subsetUnion₂ {i} {j} {k} {l} {X} {Y} A B (inl x) = Lift {j} {j ⊔ l} (A x)
+subsetUnion₂ {i} {j} {k} {l} {X} {Y} A B (inr y) = Lift {l} {j ⊔ l} (B y)
+
 
 
 
@@ -144,6 +149,9 @@ subsetIntersection {α} {β} {X} A B = λ x → (A x) ∧ (B x)
 
 subsetIntersection' : ∀ {α} {X : Set α} (A B : Powerset' X) → Powerset' X
 subsetIntersection' {α} {X} A B = λ x → (A x) and (B x)
+
+subsetProduct : ∀ {i j k l} {X : Set i} {Y : Set k} (A : Subset {i} {j} X) (B : Subset {k} {l} Y) → Subset (X × Y)
+subsetProduct {i} {j} {k} {l} {X} {Y} A B (x , y) = (A x) × (B y)
 
 {-
 A∩B⊆A : ∀ {i} {X : Set i} (A B : Subset' X) → [ X || (subsetIntersection' A B) ⊆ A ]'

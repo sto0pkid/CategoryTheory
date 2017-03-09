@@ -16,11 +16,8 @@ open import Data.True
 open import Data.Vector
 open import Data.Vector.Operations renaming (_^_ to _^^^_)
 open import Functions renaming (_^_ to _^^_)
+open import Level
 open import SetTheory
-
-record Lift {a ℓ} (A : Set a) : Set (a ⊔ ℓ) where
-  constructor lift
-  field lower : A
 
 same-cardinality : ∀ {i j} (A : Set i) → (B : Set j) → Set (i ⊔ j)
 same-cardinality {i} {j} A B = ∃bijection A B

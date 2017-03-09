@@ -57,13 +57,24 @@ RDF11-SCHEMA
 
 {-
 Literal values
+Need to fix this
 -}
 
 LV : Set
 LV = String
 
+{-
+URIs
+Need to fix this
+-}
+
 URIRef : Set
 URIRef = String
+
+{-
+IRIs
+Need to fix this
+-}
 
 IRI : Set
 IRI = String

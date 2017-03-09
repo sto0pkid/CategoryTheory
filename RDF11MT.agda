@@ -7,48 +7,6 @@ open import Data.Product
 open import Data.PropositionalEquality
 open import SetTheory
 
-{-
-record hmm : Set₃ where
- field
-  triple : Set
-  subject : Set
-  predicate : Set
-  object : Set
-  triple-def : triple ≡ subject × predicate × object
-  graph : Set₁
-  graph-def : graph ≡ Subset {lzero} {lzero} triple
-  Resource : Set
-  IRI : Set
-  Literal : Set
-  blank-node : Set
-  node : Set
-  node-def : node ≡ IRI ⊹ (Literal ⊹ blank-node)
-  subject-def : subject ≡ IRI ⊹ blank-node
-  predicate-def : predicate ≡ IRI
-  object-def : object ≡ IRI ⊹ (Literal ⊹ blank-node)
-  denotation-IRI : IRI → Resource
-  denotation-Literal : Literal → Resource
-  referent : IRI → Resource
-  referent-def : referent ≡ denotation-IRI
-  literal-value : Literal → Resource
-  literal-value-def : literal-value ≡ denotation-Literal
-  Datatype : Set
-  literal-datatype : Literal → Datatype
-  language-tagged-strings : Subset {lzero} {lzero} Literal
-  vocabulary : Set₁
-  vocabulary-def : vocabulary ≡ Subset {lzero} {lzero} IRI
-  dataset : Set₂
-  dataset-def : dataset ≡ Subset {lsuc lzero} {lsuc lzero} graph
-  statement : Set₁
-  statement-def : statement ≡ Set
-  
-  Entails : (A B : graph) → Set
-  Equivalent : (A B : graph) → Set
-  Equivalent-def : Equivalent ≡ (λ A → (λ B → (Entails A B) × (Entails B A)))
-  Inconsistency : (A : graph) → Set
-  Inconsistency 
--}
-
 record RDF11Concepts : Set₃ where
  field 
   triple : Set

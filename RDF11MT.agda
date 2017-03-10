@@ -2,10 +2,17 @@ module RDF11MT where
 
 open import Agda.Primitive
 open import BaseLogic
+open import Data.Bool
 open import Data.Disjunction
 open import Data.Product
 open import Data.PropositionalEquality
 open import SetTheory
+
+coerce-func-domain : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → (C : Set i) → A ≡ C → (C → B)
+coerce-func-domain {i} {j} {A} {B} f .A refl = f
+
+coerce-func-codomain : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → (C : Set j) → B ≡ C → (A → C)
+coerce-func-codomain {i} {j} {A} {B} f .B refl = f
 
 record RDF11Concepts : Set₃ where
  field 
@@ -153,15 +160,36 @@ record RDF11Concepts : Set₃ where
   --This still doesn't work because of lack of coherence between `term` and `subject`/`predicate`/`object`:
   -- term !=< subject of type Set when checking that the expression `node` has type `subject.
   graph-nodes'-def : graph-nodes' ≡ (λ g → (∃ node ∈ Unicode-String , ((term node) × (∃ t ∈ triple , ((g t) × (((π₁ (triple-subject t)) ≡ node) ⊹ ((π₁ (triple-object t)) ≡ node)))))))
+  graph-nodes-def : graph-nodes ≡ coerce-func-domain graph-nodes' graph (≡-sym graph-def)
+
 
   -- RFC3987: Simple String Comparison ("character-by-character", not "bit-by-bit" or "byte-by-byte")
+  -- actually each of these will use the same "character-by-character" equality test.
   IRI-Simple-String-Comparison : (∃ iri₁ ∈ Unicode-String , (IRI iri₁)) → (∃ iri₂ ∈ Unicode-String , (IRI iri₂)) → Set
   lexical-form-equality : (∃ lex₁ ∈ Unicode-String , (lexical-form lex₁)) → (∃ lex₂ ∈ Unicode-String , (lexical-form lex₂)) → Set
   language-tag-equality : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁)) → (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂)) → Set
   literal-term-equality : literal → literal → Set
   -- note that we can't enforce the coherence between `lexical-form-equality`, `language-tag-equality` and `literal-term-equality`
-  -- why exactly can't we do that?
-  -- needs something like the extensible types from GuidoLiterate
+  -- why exactly can't we do that? actually we should be able to using type coercion.
+  
+  -- side-note: each of these equality tests needs to be decidable, and indeed there are decision algorithms for them.
+  IRI-Simple-String-Comparison-decision : (∃ iri₁ ∈ Unicode-String , (IRI iri₁)) → (∃ iri₂ ∈ Unicode-String , (IRI iri₂)) → Bool
+  lexical-form-equality-decision : (∃ lex₁ ∈ Unicode-String , (lexical-form lex₁)) → (∃ lex₂ ∈ Unicode-String , (lexical-form lex₂)) → Bool
+  language-tag-equality-decision : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁)) → (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂)) → Bool
+  literal-term-equality-decision : literal → literal → Bool
+
+  -- these decision algorithms must be coherent with their propositional counterparts:
+  IRI-Simple-String-Comparison-coherence₁ : (s₁ : (∃ iri₁ ∈ Unicode-String , (IRI iri₁))) → (s₂ : (∃ iri₂ ∈ Unicode-String , (IRI iri₂))) → IRI-Simple-String-Comparison s₁ s₂ → IRI-Simple-String-Comparison-decision s₁ s₂ ≡ true
+  IRI-Simple-String-Comparison-coherence₂ : (s₁ : (∃ iri₁ ∈ Unicode-String , (IRI iri₁))) → (s₂ : (∃ iri₂ ∈ Unicode-String , (IRI iri₂))) → IRI-Simple-String-Comparison-decision s₁ s₂ ≡ true → IRI-Simple-String-Comparison s₁ s₂
+
+  lexical-form-equality-coherence₁ : (s₁ : (∃ lex₁ ∈ Unicode-String , (lexical-form lex₁))) → (s₂ : (∃ lex₂ ∈ Unicode-String , (lexical-form lex₂))) → lexical-form-equality s₁ s₂ → lexical-form-equality-decision s₁ s₂ ≡ true
+  lexical-form-equality-coherence₂ : (s₁ : (∃ lex₁ ∈ Unicode-String , (lexical-form lex₁))) → (s₂ : (∃ lex₂ ∈ Unicode-String , (lexical-form lex₂))) → lexical-form-equality-decision s₁ s₂ ≡ true → lexical-form-equality s₁ s₂
+
+  language-tag-equality-coherence₁ : (s₁ : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁))) → (s₂ : (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂))) → language-tag-equality s₁ s₂ → language-tag-equality-decision s₁ s₂ ≡ true
+  language-tag-equality-coherence₂ :  (s₁ : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁))) → (s₂ : (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂))) → language-tag-equality-decision s₁ s₂ ≡ true → language-tag-equality s₁ s₂
+
+  literal-term-equality-coherence₁ : (l₁ : literal) → (l₂ : literal) → literal-term-equality l₁ l₂ → literal-term-equality-decision l₁ l₂ ≡ true
+  literal-term-equality-coherence₂ : (l₁ : literal) → (l₂ : literal) → literal-term-equality-decision l₁ l₂ ≡ true → literal-term-equality l₁ l₂
 
   {-
   IRIs-disjoint-from-literals : IRI ≠ literal

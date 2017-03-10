@@ -1,9 +1,11 @@
 module Functions where
 
 open import Agda.Primitive
+open import Data.Irrelevance
 open import Data.Nat
 open import Data.Product
 open import Data.PropositionalEquality
+open import SetTheory
 
 {-
 Functions are continuous with respect to propositional equality.
@@ -181,16 +183,29 @@ HEquiv : ∀ {i j} {A : Set i} {B : Set j} → (f g : A → B) → Set (i ⊔ j)
 HEquiv {i} {j} {A} {B} f g = (a1 a2 : A) → (f a1) ≡ (f a2) → a1 ≡ a2
 
 
+coerce-func-domain : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → (C : Set i) → A ≡ C → (C → B)
+coerce-func-domain {i} {j} {A} {B} f .A refl = f
+
+coerce-func-codomain : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → (C : Set j) → B ≡ C → (A → C)
+coerce-func-codomain {i} {j} {A} {B} f .B refl = f
+
+function-to-graph : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → Set (i ⊔ j)
+function-to-graph {i} {j} {A} {B} f = ∃ edge ∈ (A × B) , (f (first edge) ≡ (second edge))
+
+function-to-graph₂ : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → Set (i ⊔ j)
+function-to-graph₂ {i} {j} {A} {B} f = ∃ edge ∈ (A × B) , (∥ f (first edge) ≡ (second edge) ∥ )
+-- this definition is much like the first except the ∥_∥ means that we don't care to differentiate
+-- the proofs of equality. this allows us to get a set with the right cardinality.
+
+function-graph : ∀ {i j k} (A : Set i) (B : Set j) → Set (lsuc k ⊔ (i ⊔ j))
+function-graph {i} {j} {k} A B = ∃ S ∈ Subset {i ⊔ j} {k} (A × B) , ((a : A) → (∃ edge ∈ (A × B) , (((first edge) ≡ a) × ((b : B) → (∃ edge₂ ∈ (A × B) , ((first edge₂ ≡ a) × (second edge₂ ≡ b))) → (second edge) ≡ b))))
+
 {-
-General reflexivity
-General irreflexivity
-General transitivity
-General symmetry
-General antisymmetry
-General asymmetry
 Preorders
 Partial orders
+ Injectivity and surjectivity make partial orders
 Equivalence relations
+ Bijectivity makes an equivalence relation
 Homomorphism
 Isomomorphism
 Functors

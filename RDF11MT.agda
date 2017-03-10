@@ -6,13 +6,8 @@ open import Data.Bool
 open import Data.Disjunction
 open import Data.Product
 open import Data.PropositionalEquality
+open import Functions
 open import SetTheory
-
-coerce-func-domain : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → (C : Set i) → A ≡ C → (C → B)
-coerce-func-domain {i} {j} {A} {B} f .A refl = f
-
-coerce-func-codomain : ∀ {i j} {A : Set i} {B : Set j} → (f : A → B) → (C : Set j) → B ≡ C → (A → C)
-coerce-func-codomain {i} {j} {A} {B} f .B refl = f
 
 record RDF11Concepts : Set₃ where
  field 
@@ -44,6 +39,12 @@ record RDF11Concepts : Set₃ where
   -}
 
   Resource : Set
+  -- It's probably not a great idea to require that a set of Resources actually be
+  -- specified. a) the set of Resources is open ended. b) the set of Resources
+  -- can include real-world objects. we're not capable of stuffing anything from the
+  -- real world into logic except for abstract concepts.
+
+
 
   Unicode-String : Set
   US-ASCII-String : Set
@@ -52,10 +53,18 @@ record RDF11Concepts : Set₃ where
 
 
   -- is the subset of Unicode strings satisfying the requirements in RFC 3987
+  -- note that this refers to *absolute* IRIs, a concrete syntax may be much more flexible in terms of
+  -- how IRIs are represented, but these concrete representations, as well as the internal data-structures
+  -- used by an implementation, "should" be mappable to these absolute IRIs on request.
   IRI : Subset {lzero} {lzero} Unicode-String
-  denotation-IRI : (∃ s ∈ Unicode-String , (IRI s)) → Resource
-  referent : (∃ s ∈ Unicode-String , (IRI s)) → Resource
+  -- who says the second parameter must be {lzero} ?
+  -- the second parameter will actually be determined by whatever requirements are given in RFC 3987
+
+  denotation-IRI : member IRI → Resource
+  referent : member IRI → Resource
   referent-def : referent ≡ denotation-IRI
+
+
 
   -- is not a Set but instead the Subset of Unicode strings satisfying the definition in RDF11Concepts section 3.3 Literals
   -- actually literals aren't defined in section 3.3 as a subset of Unicode strings, they're instead defined as complex objects
@@ -65,10 +74,14 @@ record RDF11Concepts : Set₃ where
   literal-value : literal → Resource
   literal-value-def : literal-value ≡ denotation-literal
   literal-syntax : Subset {lzero} {lzero} Unicode-String
+  -- probably not the right thing to use here. 
+
 
   -- Unicode String; Normal Form C
   lexical-form : Subset {lzero} {lzero} Unicode-String
   data-type-IRI : ∃ S ∈ (Subset {lzero} {lzero} Unicode-String) , ( [ Unicode-String || S ⊆ IRI ] )
+  -- note that there are other ways to define subset containment `⊆` than the [_||_⊆_] version that
+  -- I've chosen here. 
   datatype : Set
   lexical-space : datatype → Set
   value-space : datatype → Set
@@ -78,6 +91,8 @@ record RDF11Concepts : Set₃ where
   -- this formalization correspond as directly as possible to what's being described in the RDF 11 Concepts doc.
   lexical-to-value-mapping : (dt : datatype) → (lexical-space dt) → (value-space dt)
 
+
+
   -- section 2.2.9 of [BCP47]
   --language-tags apparently use US-ASCII rather than Unicode ?
   {-"Although [RFC5234] refers to octets, the language tags described in
@@ -86,16 +101,23 @@ record RDF11Concepts : Set₃ where
   -}
   language-tag : Subset {lzero} {lzero} US-ASCII-String
   --literal-def : literal ≡  (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt))) ⊹ (lexical-form × (∃ dt ∈ IRI , (data-type-IRI dt)) × language-tag)
-  literal-def : literal ≡ ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt-iri ∈ Unicode-String , ((π₁ data-type-IRI) dt-iri))) ⊹ ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt-iri ∈ Unicode-String , ((π₁ data-type-IRI) dt-iri)) × (∃ tag ∈ US-ASCII-String , (language-tag tag)))
-  XMLSchema#String : ∃ s ∈ Unicode-String , ((π₁ data-type-IRI) s) 
+  literal-def : literal ≡ (((member lexical-form) × (member (π₁ data-type-IRI))) ⊹ ((member lexical-form) × (member (π₁ data-type-IRI)) × (member language-tag)))
+
+  XMLSchema#String : member (π₁ data-type-IRI)
+ 
   simple-literal : Subset {lzero} {lzero} Unicode-String
   simple-literal-def : simple-literal ≡ lexical-form
 
-  -- note how Agda doesn't know that simple-literal ≡ lexical-form. maybe we can use coercion?
-  lexical-form-to-literal : (∃ lex ∈ Unicode-String , (lexical-form lex)) →  ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt ∈ Unicode-String , ((π₁ data-type-IRI) dt))) ⊹ ((∃ lex ∈ Unicode-String , (lexical-form lex)) × (∃ dt ∈ Unicode-String , ((π₁ data-type-IRI) dt)) × (∃ tag ∈ US-ASCII-String , (language-tag tag)))
-  lexical-form-to-literal-def : lexical-form-to-literal ≡ λ lex → (inl (lex , XMLSchema#String))
+  lexical-form-to-literal' : member lexical-form → (((member lexical-form) × (member (π₁ data-type-IRI))) ⊹ ((member lexical-form) × (member (π₁ data-type-IRI)) × (member language-tag)))
+  lexical-form-to-literal'-def : lexical-form-to-literal' ≡ λ lex → (inl (lex , XMLSchema#String))
   language-tagged-string : Subset' literal
   --language-tagged-string-def : language-tagged-string ≡ λ (inl lit) → false ; (inr lit) → true
+
+  simple-literal-to-literal' : member simple-literal → (((member lexical-form) × (member (π₁ data-type-IRI))) ⊹ ((member lexical-form) × (member (π₁ data-type-IRI)) × (member language-tag)))
+  simple-literal-to-literal'-def : simple-literal-to-literal' ≡ coerce-func-domain lexical-form-to-literal' (member simple-literal) (continuity member lexical-form simple-literal (≡-sym simple-literal-def))
+
+  simple-literal-to-literal : member simple-literal → literal
+  simple-literal-to-literal-def : simple-literal-to-literal ≡ coerce-func-codomain simple-literal-to-literal' literal (≡-sym literal-def)
 
   -- we can interpret blank-nodes as a Set rather than a Subset of Unicode strings.
   -- the particular Subset of Unicode strings that correspond to blank-nodes is defined locally per RDF concrete-syntax, not
@@ -134,20 +156,24 @@ record RDF11Concepts : Set₃ where
   triple-object : triple → object
   -}
   -- needed to change this up so that we can define `graph-nodes'-def` below..
-  triple-subject : triple → ∃ s ∈ Unicode-String , (subject-syntax s)
-  triple-predicate : triple → ∃ p ∈ Unicode-String , (predicate-syntax p)
-  triple-object : triple → ∃ o ∈ Unicode-String , (object-syntax o)
+  triple-subject : triple → member subject-syntax
+  triple-predicate : triple → member predicate-syntax
+  triple-object : triple → member object-syntax
+  -- is "-syntax" really what we mean?
 
   graph : Set₁
   graph-def : graph ≡ Subset {lzero} {lzero} triple
   --should probably have an abstract definition of edge-labeled/node-labeled graphs
   --so that we can map between triple-sets and abstract graphs, as is done in RDF11Concepts
+  --who says the second parameter must be {lzero} ?
+
 
   {-
   term : Set
   term-def : term ≡ IRI ⊹ (literal ⊹ blank-node)
   -}
   term : Subset {lzero} {lzero} Unicode-String
+  -- who says the second parameter must be {lzero}?
   term-def : term ≡ subsetUnion IRI (subsetUnion literal-syntax blank-node-syntax)
 
   graph-nodes : graph → Set
@@ -165,31 +191,35 @@ record RDF11Concepts : Set₃ where
 
   -- RFC3987: Simple String Comparison ("character-by-character", not "bit-by-bit" or "byte-by-byte")
   -- actually each of these will use the same "character-by-character" equality test.
-  IRI-Simple-String-Comparison : (∃ iri₁ ∈ Unicode-String , (IRI iri₁)) → (∃ iri₂ ∈ Unicode-String , (IRI iri₂)) → Set
-  lexical-form-equality : (∃ lex₁ ∈ Unicode-String , (lexical-form lex₁)) → (∃ lex₂ ∈ Unicode-String , (lexical-form lex₂)) → Set
-  language-tag-equality : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁)) → (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂)) → Set
-  literal-term-equality : literal → literal → Set
+  IRI-Simple-String-Comparison : (s₁ s₂ : member IRI) → Set
+  lexical-form-equality : (s₁ s₂ : member lexical-form) → Set
+  language-tag-equality : (s₁ s₂ : member language-tag) → Set
+  literal-term-equality : (l₁ l₂ : literal) → Set
   -- note that we can't enforce the coherence between `lexical-form-equality`, `language-tag-equality` and `literal-term-equality`
   -- why exactly can't we do that? actually we should be able to using type coercion.
   
   -- side-note: each of these equality tests needs to be decidable, and indeed there are decision algorithms for them.
-  IRI-Simple-String-Comparison-decision : (∃ iri₁ ∈ Unicode-String , (IRI iri₁)) → (∃ iri₂ ∈ Unicode-String , (IRI iri₂)) → Bool
-  lexical-form-equality-decision : (∃ lex₁ ∈ Unicode-String , (lexical-form lex₁)) → (∃ lex₂ ∈ Unicode-String , (lexical-form lex₂)) → Bool
-  language-tag-equality-decision : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁)) → (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂)) → Bool
-  literal-term-equality-decision : literal → literal → Bool
+  IRI-Simple-String-Comparison-decision : (s₁ s₂ : member IRI) → Bool
+  lexical-form-equality-decision : (s₁ s₂ : member lexical-form) → Bool
+  language-tag-equality-decision : (s₁ s₂ : member language-tag) → Bool
+  literal-term-equality-decision : (l₁ l₂ : literal) → Bool
 
   -- these decision algorithms must be coherent with their propositional counterparts:
-  IRI-Simple-String-Comparison-coherence₁ : (s₁ : (∃ iri₁ ∈ Unicode-String , (IRI iri₁))) → (s₂ : (∃ iri₂ ∈ Unicode-String , (IRI iri₂))) → IRI-Simple-String-Comparison s₁ s₂ → IRI-Simple-String-Comparison-decision s₁ s₂ ≡ true
-  IRI-Simple-String-Comparison-coherence₂ : (s₁ : (∃ iri₁ ∈ Unicode-String , (IRI iri₁))) → (s₂ : (∃ iri₂ ∈ Unicode-String , (IRI iri₂))) → IRI-Simple-String-Comparison-decision s₁ s₂ ≡ true → IRI-Simple-String-Comparison s₁ s₂
+  IRI-Simple-String-Comparison-coherence₁ : (s₁ s₂ : member IRI) → IRI-Simple-String-Comparison s₁ s₂ → IRI-Simple-String-Comparison-decision s₁ s₂ ≡ true
+  IRI-Simple-String-Comparison-coherence₂ : (s₁ s₂ : member IRI) → IRI-Simple-String-Comparison-decision s₁ s₂ ≡ true → IRI-Simple-String-Comparison s₁ s₂
 
-  lexical-form-equality-coherence₁ : (s₁ : (∃ lex₁ ∈ Unicode-String , (lexical-form lex₁))) → (s₂ : (∃ lex₂ ∈ Unicode-String , (lexical-form lex₂))) → lexical-form-equality s₁ s₂ → lexical-form-equality-decision s₁ s₂ ≡ true
-  lexical-form-equality-coherence₂ : (s₁ : (∃ lex₁ ∈ Unicode-String , (lexical-form lex₁))) → (s₂ : (∃ lex₂ ∈ Unicode-String , (lexical-form lex₂))) → lexical-form-equality-decision s₁ s₂ ≡ true → lexical-form-equality s₁ s₂
+  lexical-form-equality-coherence₁ : (s₁ s₂ : member lexical-form) → lexical-form-equality s₁ s₂ → lexical-form-equality-decision s₁ s₂ ≡ true
+  lexical-form-equality-coherence₂ : (s₁ s₂ : member lexical-form) → lexical-form-equality-decision s₁ s₂ ≡ true → lexical-form-equality s₁ s₂
 
-  language-tag-equality-coherence₁ : (s₁ : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁))) → (s₂ : (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂))) → language-tag-equality s₁ s₂ → language-tag-equality-decision s₁ s₂ ≡ true
-  language-tag-equality-coherence₂ :  (s₁ : (∃ tag₁ ∈ US-ASCII-String , (language-tag tag₁))) → (s₂ : (∃ tag₂ ∈ US-ASCII-String , (language-tag tag₂))) → language-tag-equality-decision s₁ s₂ ≡ true → language-tag-equality s₁ s₂
+  language-tag-equality-coherence₁ : (s₁ s₂ : member language-tag) → language-tag-equality s₁ s₂ → language-tag-equality-decision s₁ s₂ ≡ true
+  language-tag-equality-coherence₂ : (s₁ s₂ : member language-tag) → language-tag-equality-decision s₁ s₂ ≡ true → language-tag-equality s₁ s₂
 
-  literal-term-equality-coherence₁ : (l₁ : literal) → (l₂ : literal) → literal-term-equality l₁ l₂ → literal-term-equality-decision l₁ l₂ ≡ true
-  literal-term-equality-coherence₂ : (l₁ : literal) → (l₂ : literal) → literal-term-equality-decision l₁ l₂ ≡ true → literal-term-equality l₁ l₂
+  literal-term-equality-coherence₁ : (l₁ l₂ : literal) → literal-term-equality l₁ l₂ → literal-term-equality-decision l₁ l₂ ≡ true
+  literal-term-equality-coherence₂ : (l₁ l₂ : literal) → literal-term-equality-decision l₁ l₂ ≡ true → literal-term-equality l₁ l₂
+
+
+  -- since we need the decision algorithms anyway, this may seem like overkill, but it's good to have the propositional
+  -- versions as well so that we can express the *meaning* of the equalities.
 
   {-
   IRIs-disjoint-from-literals : IRI ≠ literal
@@ -215,7 +245,12 @@ record RDF11Concepts : Set₃ where
 
   {-
   An alternative interpretation is to say that the subset of resources denoted by IRIs is disjoint from the subset of resources
-  denoted by literals / blank-nodes.
+  denoted by literals / blank-nodes. But this is probably not the right interpretation because IRIs should be able to refer to
+  any resources, including those referred to by literals, and blank-nodes refer to arbitrary resources.
+  -}
+
+  {-
+  This syntactic disjointness is still quite lacking in some regards.
   -}
 
   --skolem-IRIs: an optional mapping from blank nodes to IRIs
@@ -226,6 +261,7 @@ record RDF11Concepts : Set₃ where
 
   dataset : Set₂
   dataset-def : dataset ≡ Subset {lsuc lzero} {lsuc lzero} graph
+  -- who says the second parameter must be {lsuc lzero} ?
   default-graph : dataset → graph
 
   --Once again, Agda doesn't know that dataset ≡ Subset {lsuc lzero} {lsuc lzero} graph

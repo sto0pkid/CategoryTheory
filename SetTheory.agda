@@ -186,3 +186,7 @@ Exterior {α} {β} {A} S = ∃ a ∈ A , ∥ (S a → ⊥) ∥
 
 Exterior' : ∀ {α} {A : Set α} → Powerset' A → Set α
 Exterior' {α} {A} S = ∃ a ∈ A , ∥ S a ≡ false ∥
+
+
+member : ∀ {i j} {A : Set i} → Subset {i} {j} A → Set (i ⊔ j)
+member {i} {j} {A} S = ∃ a ∈ A , (S a)

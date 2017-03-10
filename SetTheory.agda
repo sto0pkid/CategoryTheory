@@ -38,8 +38,14 @@ EmptySet' {α} A = λ x → false
 [_∈_] : ∀ {α β} {A : Set α} (x : A) → Subset {α} {β} A → Set β
 [ x ∈ S ] = S x
 
+[_∉_] : ∀ {i j} {A : Set i} (a : A) → Subset {i} {j} A → Set j
+[ a ∉ S ] = ¬ (S a)
+
 [_∈_]' : ∀ {α} {A : Set α} (x : A) → Subset' A → Bool
 [ x ∈ S ]' = S x
+
+[_∉_]' : ∀ {i} {A : Set i} (a : A) → Subset' A → Bool
+[ a ∉ S ]' = not (S a)
 
 {-
    A subset S ⊂ A is given by S : Powerset A

@@ -3,11 +3,11 @@ module RDF11MT where
 open import Agda.Primitive
 open import BaseLogic
 open import Data.Bool
-open import Data.Disjunction
+open import Data.Disjunction renaming (_∪_ to _OR_)
 open import Data.Product
 open import Data.PropositionalEquality
 open import Functions
-open import SetTheory
+open import SetTheory renaming (subsetUnion to _∪_ ; subsetIntersection to _∩_)
 
 record RDF11Concepts : Set₃ where
  field 
@@ -137,13 +137,13 @@ record RDF11Concepts : Set₃ where
   -- seems to be a subset-union of these syntactic forms of Unicode strings in a given concrete syntax.
   -- this would imply that subject/predicate/object need to be defined as syntactic forms as well.
   subject-syntax : Subset {lzero} {lzero} Unicode-String
-  subject-syntax-def : subject-syntax ≡ subsetUnion IRI blank-node-syntax
+  subject-syntax-def : subject-syntax ≡ IRI ∪ blank-node-syntax
 
   predicate-syntax : Subset {lzero} {lzero} Unicode-String
   predicate-syntax-def : predicate-syntax ≡ IRI
 
   object-syntax : Subset {lzero} {lzero} Unicode-String
-  object-syntax-def : object-syntax ≡ subsetUnion IRI (subsetUnion literal-syntax blank-node-syntax)
+  object-syntax-def : object-syntax ≡ IRI ∪ (literal-syntax ∪ blank-node-syntax)
 
   {-
   An alternative interpretation is that the resource denoted by a subject can be the resource denoted by
@@ -174,7 +174,7 @@ record RDF11Concepts : Set₃ where
   -}
   term : Subset {lzero} {lzero} Unicode-String
   -- who says the second parameter must be {lzero}?
-  term-def : term ≡ subsetUnion IRI (subsetUnion literal-syntax blank-node-syntax)
+  term-def : term ≡ IRI ∪ (literal-syntax ∪ blank-node-syntax)
 
   graph-nodes : graph → Set
   --Agda doesn't know that `graph ≡ Subset {lzero} {lzero} triple`, so it can't recognize `g` as a function
@@ -185,9 +185,11 @@ record RDF11Concepts : Set₃ where
   
   --This still doesn't work because of lack of coherence between `term` and `subject`/`predicate`/`object`:
   -- term !=< subject of type Set when checking that the expression `node` has type `subject.
-  graph-nodes'-def : graph-nodes' ≡ (λ g → (∃ node ∈ Unicode-String , ((term node) × (∃ t ∈ triple , ((g t) × (((π₁ (triple-subject t)) ≡ node) ⊹ ((π₁ (triple-object t)) ≡ node)))))))
+  graph-nodes'-def : graph-nodes' ≡ (λ g → (∃ node ∈ Unicode-String , ([ node ∈ term ] × (∃ t ∈ triple , ([ t ∈ g ] × (((π₁ (triple-subject t)) ≡ node) ⊹ ((π₁ (triple-object t)) ≡ node)))))))
   graph-nodes-def : graph-nodes ≡ coerce-func-domain graph-nodes' graph (≡-sym graph-def)
-
+  -- the propositional equality `((π₁ (triple-object t)) ≡ node)` might be too strict here.
+  -- might want to instead have the implementor bring their own equivalence relation, or use the equalities
+  -- defined below.
 
   -- RFC3987: Simple String Comparison ("character-by-character", not "bit-by-bit" or "byte-by-byte")
   -- actually each of these will use the same "character-by-character" equality test.
@@ -204,6 +206,9 @@ record RDF11Concepts : Set₃ where
   language-tag-equality-decision : (s₁ s₂ : member language-tag) → Bool
   literal-term-equality-decision : (l₁ l₂ : literal) → Bool
 
+  -- we can make a Simple String Comparison algorithm on general Unicode strings and then map this into the appropriate
+  -- algorithm for each of the above.
+
   -- these decision algorithms must be coherent with their propositional counterparts:
   IRI-Simple-String-Comparison-coherence₁ : (s₁ s₂ : member IRI) → IRI-Simple-String-Comparison s₁ s₂ → IRI-Simple-String-Comparison-decision s₁ s₂ ≡ true
   IRI-Simple-String-Comparison-coherence₂ : (s₁ s₂ : member IRI) → IRI-Simple-String-Comparison-decision s₁ s₂ ≡ true → IRI-Simple-String-Comparison s₁ s₂
@@ -216,10 +221,15 @@ record RDF11Concepts : Set₃ where
 
   literal-term-equality-coherence₁ : (l₁ l₂ : literal) → literal-term-equality l₁ l₂ → literal-term-equality-decision l₁ l₂ ≡ true
   literal-term-equality-coherence₂ : (l₁ l₂ : literal) → literal-term-equality-decision l₁ l₂ ≡ true → literal-term-equality l₁ l₂
+  -- we can abstract on this further using the notion of decidable relations.
 
 
   -- since we need the decision algorithms anyway, this may seem like overkill, but it's good to have the propositional
   -- versions as well so that we can express the *meaning* of the equalities.
+
+  -- this actually probably is overkill, since the standards specify what the algorithm is. we'll probably end up removing
+  -- some of this stuff when we get further along. a lot of this should probably be external proofs about the set of
+  -- "possible worlds" expressed by this RDF11MT record type. 
 
   {-
   IRIs-disjoint-from-literals : IRI ≠ literal
@@ -239,9 +249,9 @@ record RDF11Concepts : Set₃ where
   -- are disjoint from the set of labels that represent literals.
   -- Need to bring in the relation between the abstract & concrete syntax in order to formalize that (assuming it's
   -- even the right interpretation of the specs..)
-  IRIs-disjoint-from-literals : (s : Unicode-String) → ¬ ((subsetIntersection IRI literal-syntax) s)
-  IRIs-disjoint-from-blank-nodes : (s : Unicode-String) → ¬ ((subsetIntersection IRI blank-node-syntax) s)
-  literals-disjoint-from-blank-nodes : (s : Unicode-String) → ¬ ((subsetIntersection literal-syntax blank-node-syntax) s)
+  IRIs-disjoint-from-literals : (s : Unicode-String) → [ s ∉ (IRI ∩ literal-syntax) ]
+  IRIs-disjoint-from-blank-nodes : (s : Unicode-String) → [ s ∉ (IRI ∩ blank-node-syntax) ]
+  literals-disjoint-from-blank-nodes : (s : Unicode-String) → [ s ∉ (literal-syntax ∩ blank-node-syntax) ]
 
   {-
   An alternative interpretation is to say that the subset of resources denoted by IRIs is disjoint from the subset of resources
@@ -250,7 +260,7 @@ record RDF11Concepts : Set₃ where
   -}
 
   {-
-  This syntactic disjointness is still quite lacking in some regards.
+  This syntactic disjointness is still quite lacking in some regards. 
   -}
 
   --skolem-IRIs: an optional mapping from blank nodes to IRIs

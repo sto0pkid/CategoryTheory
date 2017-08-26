@@ -11,6 +11,42 @@ first (a , b) = a
 second : ∀ {i j} {A : Set i} {B : Set j} → A × B → B
 second (a , b) = b
 
+isReflexive : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
+isReflexive {i} {j} {A} R = (x : A) → R x x
+
+isSymmetric : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
+isSymmetric {i} {j} {A} R = (x y : A) → R x y → R y x
+
+isTransitive : ∀ {i j} {A : Set i} (R : A → A → Set j) → Set (i ⊔ j)
+isTransitive {i} {j} {A} R = (x y z : A) → R x y → R y z → R x z
+
+record Equivalence : Set₁ where
+ field
+  carrier : Set
+  _≡_ : carrier → carrier → Set
+  ≡-refl : (x : carrier) → x ≡ x
+  ≡-sym : (x y : carrier) → x ≡ y → y ≡ x
+  ≡-trans : (x y z : carrier) → x ≡ y → y ≡ z → x ≡ z
+
+record Equivalence' {i} {j} (A : Set i) : Set ((lsuc i) ⊔ (lsuc j)) where
+ field
+  _≡_ : A → A → Set j
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : (x y : A) → x ≡ y → y ≡ x
+  ≡-trans : (x y z : A) → x ≡ y → y ≡ z → x ≡ z
+
+record isEquivalence {i} {j} {A : Set i} (_≡_ : A → A → Set j) : Set ((lsuc i) ⊔ (lsuc j)) where
+ field
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : (x y : A) → x ≡ y → y ≡ x
+  ≡-trans : (x y z : A) → x ≡ y → y ≡ z → x ≡ z
+
+
+isAntisymmetric : ∀ {i j k} {A : Set i} (R : A → A → Set j) (_≡_ : A → A → Set k) → {p : isEquivalence _≡_} → Set ((i ⊔ j) ⊔ k)
+isAntisymmetric {i} {j} {k} {A} R _≡_ = (x y : A) → R x y → R y x → x ≡ y
+
+
+
 record PartialOrder : Set₁ where
  field
   carrier : Set
@@ -45,6 +81,26 @@ record PartialOrder'' {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) w
   ≤-refl : (x : carrier) → x ≤ x 
   ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
   ≤-antisym : (x y : carrier) → x ≤ y → y ≤ x → x ≡ y
+
+record isPartialOrder {i} {j} {k} {A : Set i} (_≤_ : A → A → Set j) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  _≡_ : A → A → Set k
+  ≡-equiv : isEquivalence _≡_
+  ≤-refl : isReflexive _≤_
+  ≤-sym : isAntisymmetric _≤_ _≡_ {≡-equiv}
+  ≤-trans : isTransitive _≤_
+
+isCommutative : ∀ {i j k} {A : Set i} {B : Set j} {_≡_ : B → B → Set k} {p : isEquivalence _≡_} → (f : A → A → B) → Set (i ⊔ k)
+isCommutative {i} {j} {k} {A} {B} {_≡_} {≡-equiv} f = (x y : A) → (f x y) ≡ (f y x)
+
+isAssociative : ∀ {i j} {A : Set i} {_≡_ : A → A → Set j} {p : isEquivalence _≡_} → (f : A → A → A) → Set (i ⊔ j)
+isAssociative {i} {j} {A} {_≡_} {≡-equiv} f = (x y z : A) → (f x (f y z)) ≡ (f (f x y) z)
+
+absorbs : ∀ {i j} {A : Set i} {_≡_ : A → A → Set j} {p : isEquivalence _≡_} → (f : A → A → A) → (g : A → A → A) → Set (i ⊔ j)
+absorbs {i} {j} {A} {_≡_}{≡-equiv} f g = (x y : A) → (f x (g x y)) ≡ x
+
+distributesOver : ∀ {i j} {A : Set i} {_≡_ : A → A → Set j} {p : isEquivalence _≡_} → (f : A → A → A) → (g : A → A → A) → Set (i ⊔ j)
+distributesOver {i} {j} {A} {_≡_} {≡-equiv} f g = (x y z : A) → (f x (g y z)) ≡ (g (f x y) (f x z)) 
 
 record AlgebraicLattice {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
  field
@@ -83,6 +139,22 @@ record AlgebraicLattice' {i} {j} : Set ((lsuc i) ⊔ (lsuc j)) where
   ∨∧-absorp : (x y : carrier) → (x ∨ (x ∧ y)) ≡ x
 
 
+record AlgebraicLattice'' {i} {j} : Set ((lsuc i) ⊔ (lsuc j)) where
+ field
+  carrier : Set i
+  _≡_ : carrier → carrier → Set j
+  ≡-equiv : isEquivalence _≡_
+  _∧_ : carrier → carrier → carrier
+  _∨_ : carrier → carrier → carrier
+  ∧-comm : isCommutative {i} {i} {j} {carrier} {carrier} {_≡_} {≡-equiv} _∧_
+  ∧-assoc : isAssociative {i} {j} {carrier} {_≡_} {≡-equiv} _∧_
+  ∧-absorp : absorbs {i} {j} {carrier} {_≡_} {≡-equiv} _∧_ _∨_
+  ∨-comm : isCommutative {i} {i} {j} {carrier} {carrier} {_≡_} {≡-equiv} _∨_
+  ∨-assoc : isAssociative {i} {j} {carrier} {_≡_} {≡-equiv} _∨_
+  ∨-absorp : absorbs {i} {j} {carrier} {_≡_} {≡-equiv} _∨_ _∧_
+
+  
+
 record OrderLattice {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
  field
   carrier : Set i
@@ -99,6 +171,11 @@ record OrderLattice {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) whe
   _∨_ : carrier → carrier → carrier  
   ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
 
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Proposition 2.1.3
+-}
 OrderLattice→AlgebraLattice : ∀{i j k} → OrderLattice {i} {j} {k} → AlgebraicLattice {i} {j} {k}
 OrderLattice→AlgebraLattice {i} {j} {k} O =  
  record {
@@ -342,3 +419,96 @@ record BAlg : Set₁ where
   _∨_ : carrier → carrier → carrier
   _∧_ : carrier → carrier → carrier
   
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.1.2
+-}
+data PVar : Set where
+ p : PVar
+ + : PVar → PVar
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.1.3
+-}
+data L : Set where
+ var : PVar → L
+ ¬ : L → L
+ _=>_ : L → L → L
+
+_∨-L_ : L → L → L
+x ∨-L y = (¬ x) => y
+
+_∧-L_ : L → L → L
+x ∧-L y = (¬ (x => (¬ y)))
+
+_<=>-L_ : L → L → L
+x <=>-L y = ((x => y) ∧-L (y => x))
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Beginning of 1.2 "Deductions"
+-}
+
+data L-axiom : L → Set where
+ A1 : (x : L) → L-axiom ((x ∨-L x) => x)
+ A2 : (x y : L) → L-axiom (x => (x ∨-L y))
+ A3 : (x y : L) → L-axiom ((x ∨-L y) => (y ∨-L x))
+ A4 : (x y z : L) → L-axiom ((x => y) => ((z ∨-L x) => (z ∨-L y)))
+
+data L-axiom' : L → Set where
+ A1 : (x : L) → L-axiom' (((¬ x) => x) => x)
+ A2 : (x y : L) → L-axiom' (x => ((¬ x) => y))
+ A3 : (x y : L) → L-axiom' (((¬ x) => y) => ((¬ y) => x))
+ A4 : (x y z : L) → L-axiom' ((x => y) => (((¬ z) => x) => ((¬ z) => y)))
+
+data List {i} (A : Set i) : Set i where
+ [] : List A
+ _∷_ : A → List A → List A
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.2.1
+-}
+data L-theorem : L → Set where
+ ax : {x : L} → L-axiom x → L-theorem x
+ mp : {x y : L} → L-theorem x → L-theorem (x => y) → L-theorem y
+
+data L-theorem' : L → Set where
+ ax : {x : L} → L-axiom' x → L-theorem' x
+ mp : {x y : L} → L-theorem x → L-theorem' (x => y) → L-theorem' y
+ 
+L⊢ : L → Set
+L⊢ x = L-theorem x
+
+data Bool : Set where
+ true : Bool
+ false : Bool
+
+data _==_ {i} {A : Set i} (x : A) : A → Set i where
+ refl : x == x
+
+data _=='_ {i} {A : Set i} : A → A → Set i where
+ refl : (x : A) → x ==' x
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Example 1.2.2
+-}
+{-
+L⊢x=>x : (x : L) → L⊢ (x => x)
+L⊢x=>x x = proof
+ where
+  P1 : L⊢ (x => (x ∨-L x))
+  P1 = ax (A2 x x)
+
+  P2 : L⊢ ((x ∨-L x) => x)
+  P2 = ax (A1 x)
+
+  -- wrong! we can't get this from A4. either the author made a mistake in 
+  -- this proof or made a mistake in their definition of A4.
+  P3 : L⊢ (((x ∨-L x) => x) => ((x => (x ∨-L x)) => (x => x)))
+  P3 = ax (A4 (x ∨-L x) x x)
+  
+  proof
+-}

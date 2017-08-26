@@ -33,7 +33,9 @@ b≡false→if[b]then[a₁]else[a₂]≡a₂ : ∀ {α} {A : Set α} → (a₁ a
 b≡false→if[b]then[a₁]else[a₂]≡a₂ {α} {A} a₁ a₂ true 𝕥≡𝕗 = ω (𝕥≠𝕗 𝕥≡𝕗)
 b≡false→if[b]then[a₁]else[a₂]≡a₂ {α} {A} a₁ a₂ false 𝕗≡𝕗 = refl
 
-
+Bool-LEM : (b : Bool) → b ≡ true ∨ b ≡ false
+Bool-LEM true = inl refl
+Bool-LEM false = inr refl
 
 true-or-x≡true : (b : Bool) → true or b ≡ true
 true-or-x≡true true = refl

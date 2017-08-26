@@ -512,3 +512,37 @@ L⊢x=>x x = proof
   
   proof
 -}
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.2.3
+-}
+
+data L-deduction (A : L → Set) : L → Set where
+ ax : {x : L} → L-axiom x → L-deduction A x
+ hyp : {x : L} → A x → L-deduction A x
+ mp : {x y : L} → L-deduction A x → L-deduction A (x => y) → L-deduction A y
+
+_L⊢_ : (A : L → Set) → L → Set
+A L⊢ y = L-deduction A y
+
+data ∃ {i} {j} (A : Set i) (P : A → Set j) : Set (i ⊔ j) where
+ _,_ : (a : A) → (b : P a) → ∃ A P
+
+syntax ∃ A (λ x → e) = ∃ x ∈ A , e
+
+data ⊥ : Set where
+ω : ∀ {α} {A : Set α} → ⊥ → A
+ω ()
+
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.2.4
+-}
+inconsistent-L : (A : L → Set) → Set
+inconsistent-L A = ∃ L (λ x → (_L⊢_ A (x ∧-L (¬ x))))
+
+consistent-L : (A : L → Set) → Set
+consistent-L A = (inconsistent-L A) → ⊥ 
+

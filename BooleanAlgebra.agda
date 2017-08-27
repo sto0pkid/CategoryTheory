@@ -102,6 +102,532 @@ absorbs {i} {j} {A} {_≡_}{≡-equiv} f g = (x y : A) → (f x (g x y)) ≡ x
 distributesOver : ∀ {i j} {A : Set i} {_≡_ : A → A → Set j} {p : isEquivalence _≡_} → (f : A → A → A) → (g : A → A → A) → Set (i ⊔ j)
 distributesOver {i} {j} {A} {_≡_} {≡-equiv} f g = (x y z : A) → (f x (g y z)) ≡ (g (f x y) (f x z)) 
 
+  
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.1.2
+-}
+data PVar : Set where
+ p : PVar
+ + : PVar → PVar
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.1.3
+-}
+data L : Set where
+ var : PVar → L
+ ¬ : L → L
+ _=>_ : L → L → L
+
+_∨-L_ : L → L → L
+x ∨-L y = (¬ x) => y
+
+_∧-L_ : L → L → L
+x ∧-L y = (¬ (x => (¬ y)))
+
+_<=>-L_ : L → L → L
+x <=>-L y = ((x => y) ∧-L (y => x))
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Beginning of 1.2 "Deductions"
+-}
+
+data L-axiom : L → Set where
+ A1 : (x : L) → L-axiom ((x ∨-L x) => x)
+ A2 : (x y : L) → L-axiom (x => (x ∨-L y))
+ A3 : (x y : L) → L-axiom ((x ∨-L y) => (y ∨-L x))
+ A4 : (x y z : L) → L-axiom ((x => y) => ((z ∨-L x) => (z ∨-L y)))
+
+data L-axiom' : L → Set where
+ A1 : (x : L) → L-axiom' (((¬ x) => x) => x)
+ A2 : (x y : L) → L-axiom' (x => ((¬ x) => y))
+ A3 : (x y : L) → L-axiom' (((¬ x) => y) => ((¬ y) => x))
+ A4 : (x y z : L) → L-axiom' ((x => y) => (((¬ z) => x) => ((¬ z) => y)))
+
+data List {i} (A : Set i) : Set i where
+ [] : List A
+ _∷_ : A → List A → List A
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.2.1
+-}
+data L-theorem : L → Set where
+ ax : {x : L} → L-axiom x → L-theorem x
+ mp : {x y : L} → L-theorem x → L-theorem (x => y) → L-theorem y
+
+data L-theorem' : L → Set where
+ ax : {x : L} → L-axiom' x → L-theorem' x
+ mp : {x y : L} → L-theorem x → L-theorem' (x => y) → L-theorem' y
+ 
+L⊢ : L → Set
+L⊢ x = L-theorem x
+
+data Bool : Set where
+ true : Bool
+ false : Bool
+
+data _==_ {i} {A : Set i} (x : A) : A → Set i where
+ refl : x == x
+
+data _=='_ {i} {A : Set i} : A → A → Set i where
+ refl : (x : A) → x ==' x
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Example 1.2.2
+-}
+{-
+L⊢x=>x : (x : L) → L⊢ (x => x)
+L⊢x=>x x = proof
+ where
+  P1 : L⊢ (x => (x ∨-L x))
+  P1 = ax (A2 x x)
+
+  P2 : L⊢ ((x ∨-L x) => x)
+  P2 = ax (A1 x)
+
+  -- wrong! we can't get this from A4. either the author made a mistake in 
+  -- this proof or made a mistake in their definition of A4.
+  P3 : L⊢ (((x ∨-L x) => x) => ((x => (x ∨-L x)) => (x => x)))
+  P3 = ax (A4 (x ∨-L x) x x)
+  
+  proof
+-}
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.2.3
+-}
+
+data L-deduction (A : L → Set) : L → Set where
+ ax : {x : L} → L-axiom x → L-deduction A x
+ hyp : {x : L} → A x → L-deduction A x
+ mp : {x y : L} → L-deduction A x → L-deduction A (x => y) → L-deduction A y
+
+_L⊢_ : (A : L → Set) → L → Set
+A L⊢ y = L-deduction A y
+
+data ∃ {i} {j} (A : Set i) (P : A → Set j) : Set (i ⊔ j) where
+ _,_ : (a : A) → (b : P a) → ∃ A P
+
+syntax ∃ A (λ x → e) = ∃ x ∈ A , e
+
+data ⊥ : Set where
+ω : ∀ {α} {A : Set α} → ⊥ → A
+ω ()
+
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.2.4
+-}
+inconsistent-L : (A : L → Set) → Set
+inconsistent-L A = ∃ L (λ x → (_L⊢_ A (x ∧-L (¬ x))))
+
+consistent-L : (A : L → Set) → Set
+consistent-L A = (inconsistent-L A) → ⊥ 
+
+
+not : Bool → Bool
+not true = false
+not false = true
+
+_or_ : Bool → Bool → Bool
+true or true = true
+true or false = true
+false or true = true
+false or false = false
+
+_and_ : Bool → Bool → Bool
+true and true = true
+true and false = false
+false and true = false
+false and false = false
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.3.1
+-}
+
+PValuation : Set
+PValuation = PVar → Bool
+
+TValuation : PValuation → L → Bool
+TValuation v (var x) = v x
+TValuation v (¬ x) = not (TValuation v x)
+TValuation v (x => y) = (not (TValuation v x)) or (TValuation v y)
+
+{-
+Prove: TValuation v (¬ x)= 1 iff TValuation v(x) = 0
+       TValuation v (x => y) = 1 iff TValuation v x = 0 or TValuation v y = 1
+-}
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.3.2
+-}
+L-Tautology : (x : L) → Set 
+L-Tautology x = (v : PValuation) → TValuation v x == true
+
+L⊨ : (x : L) → Set
+L⊨ x = L-Tautology x
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.3.3
+-}
+L-Contradiction : (x : L) → Set
+L-Contradiction x = (v : PValuation) → TValuation v x == false
+
+[x==y]→[fx==fy] : ∀ {i j} {A : Set i} {B : Set j} (f : A → B) (x y : A) (p : x == y) → (f x) == (f y)
+[x==y]→[fx==fy] {i} {j} {A} {B} f x .x refl = refl
+
+L-Contradiction-x→L-Tautology-¬x : (x : L) → L-Contradiction x → L-Tautology (¬ x)
+L-Contradiction-x→L-Tautology-¬x x L-Contradiction-x v = proof
+ where
+  v[x]==false : (TValuation v x) == false
+  v[x]==false = L-Contradiction-x v
+
+  proof : not (TValuation v x) == true
+  proof = [x==y]→[fx==fy] not (TValuation v x) false v[x]==false
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.3.4
+-}
+L-satisfiable : (S : L → Set) → Set
+L-satisfiable S = ∃ v ∈ PValuation , ((x : L) → S x → TValuation v x == true)
+
+_L-satisfies_ : (v : PValuation) → (S : L → Set) → Set
+v L-satisfies S = (x : L) → S x → TValuation v x == true
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 1.3.5
+-}
+_L-semantic-consequence-of_ : (y : L) → (S : L → Set) → Set
+y L-semantic-consequence-of S = (v : PValuation) → v L-satisfies S → TValuation v y == true
+
+
+[A==B]→[A→B] : ∀ {i} {A B : Set i} → A == B → A → B
+[A==B]→[A→B] {i} {A} {.A} refl a = a
+  
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 2.1.1
+-}
+record OrderLattice {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  carrier : Set i
+  _≤_ : carrier → carrier → Set j
+  _≡_ : carrier → carrier → Set k
+  ≡-refl : (x : carrier) → x ≡ x
+  ≡-sym : (x y : carrier) → x ≡ y → y ≡ x
+  ≡-trans : ( x y z : carrier) → x ≡ y → y ≡ z → x ≡ z
+  ≤-refl : (x : carrier) → x ≤ x
+  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
+  ≤-antisym : (x y : carrier) → x ≤ y → y ≤ x → x ≡ y
+  _∧_ : carrier → carrier → carrier
+  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))  
+  _∨_ : carrier → carrier → carrier  
+  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
+
+record OrderLattice' {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  carrier : Set i
+  _≡_ : carrier → carrier → Set k
+  ≡-refl : (x : carrier) → x ≡ x
+  ≡-sym : (x y : carrier) → x ≡ y → y ≡ x
+  ≡-trans : (x y z : carrier) → x ≡ y → y ≡ z → x ≡ z
+  _≤_ : carrier → carrier → Set j
+  ≤-refl : (x y : carrier) → x ≡ y → (x ≤ y) × (y ≤ x)
+  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
+  ≤-antisym : (x y : carrier) → x ≤ y → y ≤ x → x ≡ y
+  _∧_ : carrier → carrier → carrier
+  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))
+  _∨_ : carrier → carrier → carrier
+  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
+
+
+x≤y-iff-[x∨y≡y-and-x∧y≡x] : ∀ {i j k} (O : OrderLattice' {i} {j} {k}) (x y : (OrderLattice'.carrier O)) → (((OrderLattice'._≤_ O) x y) → ((OrderLattice'._≡_ O) ((OrderLattice'._∨_ O) x y) y) × ((OrderLattice'._≡_ O) ((OrderLattice'._∧_ O) x y) x)) × (((OrderLattice'._≡_ O) ((OrderLattice'._∨_ O) x y) y) × ((OrderLattice'._≡_ O) ((OrderLattice'._∧_ O) x y) x) → ((OrderLattice'._≤_ O) x y))
+x≤y-iff-[x∨y≡y-and-x∧y≡x] {i} {j} {k} O x y = (LTR , RTL)
+ where
+  carrier : Set i
+  carrier = OrderLattice'.carrier O
+
+  _≡_ : carrier → carrier → Set k
+  _≡_ = OrderLattice'._≡_ O
+
+  ≡-refl : (x : carrier) → x ≡ x
+  ≡-refl = OrderLattice'.≡-refl O
+
+  _≤_ : carrier → carrier → Set j
+  _≤_ = OrderLattice'._≤_ O
+
+  ≤-refl : (x y : carrier) → x ≡ y → (x ≤ y) × (y ≤ x)
+  ≤-refl = OrderLattice'.≤-refl O
+
+  ≤-antisym : (x y : carrier) → x ≤ y → y ≤ x → x ≡ y
+  ≤-antisym = OrderLattice'.≤-antisym O
+
+  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
+  ≤-trans = OrderLattice'.≤-trans O
+
+  _∨_ : carrier → carrier → carrier
+  _∨_ = OrderLattice'._∨_ O
+
+  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
+  ∨-lub = OrderLattice'.∨-lub O
+
+  _∧_ : carrier → carrier → carrier
+  _∧_ = OrderLattice'._∧_ O
+
+  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))
+  ∧-glb = OrderLattice'.∧-glb O
+
+  LTR : (x ≤ y) → (((x ∨ y) ≡ y) × ((x ∧ y) ≡ x))
+  LTR [x≤y] = (left , right)
+   where
+    [y≤x∨y] : y ≤ (x ∨ y)
+    [y≤x∨y] = first (second (∨-lub x y))
+    
+    [y≡y] : y ≡ y
+    [y≡y] = ≡-refl y
+
+    [y≤y] : y ≤ y
+    [y≤y] = first (≤-refl y y [y≡y])
+ 
+    [x∨y≤y] : (x ∨ y) ≤ y
+    [x∨y≤y] = (second (second (∨-lub x y))) y ([x≤y] , [y≤y])
+       
+    left : (x ∨ y) ≡ y
+    left = ≤-antisym (x ∨ y) y [x∨y≤y] [y≤x∨y]
+
+    [x∧y≤x] : (x ∧ y) ≤ x
+    [x∧y≤x] = first (∧-glb x y)
+
+    [x≡x] : x ≡ x
+    [x≡x] = ≡-refl x
+
+    [x≤x] : x ≤ x
+    [x≤x] = first (≤-refl x x [x≡x])
+
+    [x≤x∧y] : x ≤ (x ∧ y)
+    [x≤x∧y] = (second (second (∧-glb x y))) x ([x≤x] , [x≤y])
+
+    right : (x ∧ y) ≡ x
+    right = ≤-antisym (x ∧ y) x [x∧y≤x] [x≤x∧y]
+
+  RTL : (((x ∨ y) ≡ y) × ((x ∧ y) ≡ x)) → (x ≤ y)
+  RTL ([x∨y≡y] , [x∧y≡x]) = proof
+   where
+    [x≤x∧y] : x ≤ (x ∧ y)
+    [x≤x∧y] = second (≤-refl (x ∧ y) x [x∧y≡x])
+
+    [x∧y≤y] : (x ∧ y) ≤ y
+    [x∧y≤y] = first (second (∧-glb x y))    
+
+    proof : x ≤ y
+    proof = ≤-trans x (x ∧ y) y [x≤x∧y] [x∧y≤y]
+
+
+    
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Example 2.1.2
+-}
+
+[_||_∪_] : ∀ {i} (A : Set i) (S₁ S₂ : A → Bool) → A → Bool
+[ A || S₁ ∪ S₂ ] = λ a → (S₁ a) or (S₂ a)
+
+[_||_∩_] : ∀ {i} (A : Set i) (S₁ S₂ : A → Bool) → A → Bool
+[ A || S₁ ∩ S₂ ] = λ a → (S₁ a) and (S₂ a)
+
+[_||_⊆_] : ∀ {i} (A : Set i) (S₁ S₂ : A → Bool) → Set i
+[ A || S₁ ⊆ S₂ ] = (a : A) → (S₁ a) == true → (S₂ a) == true
+
+⊆-refl : ∀ {i} (A : Set i) (S : A → Bool) → [ A || S ⊆ S ]
+⊆-refl {i} A S a [Sa] = [Sa]
+
+⊆-trans : ∀ {i} (A : Set i) (S₁ S₂ S₃ : A → Bool) → [ A || S₁ ⊆ S₂ ] → [ A || S₂ ⊆ S₃ ] → [ A || S₁ ⊆ S₃ ]
+⊆-trans {i} A S₁ S₂ S₃ p₁₂ p₂₃ a [S₁a] = p₂₃ a (p₁₂ a [S₁a])
+
+⊆-refl' : ∀ {i} (A : Set i) (S₁ S₂ : A → Bool) → ([ A || S₁ ⊆ S₂ ]) × ([ A || S₂ ⊆ S₁ ]) → ([ A || S₁ ⊆ S₂ ]) × ([ A || S₂ ⊆ S₁ ])
+⊆-refl' A S₁ S₂ [S₁≡S₂] = [S₁≡S₂]
+
+⊆-antisym : ∀ {i} (A : Set i) (S₁ S₂ : A → Bool) → [ A || S₁ ⊆ S₂ ] → [ A || S₂ ⊆ S₁ ] → [ A || S₁ ⊆ S₂ ] × [ A || S₂ ⊆ S₁ ]
+⊆-antisym {i} A S₁ S₂ [S₁⊆S₂] [S₂⊆S₁] = ([S₁⊆S₂] , [S₂⊆S₁])
+
+==-refl : ∀ {i} {A : Set i} (a : A) → a == a
+==-refl {i} {A} a = refl
+
+==-sym : ∀ {i} {A : Set i} {a b : A} → a == b → b == a
+==-sym {i} {A} {a} {.a} refl = refl
+
+==-trans : ∀ {i} {A : Set i} {a b c : A} → a == b → b == c → a == c
+==-trans {i} {A} {a} {.a} {.a} refl refl = refl
+
+x⊆x∪y : ∀ {i} {A : Set i} (S₁ S₂ : A → Bool) → [ A || S₁ ⊆ ([ A || S₁ ∪ S₂ ]) ]
+x⊆x∪y {i} {A} S₁ S₂ a [S₁a] = proof
+ where
+  true-or-x==true : (x : Bool) → (true or x) == true
+  true-or-x==true true = refl
+  true-or-x==true false = refl
+
+  true-or-[S₂a]==true : (true or (S₂ a)) == true
+  true-or-[S₂a]==true = true-or-x==true (S₂ a)
+
+  [S₁a]-or-[S₂a]==true-or-[S₂a] : ((S₁ a) or (S₂ a)) == (true or (S₂ a))
+  [S₁a]-or-[S₂a]==true-or-[S₂a] = subproof
+   where
+    _or'_ : Bool → Bool → Bool
+    x or' y = y or x
+ 
+    subproof : ((S₁ a) or (S₂ a)) == (true or (S₂ a))
+    subproof = [x==y]→[fx==fy] (_or'_ (S₂ a)) (S₁ a) true [S₁a]
+
+  proof : ((S₁ a) or (S₂ a)) == true
+  proof = ==-trans  [S₁a]-or-[S₂a]==true-or-[S₂a] true-or-[S₂a]==true
+
+y⊆x∪y : ∀ {i} {A : Set i} (S₁ S₂ : A → Bool) → [ A || S₂ ⊆ ([ A || S₁ ∪ S₂ ]) ]
+y⊆x∪y {i} {A} S₁ S₂ a [S₂a] = proof
+ where
+  x-or-true==true : (x : Bool) → (x or true) == true
+  x-or-true==true true = refl
+  x-or-true==true false = refl
+
+  [S₁a]-or-true==true : ((S₁ a) or true) == true
+  [S₁a]-or-true==true = x-or-true==true (S₁ a)
+
+  [S₁a]-or-[S₂a]==[S₁a]-or-true : ((S₁ a) or (S₂ a)) == ((S₁ a) or true)
+  [S₁a]-or-[S₂a]==[S₁a]-or-true = [x==y]→[fx==fy] (_or_ (S₁ a)) (S₂ a) true [S₂a]
+
+  proof : ((S₁ a) or (S₂ a)) == true
+  proof = ==-trans [S₁a]-or-[S₂a]==[S₁a]-or-true [S₁a]-or-true==true
+
+data _⊹_ {i j} (A : Set i) (B : Set j) : Set (i ⊔ j) where
+ inl : A → A ⊹ B
+ inr : B → A ⊹ B
+
+data ⊤ : Set where
+ ● : ⊤
+
+⊤→⊤ : ⊤ → ⊤
+⊤→⊤ x = x
+
+⊥→⊥ : ⊥ → ⊥
+⊥→⊥ x = x
+
+⊥→⊤ : ⊥ → ⊤
+⊥→⊤ x = ω x
+
+[⊤→⊥]→⊥ : (⊤ → ⊥) → ⊥
+[⊤→⊥]→⊥ [⊤→⊥] = [⊤→⊥] ●
+
+Bool→Set : Bool → Set
+Bool→Set true = ⊤
+Bool→Set false = ⊥
+
+_≠_ : ∀ {i} {A : Set i} (x y : A) → Set i
+x ≠ y = (x == y) → ⊥
+
+⊤≠⊥ : ⊤ ≠ ⊥
+⊤≠⊥ [⊤==⊥] = [⊤→⊥]→⊥ ([A==B]→[A→B] [⊤==⊥])
+
+true≠false : true ≠ false
+true≠false [true==false] = ⊤≠⊥ ([x==y]→[fx==fy] Bool→Set true false [true==false])
+
+≠-sym : ∀ {i} {A : Set i} {x y : A} → x ≠ y → y ≠ x
+≠-sym {i} {A} {x} {.x} [x≠x] refl = [x≠x] refl
+
+
+x-or-y==true→x==true-or-y==true : (x y : Bool) → (x or y) == true → (x == true) ⊹ (y == true)
+x-or-y==true→x==true-or-y==true true true [true-or-true==true] = (inl refl)
+x-or-y==true→x==true-or-y==true true false [true-or-false==true] = (inl refl)
+x-or-y==true→x==true-or-y==true false true [false-or-true==true] = (inr refl)
+x-or-y==true→x==true-or-y==true false false [false-or-false==true] = ω (true≠false (==-sym [false-or-false==true]))
+
+x⊆z→y⊆z→x∪y⊆z : ∀ {i} {A : Set i} (S₁ S₂ S₃ : A → Bool) → ([ A || S₁ ⊆ S₃ ]) × ([ A || S₂ ⊆ S₃ ]) → [ A || [ A || S₁ ∪ S₂ ] ⊆ S₃ ]
+x⊆z→y⊆z→x∪y⊆z {i} {A} S₁ S₂ S₃ ([S₁⊆S₃] , [S₂⊆S₃]) a [[S₁∪S₂]a] = [S₃a]
+ where
+  [S₁a⊹S₂a] : ((S₁ a) == true) ⊹ ((S₂ a) == true)
+  [S₁a⊹S₂a] = x-or-y==true→x==true-or-y==true (S₁ a) (S₂ a) [[S₁∪S₂]a]  
+
+  [S₁a⊹S₂a]→[S₃a] : (((S₁ a) == true) ⊹ ((S₂ a) == true)) → (S₃ a) == true
+  [S₁a⊹S₂a]→[S₃a] (inl [S₁a]) = [S₁⊆S₃] a [S₁a]
+  [S₁a⊹S₂a]→[S₃a] (inr [S₂a]) = [S₂⊆S₃] a [S₂a]
+
+  [S₃a] : (S₃ a) == true
+  [S₃a] = [S₁a⊹S₂a]→[S₃a] [S₁a⊹S₂a]
+
+x-and-y==true→x==true-and-y==true : (x y : Bool) → (x and y) == true → (x == true) × (y == true)
+x-and-y==true→x==true-and-y==true true true [true-and-true==true] = (refl , refl)
+x-and-y==true→x==true-and-y==true true false [true-and-false==true] = ω (true≠false (==-sym [true-and-false==true]))
+x-and-y==true→x==true-and-y==true false true [false-and-true==true] = ω (true≠false (==-sym [false-and-true==true]))
+x-and-y==true→x==true-and-y==true false false [false-and-false==true] = ω (true≠false (==-sym [false-and-false==true]))
+
+x∩y⊆x : ∀ {i} {A : Set i} (S₁ S₂ : A → Bool) → [ A || [ A || S₁ ∩ S₂ ] ⊆ S₁ ]
+x∩y⊆x {i} {A} S₁ S₂ a [[S₁∩S₂]a] = first (x-and-y==true→x==true-and-y==true (S₁ a) (S₂ a) [[S₁∩S₂]a])
+
+x∩y⊆y : ∀ {i} {A : Set i} (S₁ S₂ : A → Bool) → [ A || [ A || S₁ ∩ S₂ ] ⊆ S₂ ]
+x∩y⊆y {i} {A} S₁ S₂ a [[S₁∩S₂]a] = second (x-and-y==true→x==true-and-y==true (S₁ a) (S₂ a) [[S₁∩S₂]a])
+
+z⊆x→z⊆y→z⊆x∩y : ∀ {i} {A : Set i} (S₁ S₂ S₃ : A → Bool) → ([ A || S₃ ⊆ S₁ ]) × ([ A || S₃ ⊆ S₂ ]) → [ A || S₃ ⊆ [ A || S₁ ∩ S₂ ] ]
+z⊆x→z⊆y→z⊆x∩y {i} {A} S₁ S₂ S₃ ([S₃⊆S₁] , [S₃⊆S₂]) a [S₃a] = proof
+ where
+  [S₁a] : (S₁ a) == true
+  [S₁a] = [S₃⊆S₁] a [S₃a]
+
+  [S₂a] : (S₂ a) == true
+  [S₂a] = [S₃⊆S₂] a [S₃a]
+
+  _and'_ : Bool → Bool → Bool
+  x and' y = y and x
+
+  x-and-[S₂a] : Bool → Bool
+  x-and-[S₂a] = _and'_ (S₂ a)
+
+  true-and-x : Bool → Bool
+  true-and-x = _and_ true
+
+  [S₁a]-and-[S₂a]==true-and-[S₂a] : ((S₁ a) and (S₂ a)) == (true and (S₂ a))
+  [S₁a]-and-[S₂a]==true-and-[S₂a] = [x==y]→[fx==fy] x-and-[S₂a] (S₁ a) true [S₁a]
+  
+  true-and-[S₂a]==true-and-true : (true and (S₂ a)) == (true and true)
+  true-and-[S₂a]==true-and-true = [x==y]→[fx==fy] true-and-x (S₂ a) true [S₂a]
+
+  proof : ((S₁ a) and (S₂ a)) == true
+  proof = ==-trans [S₁a]-and-[S₂a]==true-and-[S₂a] true-and-[S₂a]==true-and-true
+
+PowerSetLattice : ∀ {i} (A : Set i) → OrderLattice' {i} {i} {i}
+PowerSetLattice {i} A = 
+ record {
+  carrier = A → Bool ;
+  _≡_ = λ x y → [ A || x ⊆ y ] × [ A || y ⊆ x ] ;
+  ≡-refl = λ x → (⊆-refl A x , ⊆-refl A x) ;
+  ≡-sym = λ x y p → (second p , first p) ;
+  ≡-trans = λ x y z p₁ p₂ → ((⊆-trans A x y z (first p₁) (first p₂)) , (⊆-trans A z y x (second p₂) (second p₁))) ;
+  _≤_ = [_||_⊆_] A ;
+  ≤-refl = ⊆-refl' A ;
+  ≤-trans = ⊆-trans A ;
+  ≤-antisym = ⊆-antisym A ;
+  _∧_ = [_||_∩_] A ;
+  ∧-glb = λ x y → ((x∩y⊆x x y) , ((x∩y⊆y x y) , λ z → (z⊆x→z⊆y→z⊆x∩y x y z))) ;
+  _∨_ = [_||_∪_] A ;
+  ∨-lub = λ x y → ((x⊆x∪y x y) , ((y⊆x∪y x y) , λ z → (x⊆z→y⊆z→x∪y⊆z x y z)))
+ 
+ }
+
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Proposition 2.1.3
+-}
+
+
 record AlgebraicLattice {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
  field
   carrier : Set i
@@ -153,29 +679,8 @@ record AlgebraicLattice'' {i} {j} : Set ((lsuc i) ⊔ (lsuc j)) where
   ∨-assoc : isAssociative {i} {j} {carrier} {_≡_} {≡-equiv} _∨_
   ∨-absorp : absorbs {i} {j} {carrier} {_≡_} {≡-equiv} _∨_ _∧_
 
-  
 
-record OrderLattice {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
- field
-  carrier : Set i
-  _≤_ : carrier → carrier → Set j
-  _≡_ : carrier → carrier → Set k
-  ≡-refl : (x : carrier) → x ≡ x
-  ≡-sym : (x y : carrier) → x ≡ y → y ≡ x
-  ≡-trans : ( x y z : carrier) → x ≡ y → y ≡ z → x ≡ z
-  ≤-refl : (x : carrier) → x ≤ x
-  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
-  ≤-antisym : (x y : carrier) → x ≤ y → y ≤ x → x ≡ y
-  _∧_ : carrier → carrier → carrier
-  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))  
-  _∨_ : carrier → carrier → carrier  
-  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
-
-
-{-
-http://documents.kenyon.edu/math/SamTay.pdf
-Proposition 2.1.3
--}
+--Fix this to OrderLattice'
 OrderLattice→AlgebraLattice : ∀{i j k} → OrderLattice {i} {j} {k} → AlgebraicLattice {i} {j} {k}
 OrderLattice→AlgebraLattice {i} {j} {k} O =  
  record {
@@ -410,139 +915,11 @@ OrderLattice→AlgebraLattice {i} {j} {k} O =
     [x∨[x∧y]≤x] : (x ∨ (x ∧ y)) ≤ x
     [x∨[x∧y]≤x] = (second (second (∨-lub x (x ∧ y)))) x ([x≤x] , [x∧y≤x])
 
-record BAlg : Set₁ where
- field
-  carrier : Set
-  _≤_ : carrier → carrier → Set
-  _≡_ : carrier → carrier → Set
-  
-  _∨_ : carrier → carrier → carrier
-  _∧_ : carrier → carrier → carrier
-  
 {-
-http://documents.kenyon.edu/math/SamTay.pdf
-Definition 1.1.2
--}
-data PVar : Set where
- p : PVar
- + : PVar → PVar
-
-{-
-http://documents.kenyon.edu/math/SamTay.pdf
-Definition 1.1.3
--}
-data L : Set where
- var : PVar → L
- ¬ : L → L
- _=>_ : L → L → L
-
-_∨-L_ : L → L → L
-x ∨-L y = (¬ x) => y
-
-_∧-L_ : L → L → L
-x ∧-L y = (¬ (x => (¬ y)))
-
-_<=>-L_ : L → L → L
-x <=>-L y = ((x => y) ∧-L (y => x))
-
-{-
-http://documents.kenyon.edu/math/SamTay.pdf
-Beginning of 1.2 "Deductions"
--}
-
-data L-axiom : L → Set where
- A1 : (x : L) → L-axiom ((x ∨-L x) => x)
- A2 : (x y : L) → L-axiom (x => (x ∨-L y))
- A3 : (x y : L) → L-axiom ((x ∨-L y) => (y ∨-L x))
- A4 : (x y z : L) → L-axiom ((x => y) => ((z ∨-L x) => (z ∨-L y)))
-
-data L-axiom' : L → Set where
- A1 : (x : L) → L-axiom' (((¬ x) => x) => x)
- A2 : (x y : L) → L-axiom' (x => ((¬ x) => y))
- A3 : (x y : L) → L-axiom' (((¬ x) => y) => ((¬ y) => x))
- A4 : (x y z : L) → L-axiom' ((x => y) => (((¬ z) => x) => ((¬ z) => y)))
-
-data List {i} (A : Set i) : Set i where
- [] : List A
- _∷_ : A → List A → List A
-
-{-
-http://documents.kenyon.edu/math/SamTay.pdf
-Definition 1.2.1
--}
-data L-theorem : L → Set where
- ax : {x : L} → L-axiom x → L-theorem x
- mp : {x y : L} → L-theorem x → L-theorem (x => y) → L-theorem y
-
-data L-theorem' : L → Set where
- ax : {x : L} → L-axiom' x → L-theorem' x
- mp : {x y : L} → L-theorem x → L-theorem' (x => y) → L-theorem' y
- 
-L⊢ : L → Set
-L⊢ x = L-theorem x
-
-data Bool : Set where
- true : Bool
- false : Bool
-
-data _==_ {i} {A : Set i} (x : A) : A → Set i where
- refl : x == x
-
-data _=='_ {i} {A : Set i} : A → A → Set i where
- refl : (x : A) → x ==' x
-
-{-
-http://documents.kenyon.edu/math/SamTay.pdf
-Example 1.2.2
--}
-{-
-L⊢x=>x : (x : L) → L⊢ (x => x)
-L⊢x=>x x = proof
- where
-  P1 : L⊢ (x => (x ∨-L x))
-  P1 = ax (A2 x x)
-
-  P2 : L⊢ ((x ∨-L x) => x)
-  P2 = ax (A1 x)
-
-  -- wrong! we can't get this from A4. either the author made a mistake in 
-  -- this proof or made a mistake in their definition of A4.
-  P3 : L⊢ (((x ∨-L x) => x) => ((x => (x ∨-L x)) => (x => x)))
-  P3 = ax (A4 (x ∨-L x) x x)
-  
-  proof
+Detour for analysis of properties of associative and commutative operations.
 -}
 
 {-
 http://documents.kenyon.edu/math/SamTay.pdf
-Definition 1.2.3
+Definition 2.1.4
 -}
-
-data L-deduction (A : L → Set) : L → Set where
- ax : {x : L} → L-axiom x → L-deduction A x
- hyp : {x : L} → A x → L-deduction A x
- mp : {x y : L} → L-deduction A x → L-deduction A (x => y) → L-deduction A y
-
-_L⊢_ : (A : L → Set) → L → Set
-A L⊢ y = L-deduction A y
-
-data ∃ {i} {j} (A : Set i) (P : A → Set j) : Set (i ⊔ j) where
- _,_ : (a : A) → (b : P a) → ∃ A P
-
-syntax ∃ A (λ x → e) = ∃ x ∈ A , e
-
-data ⊥ : Set where
-ω : ∀ {α} {A : Set α} → ⊥ → A
-ω ()
-
-
-{-
-http://documents.kenyon.edu/math/SamTay.pdf
-Definition 1.2.4
--}
-inconsistent-L : (A : L → Set) → Set
-inconsistent-L A = ∃ L (λ x → (_L⊢_ A (x ∧-L (¬ x))))
-
-consistent-L : (A : L → Set) → Set
-consistent-L A = (inconsistent-L A) → ⊥ 
-

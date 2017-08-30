@@ -988,7 +988,28 @@ OrderLattice→AlgebraLattice {i} {j} {k} O =
     [x∨[x∧y]≤x] : (x ∨ (x ∧ y)) ≤ x
     [x∨[x∧y]≤x] = (second (second (∨-lub x (x ∧ y)))) x ([x≤x] , [x∧y≤x])
 
-OrderLattice→isAlgebraicLattice : ∀ {i j k} (O : OrderLattice' {i} {j} {k}) → isAlgebraicLattice'' (OrderLattice'.carrier O) (OrderLattice'._≡_ O) (record{≡-refl = (OrderLattice'.≡-refl O) ; ≡-sym = (OrderLattice'.≡-sym O) ; ≡-trans = (OrderLattice'.≡-trans O)}) (OrderLattice'._∧_ O) (OrderLattice'._∨_ O)
+OrderLattice→isAlgebraicLattice :
+ ∀ {i j k} (O : OrderLattice' {i} {j} {k}) → 
+ let carrier : Set i
+     carrier = OrderLattice'.carrier O
+
+     _≡_ : carrier → carrier → Set k
+     _≡_ = OrderLattice'._≡_ O
+
+     ≡-equiv : isEquivalence _≡_
+     ≡-equiv = 
+      record {
+       ≡-refl = OrderLattice'.≡-refl O ;
+       ≡-sym = OrderLattice'.≡-sym O ;
+       ≡-trans = OrderLattice'.≡-trans O
+      }
+
+     _∧_ : carrier → carrier → carrier
+     _∧_ = OrderLattice'._∧_ O
+
+     _∨_ : carrier → carrier → carrier
+     _∨_ = OrderLattice'._∨_ O
+ in isAlgebraicLattice'' carrier _≡_ ≡-equiv _∧_ _∨_
 OrderLattice→isAlgebraicLattice {i} {j} {k} O = 
  record {
   ∧-comm = ∧-comm ;
@@ -1041,146 +1062,151 @@ OrderLattice→isAlgebraicLattice {i} {j} {k} O =
   ∧-comm : (x y : carrier) → (x ∧ y) ≡ (y ∧ x)
   ∧-comm x y = ≤-antisym (x ∧ y) (y ∧ x) [x∧y≤y∧x] [y∧x≤x∧y]
    where
-    [x∧y≤x] : (x ∧ y) ≤ x
-    [x∧y≤x] = first (∧-glb x y)
-
-    [x∧y≤y] : (x ∧ y) ≤ y
-    [x∧y≤y] = first (second (∧-glb x y))
-
     [x∧y≤y∧x] : (x ∧ y) ≤ (y ∧ x)
     [x∧y≤y∧x] = (second (second (∧-glb y x))) (x ∧ y) ([x∧y≤y] , [x∧y≤x])
+     where 
+      [x∧y≤x] : (x ∧ y) ≤ x
+      [x∧y≤x] = first (∧-glb x y)
 
-    [y∧x≤y] : (y ∧ x) ≤ y
-    [y∧x≤y] = first (∧-glb y x)
-
-    [y∧x≤x] : (y ∧ x) ≤ x
-    [y∧x≤x] = first (second (∧-glb y x))
+      [x∧y≤y] : (x ∧ y) ≤ y
+      [x∧y≤y] = first (second (∧-glb x y))
 
     [y∧x≤x∧y] : (y ∧ x) ≤ (x ∧ y)
     [y∧x≤x∧y] = (second (second (∧-glb x y))) (y ∧ x) ([y∧x≤x] , [y∧x≤y])
+     where
+      [y∧x≤y] : (y ∧ x) ≤ y
+      [y∧x≤y] = first (∧-glb y x)
+
+      [y∧x≤x] : (y ∧ x) ≤ x
+      [y∧x≤x] = first (second (∧-glb y x))
+
+
 
   ∧-assoc : (x y z : carrier) → (x ∧ (y ∧ z)) ≡ ((x ∧ y) ∧ z)
   ∧-assoc x y z = ≤-antisym (x ∧ (y ∧ z)) ((x ∧ y) ∧ z) [x∧[y∧z]≤[x∧y]∧z] [[x∧y]∧z≤x∧[y∧z]]
    where
-    [x∧[y∧z]≤x] : (x ∧ (y ∧ z)) ≤ x
-    [x∧[y∧z]≤x] = first (∧-glb x (y ∧ z))
-
-    [x∧[y∧z]≤y∧z] : (x ∧ (y ∧ z)) ≤ (y ∧ z)
-    [x∧[y∧z]≤y∧z] = first (second (∧-glb x (y ∧ z)))
- 
-    [y∧z≤y] : (y ∧ z) ≤ y
-    [y∧z≤y] = first (∧-glb y z)
-
-    [y∧z≤z] : (y ∧ z) ≤ z
-    [y∧z≤z] = first (second (∧-glb y z))
-
-    [x∧[y∧z]≤y] : (x ∧ (y ∧ z)) ≤ y
-    [x∧[y∧z]≤y] = ≤-trans (x ∧ (y ∧ z)) (y ∧ z) y [x∧[y∧z]≤y∧z] [y∧z≤y]
-
-    [x∧[y∧z]≤z] : (x ∧ (y ∧ z)) ≤ z
-    [x∧[y∧z]≤z] = ≤-trans (x ∧ (y ∧ z)) (y ∧ z) z [x∧[y∧z]≤y∧z] [y∧z≤z]
-
-    [x∧[y∧z]≤x∧y] : (x ∧ (y ∧ z)) ≤ (x ∧ y)
-    [x∧[y∧z]≤x∧y] = (second (second (∧-glb x y))) (x ∧ (y ∧ z)) ([x∧[y∧z]≤x] , [x∧[y∧z]≤y] )
-
     [x∧[y∧z]≤[x∧y]∧z] : (x ∧ (y ∧ z)) ≤ ((x ∧ y) ∧ z)
     [x∧[y∧z]≤[x∧y]∧z] = (second (second (∧-glb (x ∧ y) z))) (x ∧ (y ∧ z)) ([x∧[y∧z]≤x∧y] , [x∧[y∧z]≤z] )
+     where
+      [x∧[y∧z]≤x] : (x ∧ (y ∧ z)) ≤ x
+      [x∧[y∧z]≤x] = first (∧-glb x (y ∧ z))
 
-    [[x∧y]∧z≤x∧y] : ((x ∧ y) ∧ z) ≤ (x ∧ y)
-    [[x∧y]∧z≤x∧y] = first (∧-glb (x ∧ y) z)
+      [x∧[y∧z]≤y∧z] : (x ∧ (y ∧ z)) ≤ (y ∧ z)
+      [x∧[y∧z]≤y∧z] = first (second (∧-glb x (y ∧ z)))
+ 
+      [y∧z≤y] : (y ∧ z) ≤ y
+      [y∧z≤y] = first (∧-glb y z)
 
-    [[x∧y]∧z≤z] : ((x ∧ y) ∧ z) ≤ z
-    [[x∧y]∧z≤z] = first (second (∧-glb (x ∧ y) z))
+      [y∧z≤z] : (y ∧ z) ≤ z
+      [y∧z≤z] = first (second (∧-glb y z))
 
-    [x∧y≤x] : (x ∧ y) ≤ x
-    [x∧y≤x] = first (∧-glb x y)
+      [x∧[y∧z]≤y] : (x ∧ (y ∧ z)) ≤ y
+      [x∧[y∧z]≤y] = ≤-trans (x ∧ (y ∧ z)) (y ∧ z) y [x∧[y∧z]≤y∧z] [y∧z≤y]
 
-    [x∧y≤y] : (x ∧ y) ≤ y
-    [x∧y≤y] = first (second (∧-glb x y))
+      [x∧[y∧z]≤z] : (x ∧ (y ∧ z)) ≤ z
+      [x∧[y∧z]≤z] = ≤-trans (x ∧ (y ∧ z)) (y ∧ z) z [x∧[y∧z]≤y∧z] [y∧z≤z]
 
-    [[x∧y]∧z≤x] : ((x ∧ y) ∧ z) ≤ x
-    [[x∧y]∧z≤x] = ≤-trans ((x ∧ y) ∧ z) (x ∧ y) x [[x∧y]∧z≤x∧y] [x∧y≤x]
-
-    [[x∧y]∧z≤y] : ((x ∧ y) ∧ z) ≤ y
-    [[x∧y]∧z≤y] = ≤-trans ((x ∧ y) ∧ z) (x ∧ y) y [[x∧y]∧z≤x∧y] [x∧y≤y] 
-
-    [[x∧y]∧z≤y∧z] : ((x ∧ y) ∧ z) ≤ (y ∧ z)
-    [[x∧y]∧z≤y∧z] = (second (second (∧-glb y z))) ((x ∧ y) ∧ z) ([[x∧y]∧z≤y] , [[x∧y]∧z≤z])
+      [x∧[y∧z]≤x∧y] : (x ∧ (y ∧ z)) ≤ (x ∧ y)
+      [x∧[y∧z]≤x∧y] = (second (second (∧-glb x y))) (x ∧ (y ∧ z)) ([x∧[y∧z]≤x] , [x∧[y∧z]≤y] )
 
     [[x∧y]∧z≤x∧[y∧z]] : ((x ∧ y) ∧ z) ≤ (x ∧ (y ∧ z))
     [[x∧y]∧z≤x∧[y∧z]] = (second (second (∧-glb x (y ∧ z)))) ((x ∧ y) ∧ z) ([[x∧y]∧z≤x] , [[x∧y]∧z≤y∧z])
+     where
+      [[x∧y]∧z≤x∧y] : ((x ∧ y) ∧ z) ≤ (x ∧ y)
+      [[x∧y]∧z≤x∧y] = first (∧-glb (x ∧ y) z)
+
+      [[x∧y]∧z≤z] : ((x ∧ y) ∧ z) ≤ z
+      [[x∧y]∧z≤z] = first (second (∧-glb (x ∧ y) z))
+
+      [x∧y≤x] : (x ∧ y) ≤ x
+      [x∧y≤x] = first (∧-glb x y)
+
+      [x∧y≤y] : (x ∧ y) ≤ y
+      [x∧y≤y] = first (second (∧-glb x y))
+
+      [[x∧y]∧z≤x] : ((x ∧ y) ∧ z) ≤ x
+      [[x∧y]∧z≤x] = ≤-trans ((x ∧ y) ∧ z) (x ∧ y) x [[x∧y]∧z≤x∧y] [x∧y≤x]
+
+      [[x∧y]∧z≤y] : ((x ∧ y) ∧ z) ≤ y
+      [[x∧y]∧z≤y] = ≤-trans ((x ∧ y) ∧ z) (x ∧ y) y [[x∧y]∧z≤x∧y] [x∧y≤y] 
+
+      [[x∧y]∧z≤y∧z] : ((x ∧ y) ∧ z) ≤ (y ∧ z)
+      [[x∧y]∧z≤y∧z] = (second (second (∧-glb y z))) ((x ∧ y) ∧ z) ([[x∧y]∧z≤y] , [[x∧y]∧z≤z])
+
+
 
   ∨-comm : (x y : carrier) → (x ∨ y) ≡ (y ∨ x)
   ∨-comm x y = ≤-antisym (x ∨ y) (y ∨ x) [x∨y≤y∨x] [y∨x≤x∨y]
    where
-    [x≤x∨y] : x ≤ (x ∨ y)
-    [x≤x∨y] = first (∨-lub x y)
- 
-    [y≤x∨y] : y ≤ (x ∨ y)
-    [y≤x∨y] = first (second (∨-lub x y))
- 
     [y∨x≤x∨y] : (y ∨ x) ≤ (x ∨ y)
     [y∨x≤x∨y] = (second (second (∨-lub y x))) (x ∨ y) ([y≤x∨y] , [x≤x∨y])
-   
-    [y≤y∨x] : y ≤ (y ∨ x)
-    [y≤y∨x] = first (∨-lub y x)
-
-    [x≤y∨x] : x ≤ (y ∨ x)
-    [x≤y∨x] = first (second (∨-lub y x))
+     where
+      [x≤x∨y] : x ≤ (x ∨ y)
+      [x≤x∨y] = first (∨-lub x y)
+ 
+      [y≤x∨y] : y ≤ (x ∨ y)
+      [y≤x∨y] = first (second (∨-lub x y))
 
     [x∨y≤y∨x] : (x ∨ y) ≤ (y ∨ x)
     [x∨y≤y∨x] = (second (second (∨-lub x y))) (y ∨ x) ([x≤y∨x] , [y≤y∨x])
+     where 
+      [y≤y∨x] : y ≤ (y ∨ x)
+      [y≤y∨x] = first (∨-lub y x)
+
+      [x≤y∨x] : x ≤ (y ∨ x)
+      [x≤y∨x] = first (second (∨-lub y x))
+
 
   ∨-assoc : (x y z : carrier) → (x ∨ (y ∨ z)) ≡ ((x ∨ y) ∨ z)
   ∨-assoc x y z = ≤-antisym (x ∨ (y ∨ z)) ((x ∨ y) ∨ z) [x∨[y∨z]≤[x∨y]∨z] [[x∨y]∨z≤x∨[y∨z]]
    where
-    [x≤x∨[y∨z]] : x ≤ (x ∨ (y ∨ z))
-    [x≤x∨[y∨z]] = first (∨-lub x (y ∨ z))
-
-    [y∨z≤x∨[y∨z]] : (y ∨ z) ≤ (x ∨ (y ∨ z))
-    [y∨z≤x∨[y∨z]] = first (second (∨-lub x (y ∨ z)))
-
-    [y≤y∨z] : y ≤ (y ∨ z)
-    [y≤y∨z] = first (∨-lub y z)
-
-    [z≤y∨z] : z ≤ (y ∨ z)
-    [z≤y∨z] = first (second (∨-lub y z))
-
-    [y≤x∨[y∨z]] : y ≤ (x ∨ (y ∨ z))
-    [y≤x∨[y∨z]] = ≤-trans y (y ∨ z) (x ∨ (y ∨ z)) [y≤y∨z] [y∨z≤x∨[y∨z]]
-
-    [z≤x∨[y∨z]] : z ≤ (x ∨ (y ∨ z))
-    [z≤x∨[y∨z]] = ≤-trans z (y ∨ z) (x ∨ (y ∨ z)) [z≤y∨z] [y∨z≤x∨[y∨z]]
-
-    [x∨y≤x∨[y∨z]] : (x ∨ y) ≤ (x ∨ (y ∨ z))
-    [x∨y≤x∨[y∨z]] = (second (second (∨-lub x y))) (x ∨ (y ∨ z)) ([x≤x∨[y∨z]] , [y≤x∨[y∨z]])
-   
     [[x∨y]∨z≤x∨[y∨z]] : ((x ∨ y) ∨ z) ≤ (x ∨ (y ∨ z))
     [[x∨y]∨z≤x∨[y∨z]] = (second (second (∨-lub (x ∨ y) z))) (x ∨ (y ∨ z)) ([x∨y≤x∨[y∨z]] , [z≤x∨[y∨z]])
+     where
+      [x≤x∨[y∨z]] : x ≤ (x ∨ (y ∨ z))
+      [x≤x∨[y∨z]] = first (∨-lub x (y ∨ z))
 
-    [x∨y≤[x∨y]∨z] : (x ∨ y) ≤ ((x ∨ y) ∨ z)
-    [x∨y≤[x∨y]∨z] = first (∨-lub (x ∨ y) z)
- 
-    [z≤[x∨y]∨z] : z ≤ ((x ∨ y) ∨ z)
-    [z≤[x∨y]∨z] = first (second (∨-lub (x ∨ y) z))
+      [y∨z≤x∨[y∨z]] : (y ∨ z) ≤ (x ∨ (y ∨ z))
+      [y∨z≤x∨[y∨z]] = first (second (∨-lub x (y ∨ z)))
 
-    [x≤x∨y] : x ≤ (x ∨ y)
-    [x≤x∨y] = first (∨-lub x y)
+      [y≤y∨z] : y ≤ (y ∨ z)
+      [y≤y∨z] = first (∨-lub y z)
+
+      [z≤y∨z] : z ≤ (y ∨ z)
+      [z≤y∨z] = first (second (∨-lub y z))
+
+      [y≤x∨[y∨z]] : y ≤ (x ∨ (y ∨ z))
+      [y≤x∨[y∨z]] = ≤-trans y (y ∨ z) (x ∨ (y ∨ z)) [y≤y∨z] [y∨z≤x∨[y∨z]]
+
+      [z≤x∨[y∨z]] : z ≤ (x ∨ (y ∨ z))
+      [z≤x∨[y∨z]] = ≤-trans z (y ∨ z) (x ∨ (y ∨ z)) [z≤y∨z] [y∨z≤x∨[y∨z]]
+
+      [x∨y≤x∨[y∨z]] : (x ∨ y) ≤ (x ∨ (y ∨ z))
+      [x∨y≤x∨[y∨z]] = (second (second (∨-lub x y))) (x ∨ (y ∨ z)) ([x≤x∨[y∨z]] , [y≤x∨[y∨z]])
    
-    [y≤x∨y] : y ≤ (x ∨ y)
-    [y≤x∨y] = first (second (∨-lub x y))
-
-    [x≤[x∨y]∨z] : x ≤ ((x ∨ y) ∨ z)
-    [x≤[x∨y]∨z] = ≤-trans x (x ∨ y) ((x ∨ y) ∨ z) [x≤x∨y] [x∨y≤[x∨y]∨z]
-
-    [y≤[x∨y]∨z] : y ≤ ((x ∨ y) ∨ z)
-    [y≤[x∨y]∨z] = ≤-trans y (x ∨ y) ((x ∨ y) ∨ z) [y≤x∨y] [x∨y≤[x∨y]∨z]
-    
-    [y∨z≤[x∨y]∨z] : (y ∨ z) ≤ ((x ∨ y) ∨ z)
-    [y∨z≤[x∨y]∨z] = (second (second (∨-lub y z))) ((x ∨ y) ∨ z) ([y≤[x∨y]∨z] , [z≤[x∨y]∨z])
-
     [x∨[y∨z]≤[x∨y]∨z] : (x ∨ (y ∨ z)) ≤ ((x ∨ y) ∨ z)
     [x∨[y∨z]≤[x∨y]∨z] = (second (second (∨-lub x (y ∨ z)))) ((x ∨ y) ∨ z) ([x≤[x∨y]∨z] , [y∨z≤[x∨y]∨z])
+     where
+      [x∨y≤[x∨y]∨z] : (x ∨ y) ≤ ((x ∨ y) ∨ z)
+      [x∨y≤[x∨y]∨z] = first (∨-lub (x ∨ y) z)
+ 
+      [z≤[x∨y]∨z] : z ≤ ((x ∨ y) ∨ z)
+      [z≤[x∨y]∨z] = first (second (∨-lub (x ∨ y) z))
+
+      [x≤x∨y] : x ≤ (x ∨ y)
+      [x≤x∨y] = first (∨-lub x y)
+   
+      [y≤x∨y] : y ≤ (x ∨ y)
+      [y≤x∨y] = first (second (∨-lub x y))
+
+      [x≤[x∨y]∨z] : x ≤ ((x ∨ y) ∨ z)
+      [x≤[x∨y]∨z] = ≤-trans x (x ∨ y) ((x ∨ y) ∨ z) [x≤x∨y] [x∨y≤[x∨y]∨z]
+
+      [y≤[x∨y]∨z] : y ≤ ((x ∨ y) ∨ z)
+      [y≤[x∨y]∨z] = ≤-trans y (x ∨ y) ((x ∨ y) ∨ z) [y≤x∨y] [x∨y≤[x∨y]∨z]
+    
+      [y∨z≤[x∨y]∨z] : (y ∨ z) ≤ ((x ∨ y) ∨ z)
+      [y∨z≤[x∨y]∨z] = (second (second (∨-lub y z))) ((x ∨ y) ∨ z) ([y≤[x∨y]∨z] , [z≤[x∨y]∨z])
 
   ∧∨-absorp : (x y : carrier) → (x ∧ (x ∨ y)) ≡ x
   ∧∨-absorp x y = ≤-antisym (x ∧ (x ∨ y)) x [x∧[x∨y]≤x] [x≤x∧[x∨y]]
@@ -1188,14 +1214,15 @@ OrderLattice→isAlgebraicLattice {i} {j} {k} O =
     [x∧[x∨y]≤x] : (x ∧ (x ∨ y)) ≤ x
     [x∧[x∨y]≤x] = first (∧-glb x (x ∨ y))
 
-    [x≤x] : x ≤ x
-    [x≤x] = first (≤-refl x x (≡-refl x))
-
-    [x≤x∨y] : x ≤ (x ∨ y)
-    [x≤x∨y] = first (∨-lub x y)
-
     [x≤x∧[x∨y]] : x ≤ (x ∧ (x ∨ y))
     [x≤x∧[x∨y]] = (second (second (∧-glb x (x ∨ y)))) x ([x≤x] , [x≤x∨y])
+     where
+      [x≤x] : x ≤ x
+      [x≤x] = first (≤-refl x x (≡-refl x))
+
+      [x≤x∨y] : x ≤ (x ∨ y)
+      [x≤x∨y] = first (∨-lub x y)
+       
 
   ∨∧-absorp : (x y : carrier) → (x ∨ (x ∧ y)) ≡ x
   ∨∧-absorp x y = ≤-antisym (x ∨ (x ∧ y)) x [x∨[x∧y]≤x] [x≤x∨[x∧y]]
@@ -1203,14 +1230,15 @@ OrderLattice→isAlgebraicLattice {i} {j} {k} O =
     [x≤x∨[x∧y]] : x ≤ (x ∨ (x ∧ y))
     [x≤x∨[x∧y]] = first (∨-lub x (x ∧ y))
 
-    [x≤x] : x ≤ x
-    [x≤x] = first (≤-refl x x (≡-refl x))
-
-    [x∧y≤x] : (x ∧ y) ≤ x
-    [x∧y≤x] = first (∧-glb x y)
-
     [x∨[x∧y]≤x] : (x ∨ (x ∧ y)) ≤ x
     [x∨[x∧y]≤x] = (second (second (∨-lub x (x ∧ y)))) x ([x≤x] , [x∧y≤x])
+     where
+      [x≤x] : x ≤ x
+      [x≤x] = first (≤-refl x x (≡-refl x))
+
+      [x∧y≤x] : (x ∧ y) ≤ x
+      [x∧y≤x] = first (∧-glb x y)
+
 
 {-
 Detour for analysis of properties of associative and commutative operations.
@@ -1253,8 +1281,49 @@ right-distributes-over {i} {j} {A} {_≡_} {≡-equiv} f g = (x y z : A) → (f 
 record OrderDistributiveLattice'' {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
  field
   lattice : OrderLattice' {i} {j} {k}
-  ∧∨-distr : left-distributes-over {i} {k} {OrderLattice'.carrier lattice} {OrderLattice'._≡_ lattice} {record{≡-refl = (OrderLattice'.≡-refl lattice) ; ≡-sym = (OrderLattice'.≡-sym lattice) ; ≡-trans = (OrderLattice'.≡-trans lattice)}} (OrderLattice'._∧_ lattice) (OrderLattice'._∨_ lattice)
-  ∨∧-distr : left-distributes-over {i} {k} {OrderLattice'.carrier lattice} {OrderLattice'._≡_ lattice} {record{≡-refl = (OrderLattice'.≡-refl lattice) ; ≡-sym = (OrderLattice'.≡-sym lattice) ; ≡-trans = (OrderLattice'.≡-trans lattice)}} (OrderLattice'._∨_ lattice) (OrderLattice'._∧_ lattice)
+  ∧∨-distr : 
+    let carrier : Set i
+        carrier = OrderLattice'.carrier lattice
+
+        _≡_ : carrier → carrier → Set k
+        _≡_ = OrderLattice'._≡_ lattice
+
+        ≡-equiv : isEquivalence _≡_
+        ≡-equiv = 
+         record {
+           ≡-refl = OrderLattice'.≡-refl lattice ;
+           ≡-sym = OrderLattice'.≡-sym lattice ;
+           ≡-trans = OrderLattice'.≡-trans lattice
+         }
+
+        _∧_ : carrier → carrier → carrier
+        _∧_ = OrderLattice'._∧_ lattice
+
+        _∨_ : carrier → carrier → carrier
+        _∨_ = OrderLattice'._∨_ lattice
+
+    in left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∧_ _∨_
+  ∨∧-distr :  
+    let carrier : Set i
+        carrier = OrderLattice'.carrier lattice
+
+        _≡_ : carrier → carrier → Set k
+        _≡_ = OrderLattice'._≡_ lattice
+
+        ≡-equiv : isEquivalence _≡_
+        ≡-equiv = 
+         record {
+           ≡-refl = OrderLattice'.≡-refl lattice ;
+           ≡-sym = OrderLattice'.≡-sym lattice ;
+           ≡-trans = OrderLattice'.≡-trans lattice
+         }
+
+        _∧_ : carrier → carrier → carrier
+        _∧_ = OrderLattice'._∧_ lattice
+
+        _∨_ : carrier → carrier → carrier
+        _∨_ = OrderLattice'._∨_ lattice
+    in left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∨_ _∧_
 
 
 record LatticeContinuity {i} {j} {k} (O : OrderLattice' {i} {j} {k}) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
@@ -1294,7 +1363,157 @@ record LatticeContinuity {i} {j} {k} (O : OrderLattice' {i} {j} {k}) : Set (((ls
       _∨_ : carrier → carrier → carrier
       _∨_ = OrderLattice'._∨_ O
     in
-      (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∨ c) ≡ (b ∨ c)
+      (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∨ c) ≡ (b ∨ d)
+
+OrderLatticesContinuous : ∀ {i} {j} {k} (O : OrderLattice' {i} {j} {k}) → LatticeContinuity {i} {j} {k} O
+OrderLatticesContinuous {i} {j} {k} O =
+ record {
+  ≤-cont = ≤-cont ;
+  ∧-cont = ∧-cont ;
+  ∨-cont = ∨-cont
+ }
+ where
+  carrier : Set i
+  carrier = OrderLattice'.carrier O
+
+  _≡_ : carrier → carrier → Set k
+  _≡_ = OrderLattice'._≡_ O
+
+  _≤_ : carrier → carrier → Set j
+  _≤_ = OrderLattice'._≤_ O
+
+  ≤-refl : (x y : carrier) → (x ≡ y) → (x ≤ y) × (y ≤ x)
+  ≤-refl = OrderLattice'.≤-refl O
+
+  ≤-antisym : (x y : carrier) → (x ≤ y) → (y ≤ x) → (x ≡ y)
+  ≤-antisym = OrderLattice'.≤-antisym O
+
+  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
+  ≤-trans = OrderLattice'.≤-trans O
+
+  _∧_ : carrier → carrier → carrier
+  _∧_ = OrderLattice'._∧_ O
+
+  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))
+  ∧-glb = OrderLattice'.∧-glb O
+
+  _∨_ : carrier → carrier → carrier
+  _∨_ = OrderLattice'._∨_ O
+
+  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
+  ∨-lub = OrderLattice'.∨-lub O
+
+  ≤-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ≤ c) → (b ≤ d)
+  ≤-cont a b c d [a≡b] [c≡d] [a≤c] = [b≤d]
+   where
+    [b≤a] : b ≤ a
+    [b≤a] = second (≤-refl a b [a≡b])
+
+    [c≤d] : c ≤ d
+    [c≤d] = first (≤-refl c d [c≡d])
+
+    [b≤d] : b ≤ d
+    [b≤d] = ≤-trans b a d [b≤a] (≤-trans a c d [a≤c] [c≤d])
+
+  ∧-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∧ c) ≡ (b ∧ d)
+  ∧-cont a b c d [a≡b] [c≡d] = [a∧c]≡[b∧d]
+   where
+    [b∧d≤a∧c] : (b ∧ d) ≤ (a ∧ c)
+    [b∧d≤a∧c] = (second (second (∧-glb a c))) (b ∧ d) ([b∧d≤a] , [b∧d≤c])
+     where
+      [b∧d≤a] : (b ∧ d) ≤ a
+      [b∧d≤a] = ≤-trans (b ∧ d) b a [b∧d≤b] [b≤a]
+       where
+        [b≤a] : b ≤ a
+        [b≤a] = second (≤-refl a b [a≡b])
+
+        [b∧d≤b] : (b ∧ d) ≤ b
+        [b∧d≤b] = first (∧-glb b d)
+
+      [b∧d≤c] : (b ∧ d) ≤ c
+      [b∧d≤c] = ≤-trans (b ∧ d) d c [b∧d≤d] [d≤c]
+       where
+        [d≤c] : d ≤ c
+        [d≤c] = second (≤-refl c d [c≡d])
+
+        [b∧d≤d] : (b ∧ d) ≤ d
+        [b∧d≤d] = first (second (∧-glb b d))
+
+
+
+    [a∧c≤b∧d] : (a ∧ c) ≤ (b ∧ d)
+    [a∧c≤b∧d] = (second (second (∧-glb b d))) (a ∧ c ) ([a∧c≤b] , [a∧c≤d])
+     where
+      [a∧c≤b] : (a ∧ c) ≤ b
+      [a∧c≤b] = ≤-trans (a ∧ c) a b [a∧c≤a] [a≤b]
+       where
+        [a≤b] : a ≤ b
+        [a≤b] = first (≤-refl a b [a≡b])
+ 
+        [a∧c≤a] : (a ∧ c) ≤ a
+        [a∧c≤a] = first (∧-glb a c)
+
+      [a∧c≤d] : (a ∧ c) ≤ d
+      [a∧c≤d] = ≤-trans (a ∧ c) c d [a∧c≤c] [c≤d]
+       where
+        [c≤d] : c ≤ d
+        [c≤d] = first (≤-refl c d [c≡d])
+
+        [a∧c≤c] : (a ∧ c) ≤ c
+        [a∧c≤c] = first (second (∧-glb a c))
+      
+
+    [a∧c]≡[b∧d] : (a ∧ c) ≡ (b ∧ d)
+    [a∧c]≡[b∧d] = ≤-antisym (a ∧ c) (b ∧ d) [a∧c≤b∧d] [b∧d≤a∧c]
+
+  ∨-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∨ c) ≡ (b ∨ d)
+  ∨-cont a b c d [a≡b] [c≡d] = [a∨c]≡[b∨d]
+   where
+    [a≤b] : a ≤ b
+    [a≤b] = first (≤-refl a b [a≡b])
+
+    [b≤b∨d] : b ≤ (b ∨ d)
+    [b≤b∨d] = first (∨-lub b d)
+
+    [a≤b∨d] : a ≤ (b ∨ d)
+    [a≤b∨d] = ≤-trans a b (b ∨ d) [a≤b] [b≤b∨d]
+
+    [c≤d] : c ≤ d
+    [c≤d] = first (≤-refl c d [c≡d])
+ 
+    [d≤b∨d] : d ≤ (b ∨ d)
+    [d≤b∨d] = first (second (∨-lub b d))
+
+    [c≤b∨d] : c ≤ (b ∨ d)
+    [c≤b∨d] = ≤-trans c d (b ∨ d) [c≤d] [d≤b∨d]
+
+    [a∨c≤b∨d] : (a ∨ c) ≤ (b ∨ d)
+    [a∨c≤b∨d] = (second (second (∨-lub a c))) (b ∨ d) ([a≤b∨d] , [c≤b∨d])
+
+    [b≤a] : b ≤ a
+    [b≤a] = second (≤-refl a b [a≡b])
+
+    [a≤a∨c] : a ≤ (a ∨ c)
+    [a≤a∨c] = first (∨-lub a c)
+
+    [b≤a∨c] : b ≤ (a ∨ c)
+    [b≤a∨c] = ≤-trans b a (a ∨ c) [b≤a] [a≤a∨c]
+
+    [d≤c] : d ≤ c
+    [d≤c] = second (≤-refl c d [c≡d])
+ 
+    [c≤a∨c] : c ≤ (a ∨ c)
+    [c≤a∨c] = first (second (∨-lub a c))
+
+    [d≤a∨c] : d ≤ (a ∨ c)
+    [d≤a∨c] = ≤-trans d c (a ∨ c) [d≤c] [c≤a∨c]
+
+    [b∨d≤a∨c] : (b ∨ d) ≤ (a ∨ c)
+    [b∨d≤a∨c] = (second (second (∨-lub b d))) (a ∨ c) ([b≤a∨c] , [d≤a∨c])
+
+    [a∨c]≡[b∨d] : (a ∨ c) ≡ (b ∨ d)
+    [a∨c]≡[b∨d] = ≤-antisym (a ∨ c) (b ∨ d) [a∨c≤b∨d] [b∨d≤a∨c]
+  
 
 ∨∧-distr→∧∨-distr : 
  ∀ {i} {j} {k} → (O : OrderLattice' {i} {j} {k}) → 
@@ -1386,15 +1605,6 @@ record LatticeContinuity {i} {j} {k} (O : OrderLattice' {i} {j} {k}) : Set (((ls
   [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] : ((a ∧ b) ∨ (a ∧ c)) ≡ (((a ∧ b) ∨ a) ∧ ((a ∧ b) ∨ c))
   [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] = [∨∧-distr] (a ∧ b) a c
 
-  [[a∧b]∨c]≡[c∨[a∧b]] : ((a ∧ b) ∨ c) ≡ (c ∨ (a ∧ b))
-  [[a∧b]∨c]≡[c∨[a∧b]] = ∨-comm (a ∧ b) c
-
-  [c∨[a∧b]]≡[[c∨a]∧[c∨b]] : (c ∨ (a ∧ b)) ≡ ((c ∨ a) ∧ (c ∨ b))
-  [c∨[a∧b]]≡[[c∨a]∧[c∨b]] = [∨∧-distr] c a b
-
-  [[a∧b]∨c]≡[[c∨a]∧[c∨b]] : ((a ∧ b) ∨ c) ≡ ((c ∨ a) ∧ (c ∨ b))
-  [[a∧b]∨c]≡[[c∨a]∧[c∨b]] = ≡-trans [[a∧b]∨c]≡[c∨[a∧b]] [c∨[a∧b]]≡[[c∨a]∧[c∨b]]
-
 
 {-
 [[a∧b]∨a]∧ : carrier → carrier
@@ -1411,146 +1621,63 @@ problem!
 or wait....
 is it a problem?
 curiously not, thanks to our modification of the partial order to be coherent with the underlying
-equivalence relation
+equivalence relation we have that continuity result:
 -}
 
-  ≤-cont' : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ≤ c) → (b ≤ d)
-  ≤-cont' a b c d [a≡b] [c≡d] [a≤c] = [b≤d]
-   where
-    [b≤a] : b ≤ a
-    [b≤a] = second (≤-refl a b [a≡b])
+  O-isContinuous : LatticeContinuity O
+  O-isContinuous = OrderLatticesContinuous O
 
-    [c≤d] : c ≤ d
-    [c≤d] = first (≤-refl c d [c≡d])
-
-    [b≤d] : b ≤ d
-    [b≤d] = ≤-trans b a d [b≤a] (≤-trans a c d [a≤c] [c≤d])
+  ≤-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ≤ c) → (b ≤ d)
+  ≤-cont = LatticeContinuity.≤-cont O-isContinuous
 
   ∧-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∧ c) ≡ (b ∧ d)
-  ∧-cont a b c d [a≡b] [c≡d] = [a∧c]≡[b∧d]
-   where
-    [b≤a] : b ≤ a
-    [b≤a] = second (≤-refl a b [a≡b])
-
-    [b∧d≤b] : (b ∧ d) ≤ b
-    [b∧d≤b] = first (∧-glb b d)
-
-    [b∧d≤a] : (b ∧ d) ≤ a
-    [b∧d≤a] = ≤-trans (b ∧ d) b a [b∧d≤b] [b≤a]
-
-    [d≤c] : d ≤ c
-    [d≤c] = second (≤-refl c d [c≡d])
-
-    [b∧d≤d] : (b ∧ d) ≤ d
-    [b∧d≤d] = first (second (∧-glb b d))
-
-    [b∧d≤c] : (b ∧ d) ≤ c
-    [b∧d≤c] = ≤-trans (b ∧ d) d c [b∧d≤d] [d≤c]
-
-    [b∧d≤a∧c] : (b ∧ d) ≤ (a ∧ c)
-    [b∧d≤a∧c] = (second (second (∧-glb a c))) (b ∧ d) ([b∧d≤a] , [b∧d≤c])
-
-    [a≤b] : a ≤ b
-    [a≤b] = first (≤-refl a b [a≡b])
-
-    [a∧c≤a] : (a ∧ c) ≤ a
-    [a∧c≤a] = first (∧-glb a c)
-
-    [a∧c≤b] : (a ∧ c) ≤ b
-    [a∧c≤b] = ≤-trans (a ∧ c) a b [a∧c≤a] [a≤b]
-
-    [c≤d] : c ≤ d
-    [c≤d] = first (≤-refl c d [c≡d])
-
-    [a∧c≤c] : (a ∧ c) ≤ c
-    [a∧c≤c] = first (second (∧-glb a c))
-
-    [a∧c≤d] : (a ∧ c) ≤ d
-    [a∧c≤d] = ≤-trans (a ∧ c) c d [a∧c≤c] [c≤d]
-
-    [a∧c≤b∧d] : (a ∧ c) ≤ (b ∧ d)
-    [a∧c≤b∧d] = (second (second (∧-glb b d))) (a ∧ c ) ([a∧c≤b] , [a∧c≤d])
-
-    [a∧c]≡[b∧d] : (a ∧ c) ≡ (b ∧ d)
-    [a∧c]≡[b∧d] = ≤-antisym (a ∧ c) (b ∧ d) [a∧c≤b∧d] [b∧d≤a∧c]
+  ∧-cont = LatticeContinuity.∧-cont O-isContinuous
 
   ∨-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∨ c) ≡ (b ∨ d)
-  ∨-cont a b c d [a≡b] [c≡d] = [a∨c]≡[b∨d]
-   where
-    [a≤b] : a ≤ b
-    [a≤b] = first (≤-refl a b [a≡b])
-
-    [b≤b∨d] : b ≤ (b ∨ d)
-    [b≤b∨d] = first (∨-lub b d)
-
-    [a≤b∨d] : a ≤ (b ∨ d)
-    [a≤b∨d] = ≤-trans a b (b ∨ d) [a≤b] [b≤b∨d]
-
-    [c≤d] : c ≤ d
-    [c≤d] = first (≤-refl c d [c≡d])
- 
-    [d≤b∨d] : d ≤ (b ∨ d)
-    [d≤b∨d] = first (second (∨-lub b d))
-
-    [c≤b∨d] : c ≤ (b ∨ d)
-    [c≤b∨d] = ≤-trans c d (b ∨ d) [c≤d] [d≤b∨d]
-
-    [a∨c≤b∨d] : (a ∨ c) ≤ (b ∨ d)
-    [a∨c≤b∨d] = (second (second (∨-lub a c))) (b ∨ d) ([a≤b∨d] , [c≤b∨d])
-
-    [b≤a] : b ≤ a
-    [b≤a] = second (≤-refl a b [a≡b])
-
-    [a≤a∨c] : a ≤ (a ∨ c)
-    [a≤a∨c] = first (∨-lub a c)
-
-    [b≤a∨c] : b ≤ (a ∨ c)
-    [b≤a∨c] = ≤-trans b a (a ∨ c) [b≤a] [a≤a∨c]
-
-    [d≤c] : d ≤ c
-    [d≤c] = second (≤-refl c d [c≡d])
- 
-    [c≤a∨c] : c ≤ (a ∨ c)
-    [c≤a∨c] = first (second (∨-lub a c))
-
-    [d≤a∨c] : d ≤ (a ∨ c)
-    [d≤a∨c] = ≤-trans d c (a ∨ c) [d≤c] [c≤a∨c]
-
-    [b∨d≤a∨c] : (b ∨ d) ≤ (a ∨ c)
-    [b∨d≤a∨c] = (second (second (∨-lub b d))) (a ∨ c) ([b≤a∨c] , [d≤a∨c])
-
-    [a∨c]≡[b∨d] : (a ∨ c) ≡ (b ∨ d)
-    [a∨c]≡[b∨d] = ≤-antisym (a ∨ c) (b ∨ d) [a∨c≤b∨d] [b∨d≤a∨c]
+  ∨-cont = LatticeContinuity.∨-cont O-isContinuous
 
   [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]] : (((a ∧ b) ∨ a) ∧ ((a ∧ b) ∨ c)) ≡ (((a ∧ b) ∨ a) ∧ ((c ∨ a) ∧ (c ∨ b)))
   [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]] = ∧-cont ((a ∧ b) ∨ a) ((a ∧ b) ∨ a) ((a ∧ b) ∨ c) ((c ∨ a) ∧ (c ∨ b)) (≡-refl ((a ∧ b) ∨ a)) [[a∧b]∨c]≡[[c∨a]∧[c∨b]]
+   where
+    [[a∧b]∨c]≡[c∨[a∧b]] : ((a ∧ b) ∨ c) ≡ (c ∨ (a ∧ b))
+    [[a∧b]∨c]≡[c∨[a∧b]] = ∨-comm (a ∧ b) c
 
-  [[a∧b]∨a]≡[a∨[a∧b]] : ((a ∧ b) ∨ a) ≡ (a ∨ (a ∧ b))
-  [[a∧b]∨a]≡[a∨[a∧b]] = ∨-comm (a ∧ b) a
+    [c∨[a∧b]]≡[[c∨a]∧[c∨b]] : (c ∨ (a ∧ b)) ≡ ((c ∨ a) ∧ (c ∨ b))
+    [c∨[a∧b]]≡[[c∨a]∧[c∨b]] = [∨∧-distr] c a b
 
-  [a∨[a∧b]]≡a : (a ∨ (a ∧ b)) ≡ a
-  [a∨[a∧b]]≡a = ∨∧-absorp a b
+    [[a∧b]∨c]≡[[c∨a]∧[c∨b]] : ((a ∧ b) ∨ c) ≡ ((c ∨ a) ∧ (c ∨ b))
+    [[a∧b]∨c]≡[[c∨a]∧[c∨b]] = ≡-trans [[a∧b]∨c]≡[c∨[a∧b]] [c∨[a∧b]]≡[[c∨a]∧[c∨b]]
 
-  [[a∧b]∨a]≡a : ((a ∧ b) ∨ a) ≡ a
-  [[a∧b]∨a]≡a = ≡-trans [[a∧b]∨a]≡[a∨[a∧b]] [a∨[a∧b]]≡a
+
 
   [[a∧b]∨a]∧[[c∨a]∧[c∨b]]≡a∧[[c∨a]∧[c∨b]] : (((a ∧ b) ∨ a) ∧ ((c ∨ a) ∧ (c ∨ b))) ≡ (a ∧ ((c ∨ a) ∧ (c ∨ b)))
   [[a∧b]∨a]∧[[c∨a]∧[c∨b]]≡a∧[[c∨a]∧[c∨b]] = ∧-cont ((a ∧ b) ∨ a) a ((c ∨ a) ∧ (c ∨ b)) ((c ∨ a) ∧ (c ∨ b)) [[a∧b]∨a]≡a (≡-refl ((c ∨ a) ∧ (c ∨ b)))
+   where
+    [[a∧b]∨a]≡[a∨[a∧b]] : ((a ∧ b) ∨ a) ≡ (a ∨ (a ∧ b))
+    [[a∧b]∨a]≡[a∨[a∧b]] = ∨-comm (a ∧ b) a
+
+    [a∨[a∧b]]≡a : (a ∨ (a ∧ b)) ≡ a
+    [a∨[a∧b]]≡a = ∨∧-absorp a b
+
+    [[a∧b]∨a]≡a : ((a ∧ b) ∨ a) ≡ a
+    [[a∧b]∨a]≡a = ≡-trans [[a∧b]∨a]≡[a∨[a∧b]] [a∨[a∧b]]≡a
+
 
   a∧[[c∨a]∧[c∨b]]≡[a∧[c∨a]]∧[c∨b] : (a ∧ ((c ∨ a) ∧ (c ∨ b))) ≡ ((a ∧ (c ∨ a)) ∧ (c ∨ b))
   a∧[[c∨a]∧[c∨b]]≡[a∧[c∨a]]∧[c∨b] = ∧-assoc a (c ∨ a) (c ∨ b)
 
-  [a∧[c∨a]]≡[a∧[a∨c]] : (a ∧ (c ∨ a)) ≡ (a ∧ (a ∨ c))
-  [a∧[c∨a]]≡[a∧[a∨c]] = ∧-cont a a (c ∨ a) (a ∨ c) (≡-refl a) (∨-comm c a)
-
-  [a∧[a∨c]]≡a : (a ∧ (a ∨ c)) ≡ a
-  [a∧[a∨c]]≡a = ∧∨-absorp a c
-
-  [a∧[c∨a]]≡a : (a ∧ (c ∨ a)) ≡ a
-  [a∧[c∨a]]≡a = ≡-trans [a∧[c∨a]]≡[a∧[a∨c]] [a∧[a∨c]]≡a
-
   [a∧[c∨a]]∧[c∨b]≡a∧[c∨b] : ((a ∧ (c ∨ a)) ∧ (c ∨ b)) ≡ (a ∧ (c ∨ b))
   [a∧[c∨a]]∧[c∨b]≡a∧[c∨b] = ∧-cont (a ∧ (c ∨ a)) a (c ∨ b) (c ∨ b) [a∧[c∨a]]≡a (≡-refl (c ∨ b))
+   where
+    [a∧[c∨a]]≡[a∧[a∨c]] : (a ∧ (c ∨ a)) ≡ (a ∧ (a ∨ c))
+    [a∧[c∨a]]≡[a∧[a∨c]] = ∧-cont a a (c ∨ a) (a ∨ c) (≡-refl a) (∨-comm c a)
+
+    [a∧[a∨c]]≡a : (a ∧ (a ∨ c)) ≡ a
+    [a∧[a∨c]]≡a = ∧∨-absorp a c
+
+    [a∧[c∨a]]≡a : (a ∧ (c ∨ a)) ≡ a
+    [a∧[c∨a]]≡a = ≡-trans [a∧[c∨a]]≡[a∧[a∨c]] [a∧[a∨c]]≡a
+
 
   a∧[c∨b]≡a∧[b∨c] : (a ∧ (c ∨ b)) ≡ (a ∧ (b ∨ c))
   a∧[c∨b]≡a∧[b∨c] = ∧-cont a a (c ∨ b) (b ∨ c) (≡-refl a) (∨-comm c b)

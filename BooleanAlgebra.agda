@@ -215,8 +215,7 @@ L⊢x=>x x = proof
   P2 : L⊢ ((x ∨-L x) => x)
   P2 = ax (A1 x)
 
-  -- wrong! we can't get this from A4. either the author made a mistake in 
-  -- this proof or made a mistake in their definition of A4.
+  -- confirmed error: we can't get this from A4.
   P3 : L⊢ (((x ∨-L x) => x) => ((x => (x ∨-L x)) => (x => x)))
   P3 = ax (A4 (x ∨-L x) x x)
   

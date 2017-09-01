@@ -1758,3 +1758,90 @@ distributive-lattices-have-unique-complements
 
   y≡y' : y ≡ y'
   y≡y' = ≤-antisym y y' (lemma y' y y'-compl y-compl) (lemma y y' y-compl y'-compl)
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 2.1.8
+-}
+
+record BooleanAlgebra {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  lattice : OrderLattice' {i} {j} {k}
+  complemented : isComplemented lattice
+  distributive : isDistributiveLattice lattice
+
+{-
+Start of section 2.2
+-}
+
+record start-of-2,2 {i} {j} {k} (B : BooleanAlgebra {i} {j} {k}) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  B1 :
+   let open BooleanAlgebra B 
+       open OrderLattice' lattice 
+   in ((x y : carrier) → (x ∨ y) ≡ (y ∨ x)) × 
+      ((x y : carrier) → ((x ∧ y) ≡ (y ∧ x)))
+  B2 : 
+   let open BooleanAlgebra B
+       open OrderLattice' lattice
+   in ((x y z : carrier) → ((x ∨ (y ∨ z)) ≡ ((x ∨ y) ∨ z))) × 
+      ((x y z : carrier) → (x ∧ (y ∧ z)) ≡ ((x ∧ y) ∧ z))
+  B3 : 
+   let open BooleanAlgebra B
+       open OrderLattice' lattice
+   in ((x y : carrier) → ((x ∨ (x ∧ y)) ≡ x)) × 
+      ((x y : carrier) → (x ∧ (x ∨ y)) ≡ x)
+  B4 : 
+   let open BooleanAlgebra B
+       open OrderLattice' lattice
+   in ((x y z : carrier) → ((x ∧ (y ∨ z)) ≡ ((x ∧ y) ∨ (x ∧ z)))) × 
+      ((x y z : carrier) → (x ∨ (y ∧ z)) ≡ ((x ∨ y) ∧ (x ∨ z)))
+  B5 : 
+   let open BooleanAlgebra B
+       open OrderLattice' lattice
+       open isBounded (π₁ complemented)
+   in (x : carrier) → ∃ y ∈ carrier , (((x ∨ y) ≡ max) × ((x ∧ y) ≡ min))
+
+
+
+proof-of-start-of-2,2 : ∀ {i j k} (B : BooleanAlgebra {i} {j} {k}) → start-of-2,2 B
+proof-of-start-of-2,2 {i} {j} {k} B = 
+ record {
+  B1 = B1 ;
+  B2 = B2 ;
+  B3 = B3 ;
+  B4 = B4 ;
+  B5 = B5
+ }
+ where
+  open BooleanAlgebra B
+ 
+  O : OrderLattice' {i} {j} {k}
+  O = lattice
+
+  open OrderLattice' O
+
+  O-isAlgebraicLattice : isAlgebraicLattice'' carrier _≡_ (record {≡-refl = ≡-refl ; ≡-sym = ≡-sym ; ≡-trans = ≡-trans }) _∧_ _∨_
+  O-isAlgebraicLattice = OrderLattice→isAlgebraicLattice O
+
+  open isAlgebraicLattice'' O-isAlgebraicLattice
+
+
+  open isDistributiveLattice distributive
+  open isBounded (π₁ complemented)    
+
+
+  B1 : ((x y : carrier) → (x ∨ y) ≡ (y ∨ x)) × 
+      ((x y : carrier) → ((x ∧ y) ≡ (y ∧ x)))
+  B1 = (∨-comm , ∧-comm)
+  B2 : ((x y z : carrier) → ((x ∨ (y ∨ z)) ≡ ((x ∨ y) ∨ z))) × 
+      ((x y z : carrier) → (x ∧ (y ∧ z)) ≡ ((x ∧ y) ∧ z))
+  B2 = (∨-assoc , ∧-assoc)
+  B3 : ((x y : carrier) → ((x ∨ (x ∧ y)) ≡ x)) × 
+      ((x y : carrier) → (x ∧ (x ∨ y)) ≡ x)
+  B3 = (∨∧-absorp , ∧∨-absorp) 
+  B4 : ((x y z : carrier) → ((x ∧ (y ∨ z)) ≡ ((x ∧ y) ∨ (x ∧ z)))) × 
+      ((x y z : carrier) → (x ∨ (y ∧ z)) ≡ ((x ∨ y) ∧ (x ∨ z)))
+  B4 = (∧∨-distr , ∨∧-distr)
+  B5 : (x : carrier) → ∃ y ∈ carrier , (((x ∨ y) ≡ max) × ((x ∧ y) ≡ min))
+  B5 = π₂ complemented

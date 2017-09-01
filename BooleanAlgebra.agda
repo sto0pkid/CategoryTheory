@@ -1690,3 +1690,71 @@ every-totally-ordered-complemented-lattice-is-trivial {i} {j} {k} O c t =
 http://documents.kenyon.edu/math/SamTay.pdf
 Proposition 2.1.7
 -}
+distributive-lattices-have-unique-complements : 
+ ∀ {i j k} (O : OrderLattice' {i} {j} {k}) → (dist : isDistributiveLattice O) → (bnd : isBounded O) → 
+ let open OrderLattice' O
+     open isDistributiveLattice dist
+     open isBounded bnd
+ in  (x : carrier) → (y y' : carrier) → (((x ∨ y) ≡ max) × ((x ∧ y) ≡ min)) → (((x ∨ y') ≡ max) × ((x ∧ y') ≡ min)) → y ≡ y'
+distributive-lattices-have-unique-complements 
+ {i} {j} {k} O dist bnd x y y' y-compl y'-compl
+ = y≡y'
+ where
+  open OrderLattice' O
+ 
+  ≡-sym' : {x y : carrier} → x ≡ y → y ≡ x
+  ≡-sym' {x} {y} = ≡-sym x y
+
+  ≡-trans' : {x y z : carrier} → x ≡ y → y ≡ z → x ≡ z
+  ≡-trans' {x} {y} {z} = ≡-trans x y z
+
+  O-isAlgebraicLattice : isAlgebraicLattice'' carrier _≡_ (record {≡-refl = ≡-refl ; ≡-sym = ≡-sym ; ≡-trans = ≡-trans }) _∧_ _∨_
+  O-isAlgebraicLattice = OrderLattice→isAlgebraicLattice O
+
+  open isAlgebraicLattice'' O-isAlgebraicLattice
+
+
+  O-isContinuous : LatticeContinuity O
+  O-isContinuous = OrderLatticesContinuous O
+
+  open LatticeContinuity O-isContinuous
+
+  open isDistributiveLattice dist
+  open isBounded bnd
+
+  lemma : (~x₁ ~x₂ : carrier) → (((x ∨ ~x₁) ≡ max) × ((x ∧ ~x₁) ≡ min)) → (((x ∨ ~x₂) ≡ max) × ((x ∧ ~x₂) ≡ min)) → ~x₂ ≤ ~x₁
+  lemma ~x₁ ~x₂ p₁ p₂ = ~x₂≤~x₁
+   where
+
+    [~x₁≡~x₁∨min] : ~x₁ ≡ (~x₁ ∨ min)
+    [~x₁≡~x₁∨min] = ≡-trans' (≡-sym' ((first ((first (x≤y-iff-[x∨y≡y-and-x∧y≡x] O min ~x₁)) (min-is-min ~x₁))))) (∨-comm min ~x₁)
+
+    [~x₁∨min≡~x₁∨[x∧~x₂]] : (~x₁ ∨ min) ≡ (~x₁ ∨ (x ∧ ~x₂))
+    [~x₁∨min≡~x₁∨[x∧~x₂]] = ∨-cont ~x₁ ~x₁ min (x ∧ ~x₂) (≡-refl ~x₁) (≡-sym' (second p₂))
+
+    [~x₁∨[x∧~x₂]≡[~x₁∨x]∧[~x₁∨~x₂]] : (~x₁ ∨ (x ∧ ~x₂)) ≡ ((~x₁ ∨ x) ∧ (~x₁ ∨ ~x₂))
+    [~x₁∨[x∧~x₂]≡[~x₁∨x]∧[~x₁∨~x₂]] = ∨∧-distr ~x₁ x ~x₂
+
+    [[~x₁∨x]∧[~x₁∨~x₂]≡max∧[~x₁∨~x₂]] : ((~x₁ ∨ x) ∧ (~x₁ ∨ ~x₂)) ≡ (max ∧ (~x₁ ∨ ~x₂))
+    [[~x₁∨x]∧[~x₁∨~x₂]≡max∧[~x₁∨~x₂]] = ∧-cont (~x₁ ∨ x) max (~x₁ ∨ ~x₂) (~x₁ ∨ ~x₂) (≡-trans' (∨-comm ~x₁ x) (first p₁)) (≡-refl (~x₁ ∨ ~x₂))
+
+    [max∧[~x₁∨~x₂]≡~x₁∨~x₂] : (max ∧ (~x₁ ∨ ~x₂)) ≡ (~x₁ ∨ ~x₂)
+    [max∧[~x₁∨~x₂]≡~x₁∨~x₂] = ≡-trans' (∧-comm max (~x₁ ∨ ~x₂)) (second ((first (x≤y-iff-[x∨y≡y-and-x∧y≡x] O (~x₁ ∨ ~x₂) max)) (max-is-max (~x₁ ∨ ~x₂))))
+
+    ~x₁≡~x₁∨~x₂ : ~x₁ ≡ (~x₁ ∨ ~x₂)
+    ~x₁≡~x₁∨~x₂ =  ≡-trans' [~x₁≡~x₁∨min]
+                (≡-trans' [~x₁∨min≡~x₁∨[x∧~x₂]]
+                (≡-trans' [~x₁∨[x∧~x₂]≡[~x₁∨x]∧[~x₁∨~x₂]]
+                (≡-trans' [[~x₁∨x]∧[~x₁∨~x₂]≡max∧[~x₁∨~x₂]] [max∧[~x₁∨~x₂]≡~x₁∨~x₂])))
+
+    x₁∨~x₂≤~x₁ : (~x₁ ∨ ~x₂) ≤ ~x₁
+    x₁∨~x₂≤~x₁ = second (≤-refl ~x₁ (~x₁ ∨ ~x₂) ~x₁≡~x₁∨~x₂)
+
+    ~x₂≤~x₁∨~x₂ : ~x₂ ≤ (~x₁ ∨ ~x₂)
+    ~x₂≤~x₁∨~x₂ = first (second (∨-lub ~x₁ ~x₂))
+
+    ~x₂≤~x₁ : ~x₂ ≤ ~x₁
+    ~x₂≤~x₁ = ≤-trans ~x₂ (~x₁ ∨ ~x₂) ~x₁ ~x₂≤~x₁∨~x₂ x₁∨~x₂≤~x₁
+
+  y≡y' : y ≡ y'
+  y≡y' = ≤-antisym y y' (lemma y' y y'-compl y-compl) (lemma y y' y-compl y'-compl)

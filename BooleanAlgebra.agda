@@ -391,41 +391,15 @@ record OrderLattice'' {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) w
   ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
 
 
-x≤y-iff-[x∨y≡y-and-x∧y≡x] : ∀ {i j k} (O : OrderLattice' {i} {j} {k}) (x y : (OrderLattice'.carrier O)) → (((OrderLattice'._≤_ O) x y) → ((OrderLattice'._≡_ O) ((OrderLattice'._∨_ O) x y) y) × ((OrderLattice'._≡_ O) ((OrderLattice'._∧_ O) x y) x)) × (((OrderLattice'._≡_ O) ((OrderLattice'._∨_ O) x y) y) × ((OrderLattice'._≡_ O) ((OrderLattice'._∧_ O) x y) x) → ((OrderLattice'._≤_ O) x y))
+x≤y-iff-[x∨y≡y-and-x∧y≡x] : 
+ ∀ {i j k} (O : OrderLattice' {i} {j} {k}) →
+ let 
+  open OrderLattice' O
+ in
+  (x y : carrier) → ((x ≤ y) → ((x ∨ y) ≡ y) × ((x ∧ y) ≡ x)) × (((x ∨ y) ≡ y) × ((x ∧ y) ≡ x) → (x ≤ y)) 
 x≤y-iff-[x∨y≡y-and-x∧y≡x] {i} {j} {k} O x y = (LTR , RTL)
  where
-  carrier : Set i
-  carrier = OrderLattice'.carrier O
-
-  _≡_ : carrier → carrier → Set k
-  _≡_ = OrderLattice'._≡_ O
-
-  ≡-refl : (x : carrier) → x ≡ x
-  ≡-refl = OrderLattice'.≡-refl O
-
-  _≤_ : carrier → carrier → Set j
-  _≤_ = OrderLattice'._≤_ O
-
-  ≤-refl : (x y : carrier) → x ≡ y → (x ≤ y) × (y ≤ x)
-  ≤-refl = OrderLattice'.≤-refl O
-
-  ≤-antisym : (x y : carrier) → x ≤ y → y ≤ x → x ≡ y
-  ≤-antisym = OrderLattice'.≤-antisym O
-
-  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
-  ≤-trans = OrderLattice'.≤-trans O
-
-  _∨_ : carrier → carrier → carrier
-  _∨_ = OrderLattice'._∨_ O
-
-  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
-  ∨-lub = OrderLattice'.∨-lub O
-
-  _∧_ : carrier → carrier → carrier
-  _∧_ = OrderLattice'._∧_ O
-
-  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))
-  ∧-glb = OrderLattice'.∧-glb O
+  open OrderLattice' O
 
   LTR : (x ≤ y) → (((x ∨ y) ≡ y) × ((x ∧ y) ≡ x))
   LTR [x≤y] = (left , right)
@@ -773,45 +747,9 @@ OrderLattice→AlgebraLattice {i} {j} {k} O =
   ∨-comm = ∨-comm ;
   ∨-assoc = ∨-assoc ;
   ∨∧-absorp = ∨∧-absorp
- } where
-  carrier : Set i
-  carrier = OrderLattice.carrier O
-
-  _≡_ : carrier → carrier → Set k
-  _≡_ = OrderLattice._≡_ O
-
-  ≡-refl : (x : carrier) → x ≡ x
-  ≡-refl = OrderLattice.≡-refl O
-
-  ≡-sym : (x y : carrier) → x ≡ y → y ≡ x
-  ≡-sym = OrderLattice.≡-sym O
-
-  ≡-trans : (x y z : carrier) → x ≡ y → y ≡ z → x ≡ z
-  ≡-trans = OrderLattice.≡-trans O
-
-  _≤_ : carrier → carrier → Set j
-  _≤_ = OrderLattice._≤_ O
-
-  ≤-refl : (x : carrier) → x ≤ x
-  ≤-refl = OrderLattice.≤-refl O
-
-  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
-  ≤-trans = OrderLattice.≤-trans O
-
-  ≤-antisym : (x y : carrier) → x ≤ y → y ≤ x → x ≡ y 
-  ≤-antisym = OrderLattice.≤-antisym O
-
-  _∧_ : carrier → carrier → carrier
-  _∧_ = OrderLattice._∧_ O
- 
-  _∨_ : carrier → carrier → carrier
-  _∨_ = OrderLattice._∨_ O
-
-  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))
-  ∧-glb = OrderLattice.∧-glb O
-
-  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
-  ∨-lub = OrderLattice.∨-lub O
+ } 
+ where
+  open OrderLattice O
 
   ∧-comm : (x y : carrier) → (x ∧ y) ≡ (y ∧ x)
   ∧-comm x y = ≤-antisym (x ∧ y) (y ∧ x) [x∧y≤y∧x] [y∧x≤x∧y]
@@ -989,26 +927,19 @@ OrderLattice→AlgebraLattice {i} {j} {k} O =
 
 OrderLattice→isAlgebraicLattice :
  ∀ {i j k} (O : OrderLattice' {i} {j} {k}) → 
- let carrier : Set i
-     carrier = OrderLattice'.carrier O
-
-     _≡_ : carrier → carrier → Set k
-     _≡_ = OrderLattice'._≡_ O
-
-     ≡-equiv : isEquivalence _≡_
-     ≡-equiv = 
+ let 
+  open OrderLattice' O
+ 
+  ≡-equiv : isEquivalence _≡_
+  ≡-equiv = 
       record {
-       ≡-refl = OrderLattice'.≡-refl O ;
-       ≡-sym = OrderLattice'.≡-sym O ;
-       ≡-trans = OrderLattice'.≡-trans O
+       ≡-refl = ≡-refl ;
+       ≡-sym = ≡-sym ;
+       ≡-trans = ≡-trans 
       }
-
-     _∧_ : carrier → carrier → carrier
-     _∧_ = OrderLattice'._∧_ O
-
-     _∨_ : carrier → carrier → carrier
-     _∨_ = OrderLattice'._∨_ O
- in isAlgebraicLattice'' carrier _≡_ ≡-equiv _∧_ _∨_
+ 
+ in 
+  isAlgebraicLattice'' carrier _≡_ ≡-equiv _∧_ _∨_
 OrderLattice→isAlgebraicLattice {i} {j} {k} O = 
  record {
   ∧-comm = ∧-comm ;
@@ -1019,45 +950,8 @@ OrderLattice→isAlgebraicLattice {i} {j} {k} O =
   ∨∧-absorp = ∨∧-absorp
  }
  where
-  carrier : Set i
-  carrier = OrderLattice'.carrier O
-
-  _≡_ : carrier → carrier → Set k
-  _≡_ = OrderLattice'._≡_ O
-
-  ≡-refl : (x : carrier) → x ≡ x
-  ≡-refl = OrderLattice'.≡-refl O
-
-  ≡-sym : (x y : carrier) → x ≡ y → y ≡ x
-  ≡-sym = OrderLattice'.≡-sym O
-
-  ≡-trans : (x y z : carrier) → x ≡ y → y ≡ z → x ≡ z
-  ≡-trans = OrderLattice'.≡-trans O
-
-  _≤_ : carrier → carrier → Set j
-  _≤_ = OrderLattice'._≤_ O
-
-  ≤-refl : (x y : carrier) → x ≡ y → (x ≤ y) × (y ≤ x)
-  ≤-refl = OrderLattice'.≤-refl O
-
-  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
-  ≤-trans = OrderLattice'.≤-trans O
-
-  ≤-antisym : (x y : carrier) → x ≤ y → y ≤ x → x ≡ y 
-  ≤-antisym = OrderLattice'.≤-antisym O
-
-  _∧_ : carrier → carrier → carrier
-  _∧_ = OrderLattice'._∧_ O
- 
-  _∨_ : carrier → carrier → carrier
-  _∨_ = OrderLattice'._∨_ O
-
-  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))
-  ∧-glb = OrderLattice'.∧-glb O
-
-  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
-  ∨-lub = OrderLattice'.∨-lub O
-
+  open OrderLattice' O
+  
   ∧-comm : (x y : carrier) → (x ∧ y) ≡ (y ∧ x)
   ∧-comm x y = ≤-antisym (x ∧ y) (y ∧ x) [x∧y≤y∧x] [y∧x≤x∧y]
    where
@@ -1268,8 +1162,16 @@ record OrderDistributiveLattice {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (
 record OrderDistributiveLattice' {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
  field
   lattice : OrderLattice' {i} {j} {k}
-  ∧∨-distr : (x y z : (OrderLattice'.carrier lattice)) → ((OrderLattice'._≡_ lattice) ((OrderLattice'._∧_ lattice) x ((OrderLattice'._∨_ lattice) y z)) ((OrderLattice'._∨_ lattice) ((OrderLattice'._∧_ lattice) x y) ((OrderLattice'._∧_ lattice) x z)))
-  ∨∧-distr : (x y z : (OrderLattice'.carrier lattice)) → ((OrderLattice'._≡_ lattice) ((OrderLattice'._∨_ lattice) x ((OrderLattice'._∧_ lattice) y z)) ((OrderLattice'._∧_ lattice) ((OrderLattice'._∨_ lattice) x y) ((OrderLattice'._∨_ lattice) x z)))
+  ∧∨-distr : 
+   let 
+    open OrderLattice' lattice
+   in
+    (x y z : carrier) → (x ∧ (y ∨ z)) ≡ ((x ∧ y) ∨ (x ∧ z))
+  ∨∧-distr : 
+   let
+    open OrderLattice' lattice
+   in
+    (x y z : carrier) → (x ∨ (y ∧ z)) ≡ ((x ∨ y) ∧ (x ∨ z))
 
 left-distributes-over : ∀ {i} {j} {A : Set i} {_≡_ : A → A → Set j} {≡-equiv : isEquivalence _≡_} (f : A → A → A) (g : A → A → A) → Set (i ⊔ j)
 left-distributes-over {i} {j} {A} {_≡_} {≡-equiv} f g = (x y z : A) → (f x (g y z)) ≡ (g (f x y) (f x z))
@@ -1281,88 +1183,49 @@ record OrderDistributiveLattice'' {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔
  field
   lattice : OrderLattice' {i} {j} {k}
   ∧∨-distr : 
-    let carrier : Set i
-        carrier = OrderLattice'.carrier lattice
-
-        _≡_ : carrier → carrier → Set k
-        _≡_ = OrderLattice'._≡_ lattice
-
-        ≡-equiv : isEquivalence _≡_
-        ≡-equiv = 
+    let 
+     open OrderLattice' lattice
+     ≡-equiv : isEquivalence _≡_
+     ≡-equiv = 
          record {
-           ≡-refl = OrderLattice'.≡-refl lattice ;
-           ≡-sym = OrderLattice'.≡-sym lattice ;
-           ≡-trans = OrderLattice'.≡-trans lattice
+           ≡-refl = ≡-refl ;
+           ≡-sym = ≡-sym  ;
+           ≡-trans = ≡-trans
          }
-
-        _∧_ : carrier → carrier → carrier
-        _∧_ = OrderLattice'._∧_ lattice
-
-        _∨_ : carrier → carrier → carrier
-        _∨_ = OrderLattice'._∨_ lattice
-
-    in left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∧_ _∨_
+    in 
+     left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∧_ _∨_
   ∨∧-distr :  
-    let carrier : Set i
-        carrier = OrderLattice'.carrier lattice
-
-        _≡_ : carrier → carrier → Set k
-        _≡_ = OrderLattice'._≡_ lattice
-
-        ≡-equiv : isEquivalence _≡_
-        ≡-equiv = 
+    let 
+      open OrderLattice' lattice
+      
+      ≡-equiv : isEquivalence _≡_
+      ≡-equiv = 
          record {
-           ≡-refl = OrderLattice'.≡-refl lattice ;
-           ≡-sym = OrderLattice'.≡-sym lattice ;
-           ≡-trans = OrderLattice'.≡-trans lattice
+           ≡-refl = ≡-refl ;
+           ≡-sym = ≡-sym ;
+           ≡-trans = ≡-trans
          }
-
-        _∧_ : carrier → carrier → carrier
-        _∧_ = OrderLattice'._∧_ lattice
-
-        _∨_ : carrier → carrier → carrier
-        _∨_ = OrderLattice'._∨_ lattice
-    in left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∨_ _∧_
+    in 
+     left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∨_ _∧_
 
 
 record LatticeContinuity {i} {j} {k} (O : OrderLattice' {i} {j} {k}) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
  field
   ≤-cont : 
     let
-      carrier : Set i
-      carrier = OrderLattice'.carrier O
-
-      _≤_ : carrier → carrier → Set j
-      _≤_ = OrderLattice'._≤_ O
-
-      _≡_ : carrier → carrier → Set k
-      _≡_ = OrderLattice'._≡_ O
+     open OrderLattice' O
     in 
-      (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ≤ c) → (b ≤ d)
+     (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ≤ c) → (b ≤ d)
   ∧-cont :
     let
-      carrier : Set i
-      carrier = OrderLattice'.carrier O
-
-      _≡_ : carrier → carrier → Set k
-      _≡_ = OrderLattice'._≡_ O
-
-      _∧_ : carrier → carrier → carrier
-      _∧_ = OrderLattice'._∧_ O
+     open OrderLattice' O
     in
-      (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∧ c) ≡ (b ∧ d)
+     (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∧ c) ≡ (b ∧ d)
   ∨-cont :
     let
-      carrier : Set i
-      carrier = OrderLattice'.carrier O
-
-      _≡_ : carrier → carrier → Set k
-      _≡_ = OrderLattice'._≡_ O
-
-      _∨_ : carrier → carrier → carrier
-      _∨_ = OrderLattice'._∨_ O
+     open OrderLattice' O
     in
-      (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∨ c) ≡ (b ∨ d)
+     (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∨ c) ≡ (b ∨ d)
 
 OrderLatticesContinuous : ∀ {i} {j} {k} (O : OrderLattice' {i} {j} {k}) → LatticeContinuity {i} {j} {k} O
 OrderLatticesContinuous {i} {j} {k} O =
@@ -1372,35 +1235,7 @@ OrderLatticesContinuous {i} {j} {k} O =
   ∨-cont = ∨-cont
  }
  where
-  carrier : Set i
-  carrier = OrderLattice'.carrier O
-
-  _≡_ : carrier → carrier → Set k
-  _≡_ = OrderLattice'._≡_ O
-
-  _≤_ : carrier → carrier → Set j
-  _≤_ = OrderLattice'._≤_ O
-
-  ≤-refl : (x y : carrier) → (x ≡ y) → (x ≤ y) × (y ≤ x)
-  ≤-refl = OrderLattice'.≤-refl O
-
-  ≤-antisym : (x y : carrier) → (x ≤ y) → (y ≤ x) → (x ≡ y)
-  ≤-antisym = OrderLattice'.≤-antisym O
-
-  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
-  ≤-trans = OrderLattice'.≤-trans O
-
-  _∧_ : carrier → carrier → carrier
-  _∧_ = OrderLattice'._∧_ O
-
-  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))
-  ∧-glb = OrderLattice'.∧-glb O
-
-  _∨_ : carrier → carrier → carrier
-  _∨_ = OrderLattice'._∨_ O
-
-  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
-  ∨-lub = OrderLattice'.∨-lub O
+  open OrderLattice' O
 
   ≤-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ≤ c) → (b ≤ d)
   ≤-cont a b c d [a≡b] [c≡d] [a≤c] = [b≤d]
@@ -1516,124 +1351,44 @@ OrderLatticesContinuous {i} {j} {k} O =
 
 ∨∧-distr→∧∨-distr : 
  ∀ {i} {j} {k} → (O : OrderLattice' {i} {j} {k}) → 
- let carrier : Set i
-     carrier = OrderLattice'.carrier O
-     
-     ≡ : carrier → carrier → Set k
-     ≡ = OrderLattice'._≡_ O
+ let
+  open OrderLattice' O
 
-     ≡-equiv : isEquivalence ≡
-     ≡-equiv = 
+  ≡-equiv : isEquivalence _≡_
+  ≡-equiv = 
        record {
          ≡-refl = OrderLattice'.≡-refl O ;
          ≡-sym = OrderLattice'.≡-sym O ;
          ≡-trans = OrderLattice'.≡-trans O
        }
-
-     ∨ : carrier → carrier → carrier
-     ∨ = OrderLattice'._∨_ O
-
-     ∧ : carrier → carrier → carrier
-     ∧ = OrderLattice'._∧_ O
  in
-   left-distributes-over {i} {k} {carrier} {≡} {≡-equiv} ∨ ∧ →
-   left-distributes-over {i} {k} {carrier} {≡} {≡-equiv} ∧ ∨
+  left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∨_ _∧_ →
+  left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∧_ _∨_
 ∨∧-distr→∧∨-distr {i} {j} {k} O [∨∧-distr] a b c = proof
  where
-  carrier : Set i
-  carrier = OrderLattice'.carrier O
+  open OrderLattice' O
 
-  _≡_ : carrier → carrier → Set k
-  _≡_ = OrderLattice'._≡_ O
+  ≡-sym' : {x y : carrier} → x ≡ y → y ≡ x
+  ≡-sym' {x} {y} = ≡-sym x y
 
-  ≡-refl : (x : carrier) → x ≡ x
-  ≡-refl = OrderLattice'.≡-refl O
+  ≡-trans' : {x y z : carrier} → x ≡ y → y ≡ z → x ≡ z
+  ≡-trans' {x} {y} {z} = ≡-trans x y z
 
-  ≡-sym' : (x y : carrier) → x ≡ y → y ≡ x
-  ≡-sym' = OrderLattice'.≡-sym O
-
-  ≡-sym : {x y : carrier} → x ≡ y → y ≡ x
-  ≡-sym {x} {y} = ≡-sym' x y
-
-  ≡-trans' : (x y z : carrier) → x ≡ y → y ≡ z → x ≡ z
-  ≡-trans' = OrderLattice'.≡-trans O
-
-  ≡-trans : {x y z : carrier} → x ≡ y → y ≡ z → x ≡ z
-  ≡-trans {x} {y} {z} = ≡-trans' x y z
-
-
-  _≤_ : carrier → carrier → Set j
-  _≤_ = OrderLattice'._≤_ O
-
-  ≤-refl : (x y : carrier) → x ≡ y → (x ≤ y) × (y ≤ x)
-  ≤-refl = OrderLattice'.≤-refl O
-
-  ≤-antisym : (x y : carrier) → x ≤ y → y ≤ x → x ≡ y
-  ≤-antisym = OrderLattice'.≤-antisym O
-
-  ≤-trans : (x y z : carrier) → x ≤ y → y ≤ z → x ≤ z
-  ≤-trans = OrderLattice'.≤-trans O
-
-  _∧_ : carrier → carrier → carrier
-  _∧_ = OrderLattice'._∧_ O
-
-  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))
-  ∧-glb = OrderLattice'.∧-glb O 
- 
-  _∨_ : carrier → carrier → carrier
-  _∨_ = OrderLattice'._∨_ O
-
-  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
-  ∨-lub = OrderLattice'.∨-lub O
-
-  O-isAlgebraicLattice : isAlgebraicLattice'' carrier _≡_ (record {≡-refl = ≡-refl ; ≡-sym = ≡-sym' ; ≡-trans = ≡-trans' }) _∧_ _∨_
+  O-isAlgebraicLattice : isAlgebraicLattice'' carrier _≡_ (record {≡-refl = ≡-refl ; ≡-sym = ≡-sym ; ≡-trans = ≡-trans }) _∧_ _∨_
   O-isAlgebraicLattice = OrderLattice→isAlgebraicLattice O
 
-  ∧-assoc : (x y z : carrier) → (x ∧ (y ∧ z)) ≡ ((x ∧ y) ∧ z)
-  ∧-assoc = isAlgebraicLattice''.∧-assoc O-isAlgebraicLattice
+  open isAlgebraicLattice'' O-isAlgebraicLattice
 
-  ∨-comm : (x y : carrier) → (x ∨ y) ≡ (y ∨ x)
-  ∨-comm = isAlgebraicLattice''.∨-comm O-isAlgebraicLattice
-
-  ∧∨-absorp : (x y : carrier) → (x ∧ (x ∨ y)) ≡ x
-  ∧∨-absorp = isAlgebraicLattice''.∧∨-absorp O-isAlgebraicLattice
-
-  ∨∧-absorp : (x y : carrier) → (x ∨ (x ∧ y)) ≡ x
-  ∨∧-absorp = isAlgebraicLattice''.∨∧-absorp O-isAlgebraicLattice
 
   [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] : ((a ∧ b) ∨ (a ∧ c)) ≡ (((a ∧ b) ∨ a) ∧ ((a ∧ b) ∨ c))
   [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] = [∨∧-distr] (a ∧ b) a c
 
 
-{-
-[[a∧b]∨a]∧ : carrier → carrier
-[[a∧b]∨a]∧ x = (((a ∧ b) ∨ a) ∧ x)
-
-
-problem!
-  [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]] : (((a ∧ b) ∨ a) ∧ ((a ∧ b) ∨ c)) ≡ (((a ∧ b) ∨ a) ∧ ((c ∨ a) ∧ (c ∨ b)))
-  [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]] = [x==y]→[fx==fy] [[a∧b]∨a]∧ ((a ∧ b) ∨ c) ((c ∨ a) ∧ (c ∨ b)) [[a∧b]∨c]≡[[c∨a]∧[c∨b]]
--}
-
-{-
-...
-or wait....
-is it a problem?
-curiously not, thanks to our modification of the partial order to be coherent with the underlying
-equivalence relation we have that continuity result:
--}
 
   O-isContinuous : LatticeContinuity O
   O-isContinuous = OrderLatticesContinuous O
 
-  ≤-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ≤ c) → (b ≤ d)
-  ≤-cont = LatticeContinuity.≤-cont O-isContinuous
-
-  ∧-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∧ c) ≡ (b ∧ d)
-  ∧-cont = LatticeContinuity.∧-cont O-isContinuous
-
-  ∨-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∨ c) ≡ (b ∨ d)
-  ∨-cont = LatticeContinuity.∨-cont O-isContinuous
+  open LatticeContinuity O-isContinuous
 
   [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]] : (((a ∧ b) ∨ a) ∧ ((a ∧ b) ∨ c)) ≡ (((a ∧ b) ∨ a) ∧ ((c ∨ a) ∧ (c ∨ b)))
   [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]] = ∧-cont ((a ∧ b) ∨ a) ((a ∧ b) ∨ a) ((a ∧ b) ∨ c) ((c ∨ a) ∧ (c ∨ b)) (≡-refl ((a ∧ b) ∨ a)) [[a∧b]∨c]≡[[c∨a]∧[c∨b]]
@@ -1645,7 +1400,7 @@ equivalence relation we have that continuity result:
     [c∨[a∧b]]≡[[c∨a]∧[c∨b]] = [∨∧-distr] c a b
 
     [[a∧b]∨c]≡[[c∨a]∧[c∨b]] : ((a ∧ b) ∨ c) ≡ ((c ∨ a) ∧ (c ∨ b))
-    [[a∧b]∨c]≡[[c∨a]∧[c∨b]] = ≡-trans [[a∧b]∨c]≡[c∨[a∧b]] [c∨[a∧b]]≡[[c∨a]∧[c∨b]]
+    [[a∧b]∨c]≡[[c∨a]∧[c∨b]] = ≡-trans' [[a∧b]∨c]≡[c∨[a∧b]] [c∨[a∧b]]≡[[c∨a]∧[c∨b]]
 
 
 
@@ -1659,7 +1414,7 @@ equivalence relation we have that continuity result:
     [a∨[a∧b]]≡a = ∨∧-absorp a b
 
     [[a∧b]∨a]≡a : ((a ∧ b) ∨ a) ≡ a
-    [[a∧b]∨a]≡a = ≡-trans [[a∧b]∨a]≡[a∨[a∧b]] [a∨[a∧b]]≡a
+    [[a∧b]∨a]≡a = ≡-trans' [[a∧b]∨a]≡[a∨[a∧b]] [a∨[a∧b]]≡a
 
 
   a∧[[c∨a]∧[c∨b]]≡[a∧[c∨a]]∧[c∨b] : (a ∧ ((c ∨ a) ∧ (c ∨ b))) ≡ ((a ∧ (c ∨ a)) ∧ (c ∨ b))
@@ -1675,22 +1430,22 @@ equivalence relation we have that continuity result:
     [a∧[a∨c]]≡a = ∧∨-absorp a c
 
     [a∧[c∨a]]≡a : (a ∧ (c ∨ a)) ≡ a
-    [a∧[c∨a]]≡a = ≡-trans [a∧[c∨a]]≡[a∧[a∨c]] [a∧[a∨c]]≡a
+    [a∧[c∨a]]≡a = ≡-trans' [a∧[c∨a]]≡[a∧[a∨c]] [a∧[a∨c]]≡a
 
 
   a∧[c∨b]≡a∧[b∨c] : (a ∧ (c ∨ b)) ≡ (a ∧ (b ∨ c))
   a∧[c∨b]≡a∧[b∨c] = ∧-cont a a (c ∨ b) (b ∨ c) (≡-refl a) (∨-comm c b)
 
   proof : (a ∧ (b ∨ c)) ≡ ((a ∧ b) ∨ (a ∧ c))
-  proof = ≡-sym (≡-trans [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] 
-                (≡-trans [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]]
-                (≡-trans [[a∧b]∨a]∧[[c∨a]∧[c∨b]]≡a∧[[c∨a]∧[c∨b]]
-                (≡-trans a∧[[c∨a]∧[c∨b]]≡[a∧[c∨a]]∧[c∨b]
-                (≡-trans [a∧[c∨a]]∧[c∨b]≡a∧[c∨b] a∧[c∨b]≡a∧[b∨c]
+  proof = ≡-sym' (≡-trans' [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] 
+                (≡-trans' [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]]
+                (≡-trans' [[a∧b]∨a]∧[[c∨a]∧[c∨b]]≡a∧[[c∨a]∧[c∨b]]
+                (≡-trans' a∧[[c∨a]∧[c∨b]]≡[a∧[c∨a]]∧[c∨b]
+                (≡-trans' [a∧[c∨a]]∧[c∨b]≡a∧[c∨b] a∧[c∨b]≡a∧[b∨c]
                 )))))
 
 
-
+                     
 {-
 ∧∨-distr→∨∧-distr :
 -}

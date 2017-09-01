@@ -240,6 +240,12 @@ data ∃ {i} {j} (A : Set i) (P : A → Set j) : Set (i ⊔ j) where
 
 syntax ∃ A (λ x → e) = ∃ x ∈ A , e
 
+π₁ : ∀ {i} {j} {A : Set i} {P : A → Set j} → ∃ A P → A
+π₁ (a , b) = a
+
+π₂ : ∀ {i} {j} {A : Set i} {P : A → Set j} → (p : ∃ A P) → P (π₁ p)
+π₂ (a , b) = b
+
 data ⊥ : Set where
 ω : ∀ {α} {A : Set α} → ⊥ → A
 ω ()
@@ -1173,6 +1179,15 @@ record OrderDistributiveLattice' {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ 
    in
     (x y z : carrier) → (x ∨ (y ∧ z)) ≡ ((x ∨ y) ∧ (x ∨ z))
 
+record isDistributiveLattice {i} {j} {k} (O : OrderLattice' {i} {j} {k}) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  ∧∨-distr : 
+   let open OrderLattice' O
+   in  (x y z : carrier) → (x ∧ (y ∨ z)) ≡ ((x ∧ y) ∨ (x ∧ z))
+  ∨∧-distr :
+   let open OrderLattice' O
+   in  (x y z : carrier) → (x ∨ (y ∧ z)) ≡ ((x ∨ y) ∧ (x ∨ z))
+
 left-distributes-over : ∀ {i} {j} {A : Set i} {_≡_ : A → A → Set j} {≡-equiv : isEquivalence _≡_} (f : A → A → A) (g : A → A → A) → Set (i ⊔ j)
 left-distributes-over {i} {j} {A} {_≡_} {≡-equiv} f g = (x y z : A) → (f x (g y z)) ≡ (g (f x y) (f x z))
 
@@ -1542,4 +1557,136 @@ OrderLatticesContinuous {i} {j} {k} O =
                 (≡-trans' [a∨[c∧a]]∨[c∧b]≡a∨[c∧b] a∨[c∧b]≡a∨[b∧c]
                 )))))
   
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Definition 2.1.5
+-}
+record isBounded {i} {j} {k} (O : OrderLattice' {i} {j} {k}) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  max : OrderLattice'.carrier O
+  max-is-max :
+   let
+    open OrderLattice' O
+   in
+    (x : carrier) → (x ≤ max)
+  min : OrderLattice'.carrier O
+  min-is-min :
+   let
+    open OrderLattice' O
+   in
+    (x : carrier) → (min ≤ x)
 
+isComplemented : ∀ {i j k} (O : OrderLattice' {i} {j} {k}) → Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k))
+isComplemented {i} {j} {k} O = 
+ ∃ b ∈ isBounded O , (
+  let 
+   open isBounded b
+  in
+   (x : carrier) → ∃ y ∈ carrier , (((x ∨ y) ≡ max) × ((x ∧ y) ≡ min))
+ )
+ where
+  open OrderLattice' O
+  
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Proposition 2.1.6
+-}
+isTrivialLattice : ∀ {i j k} → (O : OrderLattice' {i} {j} {k}) → (c : isComplemented O) → Set (i ⊔  k)
+isTrivialLattice {i} {j} {k} O c = (x : carrier) → (x ≡ max) ⊹ (x ≡ min)
+ where
+  open OrderLattice' O
+  open isBounded (π₁ c)
+
+record isTrivialLattice' {i} {j} {k} (O : OrderLattice' {i} {j} {k}) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  bounded : isBounded O
+  trivial : 
+   let open OrderLattice' O
+       open isBounded bounded
+   in  (x : carrier) → (x ≡ max) ⊹ (x ≡ min)  
+
+[A→C]→[B→C]→[A⊹B→C] : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → (A → C) → (B → C) → (A ⊹ B) → C
+[A→C]→[B→C]→[A⊹B→C] f g (inl a) = f a
+[A→C]→[B→C]→[A⊹B→C] f g (inr b) = g b
+
+every-totally-ordered-complemented-lattice-is-trivial : 
+ ∀ {i j k} → (O : OrderLattice' {i} {j} {k}) → (c : isComplemented O) → 
+ let 
+  open OrderLattice' O
+  open isBounded (π₁ c)
+ in
+  ((x y : carrier) → ((x ≤ y) ⊹ (y ≤ x))) → isTrivialLattice' O
+every-totally-ordered-complemented-lattice-is-trivial {i} {j} {k} O c t = 
+ record {
+  bounded = π₁ c ;
+  trivial = trivial 
+ }
+ where
+  open OrderLattice' O
+  ≡-sym' : {x y : carrier} → x ≡ y → y ≡ x
+  ≡-sym' {x} {y} = ≡-sym x y
+
+  ≡-trans' : {x y z : carrier} → x ≡ y → y ≡ z → x ≡ z
+  ≡-trans' {x} {y} {z} = ≡-trans x y z
+
+  open isBounded (π₁ c)
+  ~ : carrier → carrier
+  ~ z = π₁ ((π₂ c) z)
+
+  O-isAlgebraicLattice : isAlgebraicLattice'' carrier _≡_ (record {≡-refl = ≡-refl ; ≡-sym = ≡-sym ; ≡-trans = ≡-trans }) _∧_ _∨_
+  O-isAlgebraicLattice = OrderLattice→isAlgebraicLattice O
+
+  open isAlgebraicLattice'' O-isAlgebraicLattice
+
+
+  x∨y≡y : (x y : carrier) → (x ≤ y) → (x ∨ y) ≡ y
+  x∨y≡y x y [x≤y] = first ((first (x≤y-iff-[x∨y≡y-and-x∧y≡x] O x y)) [x≤y])
+
+  x∧y≡x : (x y : carrier) → (x ≤ y) → (x ∧ y) ≡ x
+  x∧y≡x x y [x≤y] = second ((first (x≤y-iff-[x∨y≡y-and-x∧y≡x] O x y)) [x≤y])
+ 
+ 
+  trivial : (x : carrier) → (x ≡ max) ⊹ (x ≡ min)
+  trivial x = proof
+   where
+    x-comp : ∃ ~x ∈ carrier , (((x ∨ ~x) ≡ max) × ((x ∧ ~x) ≡ min))
+    x-comp = (π₂ c) x
+
+    ~x : carrier
+    ~x = π₁ x-comp
+
+    x∨~x≡max : (x ∨ ~x) ≡ max
+    x∨~x≡max = first (π₂ x-comp)
+
+    x∧~x≡min : (x ∧ ~x) ≡ min
+    x∧~x≡min = second (π₂ x-comp)
+    
+    x≤~x-or-~x≤x : (x ≤ ~x) ⊹ (~x ≤ x)
+    x≤~x-or-~x≤x = t x ~x
+
+    x≤~x→x≡min : (x ≤ ~x) → (x ≡ max) ⊹ (x ≡ min)
+    x≤~x→x≡min [x≤~x] = inr x≡min
+     where
+      x∧~x≡x : (x ∧ ~x) ≡ x
+      x∧~x≡x = x∧y≡x x ~x [x≤~x]
+
+      x≡min : (x ≡ min)
+      x≡min = ≡-trans' (≡-sym' x∧~x≡x) x∧~x≡min
+
+    ~x≤x→x≡max : (~x ≤ x) → (x ≡ max) ⊹ (x ≡ min)
+    ~x≤x→x≡max [~x≤x] = inl x≡max
+     where
+      ~x∨x≡x : (~x ∨ x) ≡ x
+      ~x∨x≡x = x∨y≡y ~x x [~x≤x]
+
+      x≡max : (x ≡ max)
+      x≡max = ≡-trans' (≡-sym' ~x∨x≡x) (≡-trans' (∨-comm ~x x) x∨~x≡max)
+ 
+
+    proof : (x ≡ max) ⊹ (x ≡ min)
+    proof = [A→C]→[B→C]→[A⊹B→C] ~x≤x→x≡max x≤~x→x≡min (t ~x x)
+
+{-
+http://documents.kenyon.edu/math/SamTay.pdf
+Proposition 2.1.7
+-}

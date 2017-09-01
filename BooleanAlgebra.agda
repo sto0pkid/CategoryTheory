@@ -1273,8 +1273,6 @@ OrderLatticesContinuous {i} {j} {k} O =
         [b∧d≤d] : (b ∧ d) ≤ d
         [b∧d≤d] = first (second (∧-glb b d))
 
-
-
     [a∧c≤b∧d] : (a ∧ c) ≤ (b ∧ d)
     [a∧c≤b∧d] = (second (second (∧-glb b d))) (a ∧ c ) ([a∧c≤b] , [a∧c≤d])
      where
@@ -1303,50 +1301,50 @@ OrderLatticesContinuous {i} {j} {k} O =
   ∨-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∨ c) ≡ (b ∨ d)
   ∨-cont a b c d [a≡b] [c≡d] = [a∨c]≡[b∨d]
    where
-    [a≤b] : a ≤ b
-    [a≤b] = first (≤-refl a b [a≡b])
-
-    [b≤b∨d] : b ≤ (b ∨ d)
-    [b≤b∨d] = first (∨-lub b d)
-
-    [a≤b∨d] : a ≤ (b ∨ d)
-    [a≤b∨d] = ≤-trans a b (b ∨ d) [a≤b] [b≤b∨d]
-
-    [c≤d] : c ≤ d
-    [c≤d] = first (≤-refl c d [c≡d])
- 
-    [d≤b∨d] : d ≤ (b ∨ d)
-    [d≤b∨d] = first (second (∨-lub b d))
-
-    [c≤b∨d] : c ≤ (b ∨ d)
-    [c≤b∨d] = ≤-trans c d (b ∨ d) [c≤d] [d≤b∨d]
-
-    [a∨c≤b∨d] : (a ∨ c) ≤ (b ∨ d)
-    [a∨c≤b∨d] = (second (second (∨-lub a c))) (b ∨ d) ([a≤b∨d] , [c≤b∨d])
-
-    [b≤a] : b ≤ a
-    [b≤a] = second (≤-refl a b [a≡b])
-
-    [a≤a∨c] : a ≤ (a ∨ c)
-    [a≤a∨c] = first (∨-lub a c)
-
-    [b≤a∨c] : b ≤ (a ∨ c)
-    [b≤a∨c] = ≤-trans b a (a ∨ c) [b≤a] [a≤a∨c]
-
-    [d≤c] : d ≤ c
-    [d≤c] = second (≤-refl c d [c≡d])
- 
-    [c≤a∨c] : c ≤ (a ∨ c)
-    [c≤a∨c] = first (second (∨-lub a c))
-
-    [d≤a∨c] : d ≤ (a ∨ c)
-    [d≤a∨c] = ≤-trans d c (a ∨ c) [d≤c] [c≤a∨c]
-
-    [b∨d≤a∨c] : (b ∨ d) ≤ (a ∨ c)
-    [b∨d≤a∨c] = (second (second (∨-lub b d))) (a ∨ c) ([b≤a∨c] , [d≤a∨c])
-
     [a∨c]≡[b∨d] : (a ∨ c) ≡ (b ∨ d)
     [a∨c]≡[b∨d] = ≤-antisym (a ∨ c) (b ∨ d) [a∨c≤b∨d] [b∨d≤a∨c]
+     where
+      [a∨c≤b∨d] : (a ∨ c) ≤ (b ∨ d)
+      [a∨c≤b∨d] = (second (second (∨-lub a c))) (b ∨ d) ([a≤b∨d] , [c≤b∨d])
+       where
+        [a≤b] : a ≤ b
+        [a≤b] = first (≤-refl a b [a≡b])
+
+        [b≤b∨d] : b ≤ (b ∨ d)
+        [b≤b∨d] = first (∨-lub b d)
+
+        [a≤b∨d] : a ≤ (b ∨ d)
+        [a≤b∨d] = ≤-trans a b (b ∨ d) [a≤b] [b≤b∨d]
+
+        [c≤d] : c ≤ d
+        [c≤d] = first (≤-refl c d [c≡d])
+ 
+        [d≤b∨d] : d ≤ (b ∨ d)
+        [d≤b∨d] = first (second (∨-lub b d))
+
+        [c≤b∨d] : c ≤ (b ∨ d)
+        [c≤b∨d] = ≤-trans c d (b ∨ d) [c≤d] [d≤b∨d]
+
+      [b∨d≤a∨c] : (b ∨ d) ≤ (a ∨ c)
+      [b∨d≤a∨c] = (second (second (∨-lub b d))) (a ∨ c) ([b≤a∨c] , [d≤a∨c])
+       where
+        [b≤a] : b ≤ a
+        [b≤a] = second (≤-refl a b [a≡b])
+
+        [a≤a∨c] : a ≤ (a ∨ c)
+        [a≤a∨c] = first (∨-lub a c)
+
+        [b≤a∨c] : b ≤ (a ∨ c)
+        [b≤a∨c] = ≤-trans b a (a ∨ c) [b≤a] [a≤a∨c]
+
+        [d≤c] : d ≤ c
+        [d≤c] = second (≤-refl c d [c≡d])
+ 
+        [c≤a∨c] : c ≤ (a ∨ c)
+        [c≤a∨c] = first (second (∨-lub a c))
+
+        [d≤a∨c] : d ≤ (a ∨ c)
+        [d≤a∨c] = ≤-trans d c (a ∨ c) [d≤c] [c≤a∨c]
   
 
 ∨∧-distr→∧∨-distr : 
@@ -1379,16 +1377,17 @@ OrderLatticesContinuous {i} {j} {k} O =
 
   open isAlgebraicLattice'' O-isAlgebraicLattice
 
-
-  [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] : ((a ∧ b) ∨ (a ∧ c)) ≡ (((a ∧ b) ∨ a) ∧ ((a ∧ b) ∨ c))
-  [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] = [∨∧-distr] (a ∧ b) a c
-
-
-
   O-isContinuous : LatticeContinuity O
   O-isContinuous = OrderLatticesContinuous O
 
   open LatticeContinuity O-isContinuous
+
+
+
+
+  [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] : ((a ∧ b) ∨ (a ∧ c)) ≡ (((a ∧ b) ∨ a) ∧ ((a ∧ b) ∨ c))
+  [a∧b]∨[a∧c]≡[[a∧b]∨a]∧[[a∧b]∨c] = [∨∧-distr] (a ∧ b) a c
+
 
   [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]] : (((a ∧ b) ∨ a) ∧ ((a ∧ b) ∨ c)) ≡ (((a ∧ b) ∨ a) ∧ ((c ∨ a) ∧ (c ∨ b)))
   [[a∧b]∨a]∧[[a∧b]∨c]≡[[a∧b]∨a]∧[[c∨a]∧[c∨b]] = ∧-cont ((a ∧ b) ∨ a) ((a ∧ b) ∨ a) ((a ∧ b) ∨ c) ((c ∨ a) ∧ (c ∨ b)) (≡-refl ((a ∧ b) ∨ a)) [[a∧b]∨c]≡[[c∨a]∧[c∨b]]
@@ -1446,6 +1445,101 @@ OrderLatticesContinuous {i} {j} {k} O =
 
 
                      
-{-
+
 ∧∨-distr→∨∧-distr :
--}
+ ∀ {i} {j} {k} → (O : OrderLattice' {i} {j} {k}) → 
+ let
+  open OrderLattice' O
+
+  ≡-equiv : isEquivalence _≡_
+  ≡-equiv = 
+       record {
+         ≡-refl = OrderLattice'.≡-refl O ;
+         ≡-sym = OrderLattice'.≡-sym O ;
+         ≡-trans = OrderLattice'.≡-trans O
+       }
+ in
+  left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∧_ _∨_ →
+  left-distributes-over {i} {k} {carrier} {_≡_} {≡-equiv} _∨_ _∧_
+∧∨-distr→∨∧-distr {i} {j} {k} O [∧∨-distr] a b c = proof
+ where
+  open OrderLattice' O
+
+  ≡-sym' : {x y : carrier} → x ≡ y → y ≡ x
+  ≡-sym' {x} {y} = ≡-sym x y
+
+  ≡-trans' : {x y z : carrier} → x ≡ y → y ≡ z → x ≡ z
+  ≡-trans' {x} {y} {z} = ≡-trans x y z
+
+  O-isAlgebraicLattice : isAlgebraicLattice'' carrier _≡_ (record {≡-refl = ≡-refl ; ≡-sym = ≡-sym ; ≡-trans = ≡-trans }) _∧_ _∨_
+  O-isAlgebraicLattice = OrderLattice→isAlgebraicLattice O
+
+  open isAlgebraicLattice'' O-isAlgebraicLattice
+
+  O-isContinuous : LatticeContinuity O
+  O-isContinuous = OrderLatticesContinuous O
+
+  open LatticeContinuity O-isContinuous
+
+
+
+
+  [a∨b]∧[a∨c]≡[[a∨b]∧a]∨[[a∨b]∧c] : ((a ∨ b) ∧ (a ∨ c)) ≡ (((a ∨ b) ∧ a) ∨ ((a ∨ b) ∧ c))
+  [a∨b]∧[a∨c]≡[[a∨b]∧a]∨[[a∨b]∧c] = [∧∨-distr] (a ∨ b) a c
+
+
+  [[a∨b]∧a]∨[[a∨b]∧c]≡[[a∨b]∧a]∨[[c∧a]∨[c∧b]] : (((a ∨ b) ∧ a) ∨ ((a ∨ b) ∧ c)) ≡ (((a ∨ b) ∧ a) ∨ ((c ∧ a) ∨ (c ∧ b)))
+  [[a∨b]∧a]∨[[a∨b]∧c]≡[[a∨b]∧a]∨[[c∧a]∨[c∧b]] = ∨-cont ((a ∨ b) ∧ a) ((a ∨ b) ∧ a) ((a ∨ b) ∧ c) ((c ∧ a) ∨ (c ∧ b)) (≡-refl ((a ∨ b) ∧ a)) [[a∨b]∧c]≡[[c∧a]∨[c∧b]]
+   where
+    [[a∨b]∧c]≡[c∧[a∨b]] : ((a ∨ b) ∧ c) ≡ (c ∧ (a ∨ b))
+    [[a∨b]∧c]≡[c∧[a∨b]] = ∧-comm (a ∨ b) c
+
+    [c∧[a∨b]]≡[[c∧a]∨[c∧b]] : (c ∧ (a ∨ b)) ≡ ((c ∧ a) ∨ (c ∧ b))
+    [c∧[a∨b]]≡[[c∧a]∨[c∧b]] = [∧∨-distr] c a b
+
+    [[a∨b]∧c]≡[[c∧a]∨[c∧b]] : ((a ∨ b) ∧ c) ≡ ((c ∧ a) ∨ (c ∧ b))
+    [[a∨b]∧c]≡[[c∧a]∨[c∧b]] = ≡-trans' [[a∨b]∧c]≡[c∧[a∨b]] [c∧[a∨b]]≡[[c∧a]∨[c∧b]]
+
+
+
+  [[a∨b]∧a]∨[[c∧a]∨[c∧b]]≡a∨[[c∧a]∨[c∧b]] : (((a ∨ b) ∧ a) ∨ ((c ∧ a) ∨ (c ∧ b))) ≡ (a ∨ ((c ∧ a) ∨ (c ∧ b)))
+  [[a∨b]∧a]∨[[c∧a]∨[c∧b]]≡a∨[[c∧a]∨[c∧b]] = ∨-cont ((a ∨ b) ∧ a) a ((c ∧ a) ∨ (c ∧ b)) ((c ∧ a) ∨ (c ∧ b)) [[a∨b]∧a]≡a (≡-refl ((c ∧ a) ∨ (c ∧ b)))
+   where
+    [[a∨b]∧a]≡[a∧[a∨b]] : ((a ∨ b) ∧ a) ≡ (a ∧ (a ∨ b))
+    [[a∨b]∧a]≡[a∧[a∨b]] = ∧-comm (a ∨ b) a
+
+    [a∧[a∨b]]≡a : (a ∧ (a ∨ b)) ≡ a
+    [a∧[a∨b]]≡a = ∧∨-absorp a b
+
+    [[a∨b]∧a]≡a : ((a ∨ b) ∧ a) ≡ a
+    [[a∨b]∧a]≡a = ≡-trans' [[a∨b]∧a]≡[a∧[a∨b]] [a∧[a∨b]]≡a
+
+
+  a∨[[c∧a]∨[c∧b]]≡[a∨[c∧a]]∨[c∧b] : (a ∨ ((c ∧ a) ∨ (c ∧ b))) ≡ ((a ∨ (c ∧ a)) ∨ (c ∧ b))
+  a∨[[c∧a]∨[c∧b]]≡[a∨[c∧a]]∨[c∧b] = ∨-assoc a (c ∧ a) (c ∧ b)
+
+  [a∨[c∧a]]∨[c∧b]≡a∨[c∧b] : ((a ∨ (c ∧ a)) ∨ (c ∧ b)) ≡ (a ∨ (c ∧ b))
+  [a∨[c∧a]]∨[c∧b]≡a∨[c∧b] = ∨-cont (a ∨ (c ∧ a)) a (c ∧ b) (c ∧ b) [a∨[c∧a]]≡a (≡-refl (c ∧ b))
+   where
+    [a∨[c∧a]]≡[a∨[a∧c]] : (a ∨ (c ∧ a)) ≡ (a ∨ (a ∧ c))
+    [a∨[c∧a]]≡[a∨[a∧c]] = ∨-cont a a (c ∧ a) (a ∧ c) (≡-refl a) (∧-comm c a)
+
+    [a∨[a∧c]]≡a : (a ∨ (a ∧ c)) ≡ a
+    [a∨[a∧c]]≡a = ∨∧-absorp a c
+
+    [a∨[c∧a]]≡a : (a ∨ (c ∧ a)) ≡ a
+    [a∨[c∧a]]≡a = ≡-trans' [a∨[c∧a]]≡[a∨[a∧c]] [a∨[a∧c]]≡a
+
+
+  a∨[c∧b]≡a∨[b∧c] : (a ∨ (c ∧ b)) ≡ (a ∨ (b ∧ c))
+  a∨[c∧b]≡a∨[b∧c] = ∨-cont a a (c ∧ b) (b ∧ c) (≡-refl a) (∧-comm c b)
+
+  proof : (a ∨ (b ∧ c)) ≡ ((a ∨ b) ∧ (a ∨ c))
+  proof = ≡-sym' (≡-trans' [a∨b]∧[a∨c]≡[[a∨b]∧a]∨[[a∨b]∧c] 
+                (≡-trans' [[a∨b]∧a]∨[[a∨b]∧c]≡[[a∨b]∧a]∨[[c∧a]∨[c∧b]]
+                (≡-trans' [[a∨b]∧a]∨[[c∧a]∨[c∧b]]≡a∨[[c∧a]∨[c∧b]]
+                (≡-trans' a∨[[c∧a]∨[c∧b]]≡[a∨[c∧a]]∨[c∧b]
+                (≡-trans' [a∨[c∧a]]∨[c∧b]≡a∨[c∧b] a∨[c∧b]≡a∨[b∧c]
+                )))))
+  
+

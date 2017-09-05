@@ -1758,6 +1758,403 @@ data Boolᵢ (i : Level) : Set i where
   proof : ⊥
   proof = true≢₂false true≡₂false
 
+data Nat : Set where
+ zero : Nat
+ suc : Nat → Nat
+
+x==0⊹x==suc-k : (x : Nat) → (x == zero) ⊹ (∃ k ∈ Nat , (x == (suc k)))
+x==0⊹x==suc-k zero = inl refl
+x==0⊹x==suc-k (suc x) = inr (x , refl)
+
+
+plus : Nat → Nat → Nat
+plus zero y    = y
+plus (suc x) y = suc (plus x y)
+
+mult : Nat → Nat → Nat
+mult zero y    = zero
+mult (suc x) y = plus y (mult x y)
+
+_divides_ : Nat → Nat → Set
+x divides y = ∃ k ∈ Nat , ((mult k x) == y) 
+
+x+0==x-ind : (x : Nat) → plus x zero == x → plus (suc x) zero == (suc x)
+x+0==x-ind x [x+0==x] = [suc-x+0==suc-x]
+ where
+  [1+x]+0==1+[x+0] : plus (suc x) zero == suc (plus x zero)
+  [1+x]+0==1+[x+0] = refl
+
+  1+[x+0]==1+x : suc (plus x zero) == suc x
+  1+[x+0]==1+x = [x==y]→[fx==fy] suc (plus x zero) x [x+0==x]
+
+  [suc-x+0==suc-x] : plus (suc x) zero == suc x
+  [suc-x+0==suc-x] = ==-trans [1+x]+0==1+[x+0] 1+[x+0]==1+x
+
+
+
+
+x+0==x : (x : Nat) → plus x zero == x
+x+0==x zero = refl
+x+0==x (suc x) = x+0==x-ind x (x+0==x x)
+
+1*x==x : (x : Nat) → mult (suc zero) x == x
+1*x==x x = proof
+ where
+  1*x==x+0*x : mult (suc zero) x == plus x (mult zero x)
+  1*x==x+0*x = refl
+  
+  0*x==0 : mult zero x == zero
+  0*x==0 = refl
+ 
+  x+0*x==x+0 : plus x (mult zero x) == plus x zero
+  x+0*x==x+0 = [x==y]→[fx==fy] (plus x) (mult zero x) zero 0*x==0
+
+  [x+0==x] : plus x zero == x
+  [x+0==x] = x+0==x x
+  
+  proof : mult (suc zero) x == x
+  proof = ==-trans 1*x==x+0*x (==-trans x+0*x==x+0 [x+0==x])
+
+x*0==0-ind : (x : Nat) → mult x zero == zero → mult (suc x) zero == zero
+x*0==0-ind x x*0==0 = proof
+ where
+  l1 : mult (suc x) zero == plus zero (mult x zero)
+  l1 = refl
+
+  l2 : plus zero (mult x zero) == mult x zero
+  l2 = refl
+
+  proof : mult (suc x) zero == zero
+  proof = ==-trans l1 (==-trans l2 x*0==0)
+
+x*0==0 : (x : Nat) → mult x zero == zero
+x*0==0 zero = refl
+x*0==0 (suc x) = x*0==0-ind x (x*0==0 x)
+
+
+¬[suc-x==0] : (x : Nat) → suc x == zero → ⊥
+¬[suc-x==0] x [suc-x==zero] = proof
+ where
+  f : Nat → Bool
+  f zero = false
+  f (suc x) = true
+
+  [true==false] : true == false
+  [true==false] = [x==y]→[fx==fy] f (suc x) zero [suc-x==zero]
+
+  proof : ⊥
+  proof = true≠false [true==false]
+
+¬[0-divides-suc-x] : (x : Nat) → zero divides (suc x) → ⊥
+¬[0-divides-suc-x] x (k , k*0==suc-x) = proof
+ where
+  l1 : mult k zero == zero
+  l1 = x*0==0 k
+
+  l2 : suc x == zero
+  l2 = ==-trans (==-sym k*0==suc-x) l1 
+
+  proof : ⊥
+  proof = ¬[suc-x==0] x l2
+
+
+x+suc-y==suc[x+y]-ind : (x y : Nat) → plus x (suc y) == suc (plus x y) → plus (suc x) (suc y) == suc (plus (suc x) y)
+x+suc-y==suc[x+y]-ind x y [x+suc-y==suc[x+y]] = proof
+ where
+  [suc-x+suc-y==suc[x+suc-y]] : plus (suc x) (suc y) == suc (plus x (suc y))
+  [suc-x+suc-y==suc[x+suc-y]] = refl
+
+  [suc[x+suc-y]==suc[suc[x+y]]] : suc (plus x (suc y)) == suc (suc (plus x y))
+  [suc[x+suc-y]==suc[suc[x+y]]] = [x==y]→[fx==fy] suc (plus x (suc y)) (suc (plus x y)) [x+suc-y==suc[x+y]]
+
+  [suc[suc[x+y]]==suc[suc-x+y]] : suc (suc (plus x y)) == suc (plus (suc x) y)
+  [suc[suc[x+y]]==suc[suc-x+y]] = refl
+
+  proof : plus (suc x) (suc y) == suc (plus (suc x) y)
+  proof = ==-trans [suc-x+suc-y==suc[x+suc-y]] (==-trans [suc[x+suc-y]==suc[suc[x+y]]] [suc[suc[x+y]]==suc[suc-x+y]])
+
+
+x+suc-y==suc[x+y] : (x y : Nat) → plus x (suc y) == suc (plus x y)
+x+suc-y==suc[x+y] zero y = proof
+ where
+  [0+suc-y==suc-y] : plus zero (suc y) == suc y
+  [0+suc-y==suc-y] = refl
+
+  [y==0+y] : y == plus zero y
+  [y==0+y] = refl
+
+  [suc-y==suc[0+y]] : suc y == suc (plus zero y)
+  [suc-y==suc[0+y]] = [x==y]→[fx==fy] suc y (plus zero y) [y==0+y]
+
+  proof : plus zero (suc y) == suc (plus zero y)
+  proof = ==-trans [0+suc-y==suc-y] [suc-y==suc[0+y]]
+x+suc-y==suc[x+y] (suc x) y = x+suc-y==suc[x+y]-ind x y (x+suc-y==suc[x+y] x y)
+
+
+x+y==y+x-ind : (x y : Nat) → plus x y == plus y x → plus (suc x) (suc y) == plus (suc y) (suc x)
+x+y==y+x-ind x y [x+y==y+x] = proof
+ where
+  [suc-x+suc-y==suc[x+suc-y]] : plus (suc x) (suc y) == suc (plus x (suc y))
+  [suc-x+suc-y==suc[x+suc-y]] = refl
+
+  [x+suc-y==suc[x+y]] : plus x (suc y) == suc (plus x y)
+  [x+suc-y==suc[x+y]] = x+suc-y==suc[x+y] x y
+
+  [suc[x+suc-y]==suc[suc[x+y]]] : suc (plus x (suc y)) == suc (suc (plus x y))
+  [suc[x+suc-y]==suc[suc[x+y]]] = [x==y]→[fx==fy] suc (plus x (suc y)) (suc (plus x y)) [x+suc-y==suc[x+y]]
+
+  [suc-y+suc-x==suc[y+suc-x]] : plus (suc y) (suc x) == suc (plus y (suc x))
+  [suc-y+suc-x==suc[y+suc-x]] = refl
+
+  [y+suc-x==suc[y+x]] : plus y (suc x) == suc (plus y x)
+  [y+suc-x==suc[y+x]] = x+suc-y==suc[x+y] y x
+
+  [suc[y+suc-x]==suc[suc[y+x]]] : suc (plus y (suc x)) == suc (suc (plus y x))
+  [suc[y+suc-x]==suc[suc[y+x]]] = [x==y]→[fx==fy] suc (plus y (suc x)) (suc (plus y x)) [y+suc-x==suc[y+x]]
+
+  [suc[suc[x+y]]==suc[suc[y+x]]] : suc (suc (plus x y)) == suc (suc (plus y x))
+  [suc[suc[x+y]]==suc[suc[y+x]]] = [x==y]→[fx==fy] (λ x → suc (suc x)) (plus x y) (plus y x) [x+y==y+x]
+
+  proof : plus (suc x) (suc y) == plus (suc y) (suc x)
+  proof =  ==-trans [suc-x+suc-y==suc[x+suc-y]] 
+          (==-trans [suc[x+suc-y]==suc[suc[x+y]]] 
+          (==-trans [suc[suc[x+y]]==suc[suc[y+x]]]
+          (==-trans (==-sym [suc[y+suc-x]==suc[suc[y+x]]]) (==-sym [suc-y+suc-x==suc[y+suc-x]]))))
+
+x+y==y+x : (x y : Nat) → plus x y == plus y x
+x+y==y+x zero zero = refl
+x+y==y+x zero (suc x) = proof
+ where
+  [suc-x+0==suc-x] : plus (suc x) zero == (suc x)
+  [suc-x+0==suc-x] = x+0==x (suc x)
+
+  [0+suc-x==suc-x] : plus zero (suc x) == (suc x)
+  [0+suc-x==suc-x] = refl
+
+  proof : plus zero (suc x) == plus (suc x) zero
+  proof = ==-trans [0+suc-x==suc-x] (==-sym [suc-x+0==suc-x])
+x+y==y+x (suc x) zero = proof
+ where
+  [suc-x+0==suc-x] : plus (suc x) zero == (suc x)
+  [suc-x+0==suc-x] = x+0==x (suc x)
+
+  [0+suc-x==suc-x] : plus zero (suc x) == suc x
+  [0+suc-x==suc-x] = refl
+
+  proof : plus (suc x) zero == plus zero (suc x)
+  proof = ==-trans [suc-x+0==suc-x] (==-sym [0+suc-x==suc-x])
+
+x+y==y+x (suc x) (suc y) = x+y==y+x-ind x y (x+y==y+x x y)
+
+x*y==0→x==0⊹y==0 : (x y : Nat) → mult x y == zero → (x == zero) ⊹ (y == zero)
+x*y==0→x==0⊹y==0 zero x refl = inl refl
+x*y==0→x==0⊹y==0 (suc x) zero [suc-x*0==0] = inr refl
+x*y==0→x==0⊹y==0 (suc x) (suc y) [suc-x*suc-y==0] = ω (¬[suc-x==0] (plus y (mult x (suc y))) [suc-x*suc-y==0])
+
+proof-by-elimination : ∀ {i j} {A : Set i} {B : Set j} → A ⊹ B → (A → ⊥) → B
+proof-by-elimination {i} {j} {A} {B} (inl a) ¬A = ω (¬A a)
+proof-by-elimination {i} {j} {A} {B} (inr b) ¬A = b
+
+
+
+x+[y+z]==[x+y]+z-ind : (x y z : Nat) → plus x (plus y z) == plus (plus x y) z → plus (suc x) (plus (suc y) (suc z)) == plus (plus (suc x) (suc y)) (suc z)
+x+[y+z]==[x+y]+z-ind x y z [x+[y+z]==[x+y]+z] = proof
+ where
+  l1 : plus (suc x) (plus (suc y) (suc z)) == suc (plus x (suc (plus y (suc z))))
+  l1 = refl
+  
+  l2 : suc (plus x (suc (plus y (suc z)))) == suc (suc (plus x (plus y (suc z))))
+  l2 = [x==y]→[fx==fy] suc (plus x (suc (plus y (suc z)))) (suc (plus x (plus y (suc z)))) (x+suc-y==suc[x+y] x (plus y (suc z)))
+
+  l3 : suc (suc (plus x (plus y (suc z)))) == suc (suc (suc (plus x (plus y z))))
+  l3 = [x==y]→[fx==fy] (λ q → suc (suc q)) (plus x (plus y (suc z))) (suc (plus x (plus y z))) (==-trans ([x==y]→[fx==fy] (plus x) (plus y (suc z)) (suc (plus y z)) (x+suc-y==suc[x+y] y z)) (x+suc-y==suc[x+y] x (plus y z)))
+
+  l4 : plus (plus (suc x) (suc y)) (suc z) == suc (suc (suc (plus (plus x y) z)))
+  l4 = l4-proof
+   where
+    l4-1 : suc (plus (plus x (suc y)) (suc z)) == suc (suc (plus (plus x (suc y)) z))
+    l4-1 = [x==y]→[fx==fy] suc (plus (plus x (suc y)) (suc z)) (suc (plus (plus x (suc y)) z)) (x+suc-y==suc[x+y] (plus x (suc y)) z)
+    
+
+    l4-2 : suc (suc (plus (plus x (suc y)) z)) == suc (suc (suc (plus (plus x y) z)))
+    l4-2 = [x==y]→[fx==fy] (λ q → suc (suc (plus q z))) (plus x (suc y)) (suc (plus x y)) (x+suc-y==suc[x+y] x y) 
+
+    l4-proof = ==-trans l4-1 l4-2
+
+  l5 : suc (suc (suc (plus x (plus y z)))) == suc (suc (suc (plus (plus x y) z)))
+  l5 = [x==y]→[fx==fy] (λ q → suc (suc (suc q))) (plus x (plus y z)) (plus (plus x y) z) [x+[y+z]==[x+y]+z]
+
+  proof = ==-trans l1 (==-trans l2 (==-trans l3 (==-trans l5 (==-sym l4))))
+
+x+[y+z]==[x+y]+z : (x y z : Nat) → plus x (plus y z) == plus (plus x y) z
+x+[y+z]==[x+y]+z zero x y = refl
+x+[y+z]==[x+y]+z (suc x) zero z = ==-trans refl (==-sym ([x==y]→[fx==fy] (λ q → plus q z) (plus (suc x) zero) (suc x) (x+0==x (suc x))))
+x+[y+z]==[x+y]+z (suc x) (suc y) zero = ==-trans ([x==y]→[fx==fy] (plus (suc x)) (plus (suc y) zero) (suc y) (x+0==x (suc y))) (==-sym (x+0==x (plus (suc x) (suc y))))
+x+[y+z]==[x+y]+z (suc x) (suc y) (suc z) = x+[y+z]==[x+y]+z-ind x y z (x+[y+z]==[x+y]+z x y z)
+
+x*1==x-ind : (x : Nat) → mult x (suc zero) == x → mult (suc x) (suc zero) == suc x
+x*1==x-ind x [x*1==x] = proof
+ where
+  l1 : mult (suc x) (suc zero) == suc (mult x (suc zero))
+  l1 = refl
+
+  l2 : suc (mult x (suc zero)) == suc x
+  l2 = [x==y]→[fx==fy] suc (mult x (suc zero)) x [x*1==x]
+
+  proof : mult (suc x) (suc zero) == suc x
+  proof = ==-trans l1 l2 
+
+
+x*1==x : (x : Nat) → mult x (suc zero) == x
+x*1==x zero = refl
+x*1==x (suc x) = x*1==x-ind x (x*1==x x)
+
+
+
+{-
+x*suc-y==x+x*y : (x y : Nat) →  mult x (suc y) == plus x (mult x y)
+x*suc-y==x+x*y zero y = refl
+x*suc-y==x+x*y (suc x) zero = proof
+ where
+  [suc-x*1==suc-x] : mult (suc x) (suc zero) == suc x
+  [suc-x*1==suc-x] = x*1==x (suc x)
+
+  [suc-x*1==1+x*1] : mult (suc x) (suc zero) == plus (suc zero) (mult x (suc zero))
+  [suc-x*1==1+x*1] = refl
+
+  [1+x*1==suc-x] : plus (suc zero) (mult x (suc zero)) == suc x
+  [1+x*1==suc-x] = [x==y]→[fx==fy] (plus (suc zero)) (mult x (suc zero)) x (x*1==x x)
+
+  [suc-x+suc-x*0==suc-x+0] : plus (suc x) (mult (suc x) zero) == plus (suc x) zero
+  [suc-x+suc-x*0==suc-x+0] = [x==y]→[fx==fy] (plus (suc x)) (mult (suc x) zero) zero (x*0==0 (suc x))
+
+  [suc-x+0==suc-x] : plus (suc x) zero == suc x
+  [suc-x+0==suc-x] = x+0==x (suc x)
+
+
+  proof : mult (suc x) (suc zero) == plus (suc x) (mult (suc x) zero)  
+  proof =  ==-trans [suc-x*1==suc-x] (==-trans (==-sym [suc-x+0==suc-x]) (==-sym [suc-x+suc-x*0==suc-x+0]))
+x*suc-y==x+x*y (suc x) (suc y) = proof
+ where
+  
+  proof
+-}
+
+
+⊹-comm : ∀ {i j} {A : Set i} {B : Set j} → A ⊹ B → B ⊹ A
+⊹-comm (inl a) = inr a
+⊹-comm (inr b) = inl b
+
+
+x*suc-y==0→x==0 : (x y : Nat) → mult x (suc y) == zero → x == zero
+x*suc-y==0→x==0 x y [x*suc-y==zero] = proof-by-elimination (⊹-comm (x*y==0→x==0⊹y==0 x (suc y) [x*suc-y==zero])) (¬[suc-x==0] y)
+
+
+
+{-
+x+y==x→y==0 : (x y : Nat) → plus x y == x → y == zero
+x+y==x→y==0 x zero [x+0==x] = refl
+x+y==x→y==0 x (suc y) p₁ = ω ((¬[suc-x==0] (plus x y)) p₁)
+-}
+
+{-
+x*y==y*x-ind : (x y : Nat) → mult x y == mult y x → mult (suc x) (suc y) == mult (suc y) (suc x)
+x*y==y*x-ind x y [x*y==y*x] = proof
+ where
+  l1 : mult (suc x) (suc y) == plus (suc y) (mult x (suc y))
+  l1 = refl
+
+  l2 : 
+
+  proof
+-}
+
+{-
+x*y==y*x : (x y : Nat) → mult x y == mult y x
+x*y==y*x zero zero = refl
+x*y==y*x zero (suc y) = ==-trans refl (==-sym (x*0==0 (suc y)))
+x*y==y*x (suc x) zero = ==-trans (x*0==0 (suc x)) refl
+x*y==y*x (suc x) (suc y) = 
+-}
+
+{-
+x*y==y→x==1⊹y==0 : (x y : Nat) → mult x y == y → (x == (suc zero)) ⊹ (y == zero)
+x*y==y→x==1⊹y==0 x zero p₁ = inr refl
+x*y==y→x==1⊹y==0 zero (suc y) p₁ = ω (¬[suc-x==0] y (==-sym p₁))
+x*y==y→x==1⊹y==0 (suc x) (suc y) p₁ = proof
+ where
+  l1 : mult (suc x) (suc y) == plus (suc y) (mult x (suc y))
+  l1 = refl
+
+  l2 : plus (suc y) (mult x (suc y)) == suc (plus y (mult x (suc y)))
+  l2 = refl
+
+  l3 : mult x (suc y) == zero
+  l3 = x+y==x→y==0 (suc y) (mult x (suc y)) p₁
+
+  l4 : x == 0
+  l4 = proof-by-elimination (⊹-comm (x*y==0→x==0⊹y==0 x (suc y) l3)) (¬[suc-x==0] y)
+
+  proof  
+  
+-}
+
+
+divides-refl : (x : Nat) → x divides x
+divides-refl x = (suc zero , 1*x==x x)
+
+{-
+divides-antisym : (x y : Nat) → x divides y → y divides x → x == y
+divides-antisym zero zero 0|0 0|0' = refl
+divides-antisym zero (suc y) 0|suc-y suc-y|0 = ω (¬[0-divides-suc-x] y 0|suc-y)
+divides-antisym (suc x) zero suc-x|0 0|suc-x = ω (¬[0-divides-suc-x] x 0|suc-x)
+divides-antisym (suc x) (suc y) (k₁ , k₁*[suc-x]==[suc-y]) (k₂ , k₂*[suc-y]==[suc-x]) = proof
+ where
+  
+  [suc-y==k₁*k₂*suc-y] : suc y == mult k₁ (mult k₂ (suc y))
+  [suc-y==k₁*k₂*suc-y] = ==-trans (==-sym k₁*[suc-x]==[suc-y]) ([x==y]→[fx==fy] (mult k₁) (suc x) (mult (k₂ suc y)) (==-sym k₂*[suc-y]==[suc-x]))
+
+  
+  k₁≠0 : k₁ == 0 → ⊥
+  k₁≠0 [k₁==0] = subproof 
+   where
+    l1 : mult k₁ (suc x) == mult zero (suc x)
+    l1 = [x==y]→[fx==fy] (λ z → mult z x) k₁ zero [k₁==0]
+
+    l2 : mult k₁ (suc x) == zero
+    l2 = ==-trans l1 refl 
+
+    suc-y==0 : suc y == zero
+    suc-y==0 = ==-trans (==-sym k₁*[suc-x]==[suc-y]) l2
+
+    subproof = (¬[suc-x==0] y) suc-y==0
+
+  k₂≠0 : k₂ == 0 → ⊥
+  k₂≠0 [k₂==0] = subproof
+   where
+    l1 : mult k₂ (suc y) == mult zero (suc y)
+    l1 = [x==y]→[fx==fy] (λ z → mult z x) k₂ zero [k₂==0]
+
+    l2 : mult k₂ (suc y) == zero
+    l2 = ==-trans l1 refl
+
+    suc-z==0 : suc z == zero
+    suc-z==0 = ==-trans (==-sym k₂*[suc-y]==[suc-z]) l2
+
+    subproof = (¬[suc-x==0] z) suc-z==0
+
+  proof
+-}
+
+
+{-
+-- needs associativity of multiplication
+divides-trans : (x y z : Nat) → x divides y → y divides z → x divides z
+divides-trans x y z (k₁ , k₁*x==y) (k₂ , k₂*y==z) = (k₁*k₂ , k₁*k₂*x==z)
+ where
+  k₁*k₂*x==z
+-}
+
 
 {-
 AlgebraicLatticesContinuous : ∀ {i} {k} (L : AlgebraicLattice {i} {k}) → AlgebraicLatticeContinuity L

@@ -3083,5 +3083,82 @@ Formulation1→Formulation6 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation1-A
      
 {-
 ¬[Formulation2→Formulation1]
+¬[Formulation2→Formulation3]
+¬[Formulation2→Formulation4]
+[Formulation2→Formulation5]
+¬[Formulation2→Formulation6]
 
+-}
+
+
+Formulation3→Formulation1 : ∀ {i j k} (A : Set i) (≡ : A → A → Set k) (≤ : A → A → Set j) (∧ : A → A → A) (∨ : A → A → A) → Formulation3 A ≡ ≤ ∧ ∨ → Formulation1 A ≡ ≤ ∧ ∨
+Formulation3→Formulation1 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation3-A = Formulation1-A
+ where
+  open Formulation3 Formulation3-A
+  Formulation1-A =
+   record {
+    ≡-refl = ≡-refl ;
+    ≡-sym = ≡-sym ;
+    ≡-trans = ≡-trans ;
+    ≤-refl = ≤-refl' ;
+    ≤-antisym = ≤-antisym ;
+    ≤-trans = ≤-trans ;
+    ∨-lub = ∨-lub ;
+    ∧-glb = ∧-glb
+   }
+   where
+    ≤-refl' : {x y : A} → x ≡ y → (x ≤ y) × (y ≤ x)
+    ≤-refl' p₁ = (≤-refl p₁ , ≤-refl (≡-sym p₁)) 
+
+{-
+Formulation3→Formulation2
+Formulation3→Formulation3
+Formulation3→Formulation4
+Formulation3→Formulation5
+-}
+
+
+Formulation4→Formulation1 : ∀ {i j k} (A : Set i) (≡ : A → A → Set k) (≤ : A → A → Set j) (∧ : A → A → A) (∨ : A → A → A) → Formulation4 A ≡ ≤ ∧ ∨ → Formulation1 A ≡ ≤ ∧ ∨
+Formulation4→Formulation1 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation4-A = Formulation1-A
+ where
+  open Formulation4 Formulation4-A
+  Formulation1-A =
+   record {
+    ≡-refl = ≡-refl ;
+    ≡-sym = ≡-sym ;
+    ≡-trans = ≡-trans ;
+    ≤-refl = ≤-refl' ;
+    ≤-antisym = ≤-antisym ;
+    ≤-trans = ≤-trans ;
+    ∨-lub = ∨-lub ;
+    ∧-glb = ∧-glb
+   }
+   where
+    ≤-refl' : {x y : A} → x ≡ y → (x ≤ y) × (y ≤ x)
+    ≤-refl' {x} {y} p₁ = (≤-cont {x} {x} {x} {y} (≡-refl x) p₁ (≤-refl x) , ≤-cont {y} {y} {y} {x} (≡-refl y) (≡-sym p₁) (≤-refl y))
+
+{-
+Formulation4→Formulation2
+Formulation4→Formulation3
+Formulation4→Formulation5
+Formulation4→Formulation6
+-}
+
+{-
+¬[Formulation5→Formulation1]
+¬[Formulation5→Formulation2]
+¬[Formulation5→Formulation3]
+¬[Formulation5→Formulation4]
+¬[Formulation5→Formulation6]
+
+-}
+
+{-
+Formulation6→Formulation1
+Formulation6→Formulation2
+Formulation6→Formulation3
+Formulation6→Formulation4
+Formulation6→Formulation5
+
+just prove 6 → 1. this is the analog of the standard equivalence between order-theoretic and algebraically formulated lattices that you need to prove in the paper anyway.
 -}

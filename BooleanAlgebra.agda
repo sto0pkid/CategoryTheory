@@ -2663,25 +2663,31 @@ record Formulation4 {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ :
   ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
   ∧-glb : (x y : A) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)))
 
-record Formulation5 {i} {j} (A : Set i) (_≡_ : A → A → Set j) (≡-equiv : isEquivalence _≡_) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set ((lsuc i) ⊔ (lsuc j)) where
+record Formulation5 {i} {j} (A : Set i) (_≡_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set ((lsuc i) ⊔ (lsuc j)) where
  field 
-  ∧-comm : isCommutative _≡_ ≡-equiv _∧_
-  ∧-assoc : isAssociative _≡_ ≡-equiv _∧_
-  ∧∨-absorp : absorbs _≡_ ≡-equiv _∧_ _∨_
-  ∨-comm : isCommutative _≡_ ≡-equiv _∨_
-  ∨-assoc : isAssociative _≡_ ≡-equiv _∨_
-  ∨∧-absorp : absorbs _≡_ ≡-equiv _∨_ _∧_
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : {x y : A} → x ≡ y → y ≡ x
+  ≡-trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  ∧-comm : (x y : A) → (x ∧ y) ≡ (y ∧ x)
+  ∧-assoc : (x y z : A) → (x ∧ (y ∧ z)) ≡ ((x ∧ y) ∧ z)
+  ∧∨-absorp : (x y : A) → (x ∧ (x ∨ y)) ≡ x
+  ∨-comm : (x y : A) → (x ∨ y) ≡ (y ∨ x)
+  ∨-assoc : (x y z : A) → (x ∨ (y ∨ z)) ≡ ((x ∨ y) ∨ z)
+  ∨∧-absorp : (x y : A) → (x ∨ (x ∧ y)) ≡ x
 
-record Formulation6 {i} {j} (A : Set i) (_≡_ : A → A → Set j) (≡-equiv : isEquivalence _≡_) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set ((lsuc i) ⊔ (lsuc j)) where
+record Formulation6 {i} {j} (A : Set i) (_≡_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set ((lsuc i) ⊔ (lsuc j)) where
  field
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : {x y : A} → x ≡ y → y ≡ x
+  ≡-trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
   ∧-cont : (x x' y y' : A) → x ≡ x' → y ≡ y' → (x ∧ y) ≡ (x' ∧ y')
-  ∧-comm : isCommutative _≡_ ≡-equiv _∧_
-  ∧-assoc : isAssociative _≡_ ≡-equiv _∧_
-  ∧∨-absorp : absorbs _≡_ ≡-equiv _∧_ _∨_
+  ∧-comm : (x y : A) → (x ∧ y) ≡ (y ∧ x)
+  ∧-assoc : (x y z : A) → (x ∧ (y ∧ z)) ≡ ((x ∧ y) ∧ z)
+  ∧∨-absorp : (x y : A) → (x ∧ (x ∨ y)) ≡ x  
   ∨-cont : (x x' y y' : A) → x ≡ x' → y ≡ y' → (x ∨ y) ≡ (x' ∨ y')
-  ∨-comm : isCommutative _≡_ ≡-equiv _∨_
-  ∨-assoc : isAssociative _≡_ ≡-equiv _∨_
-  ∨∧-absorp : absorbs _≡_ ≡-equiv _∨_ _∧_
+  ∨-comm : (x y : A) → (x ∨ y) ≡ (y ∨ x)
+  ∨-assoc : (x y z : A) → (x ∨ (y ∨ z)) ≡ ((x ∨ y) ∨ z)
+  ∨∧-absorp : (x y : A) → (x ∨ (x ∧ y)) ≡ x
 
 
 Formulation1→Formulation2 : ∀ {i j k} (A : Set i) (≡ : A → A → Set k) (≤ : A → A → Set j) (∧ : A → A → A) (∨ : A → A → A) → Formulation1 A ≡ ≤ ∧ ∨ → Formulation2 A ≡ ≤ ∧ ∨
@@ -2753,7 +2759,328 @@ Formulation1→Formulation4 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation1-A
 
       [x'≤y'] : x' ≤ y'
       [x'≤y'] = ≤-trans [x'≤x] (≤-trans [x≤y] [y≤y'])
+
+
+Formulation1→Formulation5 : ∀ {i j k} (A : Set i) (≡ : A → A → Set k) (≤ : A → A → Set j) (∧ : A → A → A) (∨ : A → A → A) → Formulation1 A ≡ ≤ ∧ ∨ → Formulation5 A ≡ ∧ ∨
+Formulation1→Formulation5 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation1-A = Formulation5-A
+ where
+  open Formulation1 Formulation1-A
+  Formulation5-A = 
+   record {
+    ≡-refl = ≡-refl ;
+    ≡-sym = ≡-sym ;
+    ≡-trans = ≡-trans ;
+    ∧-comm = ∧-comm ;
+    ∧-assoc = ∧-assoc ;
+    ∧∨-absorp = ∧∨-absorp ;
+    ∨-comm = ∨-comm ;
+    ∨-assoc = ∨-assoc ;
+    ∨∧-absorp = ∨∧-absorp
+   }
+   where
+    ∧-comm : (x y : A) → (x ∧ y) ≡ (y ∧ x)
+    ∧-comm x y = ≤-antisym [x∧y≤y∧x] [y∧x≤x∧y]
+     where
+      [x∧y≤y∧x] : (x ∧ y) ≤ (y ∧ x)
+      [x∧y≤y∧x] = (second (second (∧-glb y x))) (x ∧ y) ([x∧y≤y] , [x∧y≤x])
+       where 
+        [x∧y≤x] : (x ∧ y) ≤ x
+        [x∧y≤x] = first (∧-glb x y)
+
+        [x∧y≤y] : (x ∧ y) ≤ y
+        [x∧y≤y] = first (second (∧-glb x y))
+
+      [y∧x≤x∧y] : (y ∧ x) ≤ (x ∧ y)
+      [y∧x≤x∧y] = (second (second (∧-glb x y))) (y ∧ x) ([y∧x≤x] , [y∧x≤y])
+       where
+        [y∧x≤y] : (y ∧ x) ≤ y
+        [y∧x≤y] = first (∧-glb y x)
+
+        [y∧x≤x] : (y ∧ x) ≤ x
+        [y∧x≤x] = first (second (∧-glb y x))
+
+
+
+    ∧-assoc : (x y z : A) → (x ∧ (y ∧ z)) ≡ ((x ∧ y) ∧ z)
+    ∧-assoc x y z = ≤-antisym [x∧[y∧z]≤[x∧y]∧z] [[x∧y]∧z≤x∧[y∧z]]
+     where
+      [x∧[y∧z]≤[x∧y]∧z] : (x ∧ (y ∧ z)) ≤ ((x ∧ y) ∧ z)
+      [x∧[y∧z]≤[x∧y]∧z] = (second (second (∧-glb (x ∧ y) z))) (x ∧ (y ∧ z)) ([x∧[y∧z]≤x∧y] , [x∧[y∧z]≤z] )
+       where
+        [x∧[y∧z]≤x] : (x ∧ (y ∧ z)) ≤ x
+        [x∧[y∧z]≤x] = first (∧-glb x (y ∧ z))
+
+        [x∧[y∧z]≤y∧z] : (x ∧ (y ∧ z)) ≤ (y ∧ z)
+        [x∧[y∧z]≤y∧z] = first (second (∧-glb x (y ∧ z)))
+ 
+        [y∧z≤y] : (y ∧ z) ≤ y
+        [y∧z≤y] = first (∧-glb y z)
+
+        [y∧z≤z] : (y ∧ z) ≤ z
+        [y∧z≤z] = first (second (∧-glb y z))
+
+        [x∧[y∧z]≤y] : (x ∧ (y ∧ z)) ≤ y
+        [x∧[y∧z]≤y] = ≤-trans [x∧[y∧z]≤y∧z] [y∧z≤y]
+
+        [x∧[y∧z]≤z] : (x ∧ (y ∧ z)) ≤ z
+        [x∧[y∧z]≤z] = ≤-trans [x∧[y∧z]≤y∧z] [y∧z≤z]
+
+        [x∧[y∧z]≤x∧y] : (x ∧ (y ∧ z)) ≤ (x ∧ y)
+        [x∧[y∧z]≤x∧y] = (second (second (∧-glb x y))) (x ∧ (y ∧ z)) ([x∧[y∧z]≤x] , [x∧[y∧z]≤y] )
+
+      [[x∧y]∧z≤x∧[y∧z]] : ((x ∧ y) ∧ z) ≤ (x ∧ (y ∧ z))
+      [[x∧y]∧z≤x∧[y∧z]] = (second (second (∧-glb x (y ∧ z)))) ((x ∧ y) ∧ z) ([[x∧y]∧z≤x] , [[x∧y]∧z≤y∧z])
+       where
+        [[x∧y]∧z≤x∧y] : ((x ∧ y) ∧ z) ≤ (x ∧ y)
+        [[x∧y]∧z≤x∧y] = first (∧-glb (x ∧ y) z)
+
+        [[x∧y]∧z≤z] : ((x ∧ y) ∧ z) ≤ z
+        [[x∧y]∧z≤z] = first (second (∧-glb (x ∧ y) z))
+
+        [x∧y≤x] : (x ∧ y) ≤ x
+        [x∧y≤x] = first (∧-glb x y)
+
+        [x∧y≤y] : (x ∧ y) ≤ y
+        [x∧y≤y] = first (second (∧-glb x y))
+
+        [[x∧y]∧z≤x] : ((x ∧ y) ∧ z) ≤ x
+        [[x∧y]∧z≤x] = ≤-trans [[x∧y]∧z≤x∧y] [x∧y≤x]
+
+        [[x∧y]∧z≤y] : ((x ∧ y) ∧ z) ≤ y
+        [[x∧y]∧z≤y] = ≤-trans [[x∧y]∧z≤x∧y] [x∧y≤y] 
+
+        [[x∧y]∧z≤y∧z] : ((x ∧ y) ∧ z) ≤ (y ∧ z)
+        [[x∧y]∧z≤y∧z] = (second (second (∧-glb y z))) ((x ∧ y) ∧ z) ([[x∧y]∧z≤y] , [[x∧y]∧z≤z])
+
+
+
+    ∨-comm : (x y : A) → (x ∨ y) ≡ (y ∨ x)
+    ∨-comm x y = ≤-antisym [x∨y≤y∨x] [y∨x≤x∨y]
+     where
+      [y∨x≤x∨y] : (y ∨ x) ≤ (x ∨ y)
+      [y∨x≤x∨y] = (second (second (∨-lub y x))) (x ∨ y) ([y≤x∨y] , [x≤x∨y])
+       where
+        [x≤x∨y] : x ≤ (x ∨ y)
+        [x≤x∨y] = first (∨-lub x y)
+ 
+        [y≤x∨y] : y ≤ (x ∨ y)
+        [y≤x∨y] = first (second (∨-lub x y))
+
+      [x∨y≤y∨x] : (x ∨ y) ≤ (y ∨ x)
+      [x∨y≤y∨x] = (second (second (∨-lub x y))) (y ∨ x) ([x≤y∨x] , [y≤y∨x])
+       where 
+        [y≤y∨x] : y ≤ (y ∨ x)
+        [y≤y∨x] = first (∨-lub y x)
+
+        [x≤y∨x] : x ≤ (y ∨ x)
+        [x≤y∨x] = first (second (∨-lub y x))
+
+
+    ∨-assoc : (x y z : A) → (x ∨ (y ∨ z)) ≡ ((x ∨ y) ∨ z)
+    ∨-assoc x y z = ≤-antisym [x∨[y∨z]≤[x∨y]∨z] [[x∨y]∨z≤x∨[y∨z]]
+     where
+      [[x∨y]∨z≤x∨[y∨z]] : ((x ∨ y) ∨ z) ≤ (x ∨ (y ∨ z))
+      [[x∨y]∨z≤x∨[y∨z]] = (second (second (∨-lub (x ∨ y) z))) (x ∨ (y ∨ z)) ([x∨y≤x∨[y∨z]] , [z≤x∨[y∨z]])
+       where
+        [x≤x∨[y∨z]] : x ≤ (x ∨ (y ∨ z))
+        [x≤x∨[y∨z]] = first (∨-lub x (y ∨ z))
+
+        [y∨z≤x∨[y∨z]] : (y ∨ z) ≤ (x ∨ (y ∨ z))
+        [y∨z≤x∨[y∨z]] = first (second (∨-lub x (y ∨ z)))
+
+        [y≤y∨z] : y ≤ (y ∨ z)
+        [y≤y∨z] = first (∨-lub y z)
+
+        [z≤y∨z] : z ≤ (y ∨ z)
+        [z≤y∨z] = first (second (∨-lub y z))
+
+        [y≤x∨[y∨z]] : y ≤ (x ∨ (y ∨ z))
+        [y≤x∨[y∨z]] = ≤-trans [y≤y∨z] [y∨z≤x∨[y∨z]]
+
+        [z≤x∨[y∨z]] : z ≤ (x ∨ (y ∨ z))
+        [z≤x∨[y∨z]] = ≤-trans [z≤y∨z] [y∨z≤x∨[y∨z]]
+
+        [x∨y≤x∨[y∨z]] : (x ∨ y) ≤ (x ∨ (y ∨ z))
+        [x∨y≤x∨[y∨z]] = (second (second (∨-lub x y))) (x ∨ (y ∨ z)) ([x≤x∨[y∨z]] , [y≤x∨[y∨z]])
+   
+      [x∨[y∨z]≤[x∨y]∨z] : (x ∨ (y ∨ z)) ≤ ((x ∨ y) ∨ z)
+      [x∨[y∨z]≤[x∨y]∨z] = (second (second (∨-lub x (y ∨ z)))) ((x ∨ y) ∨ z) ([x≤[x∨y]∨z] , [y∨z≤[x∨y]∨z])
+       where
+        [x∨y≤[x∨y]∨z] : (x ∨ y) ≤ ((x ∨ y) ∨ z)
+        [x∨y≤[x∨y]∨z] = first (∨-lub (x ∨ y) z)
+ 
+        [z≤[x∨y]∨z] : z ≤ ((x ∨ y) ∨ z)
+        [z≤[x∨y]∨z] = first (second (∨-lub (x ∨ y) z))
+
+        [x≤x∨y] : x ≤ (x ∨ y)
+        [x≤x∨y] = first (∨-lub x y)
     
+        [y≤x∨y] : y ≤ (x ∨ y)
+        [y≤x∨y] = first (second (∨-lub x y))
+
+        [x≤[x∨y]∨z] : x ≤ ((x ∨ y) ∨ z)
+        [x≤[x∨y]∨z] = ≤-trans [x≤x∨y] [x∨y≤[x∨y]∨z]
+
+        [y≤[x∨y]∨z] : y ≤ ((x ∨ y) ∨ z)
+        [y≤[x∨y]∨z] = ≤-trans [y≤x∨y] [x∨y≤[x∨y]∨z]
+    
+        [y∨z≤[x∨y]∨z] : (y ∨ z) ≤ ((x ∨ y) ∨ z)
+        [y∨z≤[x∨y]∨z] = (second (second (∨-lub y z))) ((x ∨ y) ∨ z) ([y≤[x∨y]∨z] , [z≤[x∨y]∨z])
+
+    ∧∨-absorp : (x y : A) → (x ∧ (x ∨ y)) ≡ x
+    ∧∨-absorp x y = ≤-antisym [x∧[x∨y]≤x] [x≤x∧[x∨y]]
+     where
+      [x∧[x∨y]≤x] : (x ∧ (x ∨ y)) ≤ x
+      [x∧[x∨y]≤x] = first (∧-glb x (x ∨ y))
+
+      [x≤x∧[x∨y]] : x ≤ (x ∧ (x ∨ y))
+      [x≤x∧[x∨y]] = (second (second (∧-glb x (x ∨ y)))) x ([x≤x] , [x≤x∨y])
+       where
+        [x≤x] : x ≤ x
+        [x≤x] = first (≤-refl (≡-refl x))
+
+        [x≤x∨y] : x ≤ (x ∨ y)
+        [x≤x∨y] = first (∨-lub x y)
+       
+
+    ∨∧-absorp : (x y : A) → (x ∨ (x ∧ y)) ≡ x
+    ∨∧-absorp x y = ≤-antisym [x∨[x∧y]≤x] [x≤x∨[x∧y]]
+     where
+      [x≤x∨[x∧y]] : x ≤ (x ∨ (x ∧ y))
+      [x≤x∨[x∧y]] = first (∨-lub x (x ∧ y))
+
+      [x∨[x∧y]≤x] : (x ∨ (x ∧ y)) ≤ x
+      [x∨[x∧y]≤x] = (second (second (∨-lub x (x ∧ y)))) x ([x≤x] , [x∧y≤x])
+       where
+        [x≤x] : x ≤ x
+        [x≤x] = first (≤-refl (≡-refl x))
+
+        [x∧y≤x] : (x ∧ y) ≤ x
+        [x∧y≤x] = first (∧-glb x y)
+
+
+Formulation1→Formulation6 : ∀ {i j k} (A : Set i) (≡ : A → A → Set k) (≤ : A → A → Set j) (∧ : A → A → A) (∨ : A → A → A) → Formulation1 A ≡ ≤ ∧ ∨ → Formulation6 A ≡ ∧ ∨
+Formulation1→Formulation6 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation1-A = Formulation6-A
+ where
+  open Formulation1 Formulation1-A hiding (≡-refl ; ≡-sym ; ≡-trans)
+
+  Formulation5-A : Formulation5 A _≡_ _∧_ _∨_
+  Formulation5-A = Formulation1→Formulation5 A _≡_ _≤_ _∧_ _∨_ Formulation1-A
+
+  open Formulation5 Formulation5-A  
+
+  Formulation6-A = 
+   record {
+    ≡-refl = ≡-refl ;
+    ≡-sym = ≡-sym ;
+    ≡-trans = ≡-trans ;
+    ∧-cont = ∧-cont ;
+    ∧-comm = ∧-comm ;
+    ∧-assoc = ∧-assoc ;
+    ∧∨-absorp = ∧∨-absorp ;
+    ∨-cont = ∨-cont ;
+    ∨-comm = ∨-comm ;
+    ∨-assoc = ∨-assoc ;
+    ∨∧-absorp = ∨∧-absorp
+   }
+   where
+    ∧-cont : (x x' y y' : A) → (x ≡ x') → (y ≡ y') → (x ∧ y) ≡ (x' ∧ y')
+    ∧-cont a b c d [a≡b] [c≡d] = [a∧c]≡[b∧d]
+     where
+      [b∧d≤a∧c] : (b ∧ d) ≤ (a ∧ c)
+      [b∧d≤a∧c] = (second (second (∧-glb a c))) (b ∧ d) ([b∧d≤a] , [b∧d≤c])
+       where
+        [b∧d≤a] : (b ∧ d) ≤ a
+        [b∧d≤a] = ≤-trans [b∧d≤b] [b≤a]
+         where
+          [b≤a] : b ≤ a
+          [b≤a] = second (≤-refl [a≡b])
+
+          [b∧d≤b] : (b ∧ d) ≤ b
+          [b∧d≤b] = first (∧-glb b d)
+
+        [b∧d≤c] : (b ∧ d) ≤ c
+        [b∧d≤c] = ≤-trans [b∧d≤d] [d≤c]
+         where
+          [d≤c] : d ≤ c
+          [d≤c] = second (≤-refl [c≡d])
+
+          [b∧d≤d] : (b ∧ d) ≤ d
+          [b∧d≤d] = first (second (∧-glb b d))
+
+      [a∧c≤b∧d] : (a ∧ c) ≤ (b ∧ d)
+      [a∧c≤b∧d] = (second (second (∧-glb b d))) (a ∧ c ) ([a∧c≤b] , [a∧c≤d])
+       where
+        [a∧c≤b] : (a ∧ c) ≤ b
+        [a∧c≤b] = ≤-trans [a∧c≤a] [a≤b]
+         where
+          [a≤b] : a ≤ b
+          [a≤b] = first (≤-refl [a≡b])
+ 
+          [a∧c≤a] : (a ∧ c) ≤ a
+          [a∧c≤a] = first (∧-glb a c)
+
+        [a∧c≤d] : (a ∧ c) ≤ d
+        [a∧c≤d] = ≤-trans [a∧c≤c] [c≤d]
+         where
+          [c≤d] : c ≤ d
+          [c≤d] = first (≤-refl [c≡d])
+
+          [a∧c≤c] : (a ∧ c) ≤ c
+          [a∧c≤c] = first (second (∧-glb a c))
+      
+
+      [a∧c]≡[b∧d] : (a ∧ c) ≡ (b ∧ d)
+      [a∧c]≡[b∧d] = ≤-antisym [a∧c≤b∧d] [b∧d≤a∧c]
+
+    ∨-cont : (a b c d : A) → (a ≡ b) → (c ≡ d) → (a ∨ c) ≡ (b ∨ d)
+    ∨-cont a b c d [a≡b] [c≡d] = [a∨c]≡[b∨d]
+     where
+      [a∨c]≡[b∨d] : (a ∨ c) ≡ (b ∨ d)
+      [a∨c]≡[b∨d] = ≤-antisym [a∨c≤b∨d] [b∨d≤a∨c]
+       where
+        [a∨c≤b∨d] : (a ∨ c) ≤ (b ∨ d)
+        [a∨c≤b∨d] = (second (second (∨-lub a c))) (b ∨ d) ([a≤b∨d] , [c≤b∨d])
+         where
+          [a≤b] : a ≤ b
+          [a≤b] = first (≤-refl [a≡b])
+
+          [b≤b∨d] : b ≤ (b ∨ d)
+          [b≤b∨d] = first (∨-lub b d)
+
+          [a≤b∨d] : a ≤ (b ∨ d)
+          [a≤b∨d] = ≤-trans [a≤b] [b≤b∨d]
+
+          [c≤d] : c ≤ d
+          [c≤d] = first (≤-refl [c≡d])
+ 
+          [d≤b∨d] : d ≤ (b ∨ d)
+          [d≤b∨d] = first (second (∨-lub b d))
+
+          [c≤b∨d] : c ≤ (b ∨ d)
+          [c≤b∨d] = ≤-trans [c≤d] [d≤b∨d]
+
+        [b∨d≤a∨c] : (b ∨ d) ≤ (a ∨ c)
+        [b∨d≤a∨c] = (second (second (∨-lub b d))) (a ∨ c) ([b≤a∨c] , [d≤a∨c])
+         where
+          [b≤a] : b ≤ a
+          [b≤a] = second (≤-refl [a≡b])
+
+          [a≤a∨c] : a ≤ (a ∨ c)
+          [a≤a∨c] = first (∨-lub a c)
+
+          [b≤a∨c] : b ≤ (a ∨ c)
+          [b≤a∨c] = ≤-trans [b≤a] [a≤a∨c]
+
+          [d≤c] : d ≤ c
+          [d≤c] = second (≤-refl [c≡d])
+ 
+          [c≤a∨c] : c ≤ (a ∨ c)
+          [c≤a∨c] = first (second (∨-lub a c))
+
+          [d≤a∨c] : d ≤ (a ∨ c)
+          [d≤a∨c] = ≤-trans [d≤c] [c≤a∨c]
+     
 {-
 ¬[Formulation2→Formulation1]
 

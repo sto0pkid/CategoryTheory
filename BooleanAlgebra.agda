@@ -396,12 +396,52 @@ record OrderLattice'' {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) w
   ∨-cont : (a b c d : carrier) → (a ≡ b) → (c ≡ d) → (a ∨ b) ≡ (c ∨ d)
   ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
 
+record OrderLattice''' {i} {j} {k} : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  carrier : Set i
+  _≡_ : carrier → carrier → Set k
+  ≡-refl : (x : carrier) → x ≡ x
+  ≡-sym : {x y : carrier} → x ≡ y → y ≡ x
+  ≡-trans : {x y z : carrier} → x ≡ y → y ≡ z → x ≡ z
+  _≤_ : carrier → carrier → Set j
+  ≤-refl : {x y : carrier} → x ≡ y → x ≤ y
+  ≤-trans : {x y z : carrier} → x ≤ y → y ≤ z → x ≤ z
+  ≤-antisym : {x y : carrier} → x ≤ y → y ≤ x → x ≡ y
+  _∧_ : carrier → carrier → carrier
+  ∧-glb : (x y : carrier) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : carrier) → (z ≤ x) × (z ≤ y) → (z ≤ (x ∧ y))))
+  _∨_ : carrier → carrier → carrier
+  ∨-lub : (x y : carrier) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : carrier) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
+
+
 record isOrderLattice {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
  field
   ≡-refl : (x : A) → x ≡ x
   ≡-sym : {x y : A} → x ≡ y → y ≡ x
   ≡-trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
   ≤-refl : {x y : A} → x ≡ y → (x ≤ y) × (y ≤ x)
+  ≤-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
+  ≤-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
+  ∧-glb : (x y : A) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)))
+
+record isOrderLattice'' {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : {x y : A} → x ≡ y → y ≡ x
+  ≡-trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  ≤-refl : (x : A) → x ≤ x
+  ≤-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
+  ≤-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
+  ∧-glb : (x y : A) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)))
+
+
+record isOrderLattice''' {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : {x y : A} → x ≡ y → y ≡ x
+  ≡-trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  ≤-refl : {x y : A} → x ≡ y → x ≤ y
   ≤-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
   ≤-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
   ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
@@ -721,6 +761,18 @@ record isAlgebraicLattice'' {i} {j} (A : Set i) (_≡_ : A → A → Set j) (≡
   ∨-comm : isCommutative _≡_ ≡-equiv _∨_
   ∨-assoc : isAssociative _≡_ ≡-equiv _∨_
   ∨∧-absorp : absorbs _≡_ ≡-equiv _∨_ _∧_
+
+record isAlgebraicLattice''' {i} {j} (A : Set i) (_≡_ : A → A → Set j) (≡-equiv : isEquivalence _≡_) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set ((lsuc i) ⊔ (lsuc j)) where
+ field
+  ∧-cont : (x x' y y' : A) → x ≡ x' → y ≡ y' → (x ∧ y) ≡ (x' ∧ y')
+  ∧-comm : isCommutative _≡_ ≡-equiv _∧_
+  ∧-assoc : isAssociative _≡_ ≡-equiv _∧_
+  ∧∨-absorp : absorbs _≡_ ≡-equiv _∧_ _∨_
+  ∨-cont : (x x' y y' : A) → x ≡ x' → y ≡ y' → (x ∨ y) ≡ (x' ∨ y')
+  ∨-comm : isCommutative _≡_ ≡-equiv _∨_
+  ∨-assoc : isAssociative _≡_ ≡-equiv _∨_
+  ∨∧-absorp : absorbs _≡_ ≡-equiv _∨_ _∧_
+  
 
 
 OrderLattice→isAlgebraicLattice :
@@ -2010,6 +2062,339 @@ x*1==x zero = refl
 x*1==x (suc x) = x*1==x-ind x (x*1==x x)
 
 
+-- 5) Multiplication left-distributes over addition :
+1-5-base<a,0> : (b c : Nat) → mult zero (plus b c) == plus (mult zero b) (mult zero c)
+1-5-base<a,0> b c = refl 
+
+{-
+1-5-ind<a,𝕤> : (a b c : Nat) → mult a (plus b c) == plus (mult a b) (mult a c) → mult (suc a) (plus b c) == plus (mult (suc a) b) (mult (suc a) c)
+1-5-ind<a,𝕤> a b c [a*[b+c]≡a*b+a*c] = [𝕤a*[b+c]≡𝕤a*b+𝕤a*c]
+ where
+  [𝕤a*[b+c]≡[b+c]+[a*b+a*c]] : mult (suc a) (plus b c) == plus (plus b c) (plus (mult a b) (mult a c))
+  [𝕤a*[b+c]≡[b+c]+[a*b+a*c]] = [x==y]→[fx==fy] (plus (plus b c)) (mult a (plus b c)) (plus (mult a b) (mult a c)) [a*[b+c]≡a*b+a*c] 
+
+  [𝕤a*b+𝕤a*c≡b+[a*b+[c+a*c]]] : plus (mult (suc a) b) (mult (suc a) c) == plus b (plus (mult a b) (plus c (mult a c)))
+  [𝕤a*b+𝕤a*c≡b+[a*b+[c+a*c]]] = ==-sym (x+[y+z]==[x+y]+z b (mult a b) (plus c (mult a c)))
+
+  [a*b+[c+a*c]]≡[a*b+c]+a*c] : plus (mult a b) (plus c (mult a c)) == plus (plus (mult a b) c) (mult a c)
+  [a*b+[c+a*c]]≡[a*b+c]+a*c] = x+[y+z]==[x+y]+z (mult a b) c (mult a c)
+
+
+  [a*b+c≡c+a*b] : a * b + c ≡ c + a * b
+  [a*b+c≡c+a*b] = x+y≡y+x (a * b) c
+
+  [[a*b+c]+a*c≡[c+a*b]+a*c] : (a * b + c) + a * c ≡ (c + a * b) + a * c
+  [[a*b+c]+a*c≡[c+a*b]+a*c] = [f≡g]→[fa≡ga]₂ +a*c +a*c (⟲ +a*c) (a * b + c) (c + a * b) [a*b+c≡c+a*b]
+  
+  [[c+a*b]+a*c≡c+[a*b+a*c]] : (c + a * b) + a * c ≡ c + (a * b + a * c)
+  [[c+a*b]+a*c≡c+[a*b+a*c]] = [a+b]+c≡a+[b+c] c (a * b) (a * c) 
+
+  [a*b+[c+a*c]≡c+[a*b+a*c]] : a * b + (c + a * c) ≡ c + (a * b + a * c)
+  [a*b+[c+a*c]≡c+[a*b+a*c]] = ≡-⇶ [a*b+[c+a*c]]≡[a*b+c]+a*c] (≡-⇶ [[a*b+c]+a*c≡[c+a*b]+a*c] [[c+a*b]+a*c≡c+[a*b+a*c]])
+
+  [b+[a*b+[c+a*c]]≡b+[c+[a*b+a*c]]] : b + (a * b + (c + a * c)) ≡ b + (c + (a * b + a * c))
+  [b+[a*b+[c+a*c]]≡b+[c+[a*b+a*c]]] = [f≡g]→[fa≡ga]₂ b+ b+ (⟲ b+) (a * b + (c + a * c)) (c + (a * b + a * c)) [a*b+[c+a*c]≡c+[a*b+a*c]]
+
+  [b+[c+[a*b+a*c]]≡[b+c]+[a*b+a*c]] : b + (c + (a * b + a * c)) ≡ (b + c) + (a * b + a * c)
+  [b+[c+[a*b+a*c]]≡[b+c]+[a*b+a*c]] = ≡-↑↓ ([a+b]+c≡a+[b+c] b c (a * b + a * c))
+
+
+  [𝕤a*[b+c]≡𝕤a*b+𝕤a*c] : (𝕤 a) * (b + c) ≡ (𝕤 a) * b + (𝕤 a) * c
+  [𝕤a*[b+c]≡𝕤a*b+𝕤a*c] = 
+    ≡-⇶ [𝕤a*[b+c]≡[b+c]+a*[b+c]] 
+   (≡-⇶ [[b+c]+a*[b+c]≡[b+c]+[a*b+a*c]]
+   (≡-↑↓ (≡-⇶ [𝕤a*b+𝕤a*c≡[b+a*b]+𝕤a*c] 
+         (≡-⇶ [[b+a*b]+𝕤a*c≡[b+a*b]+[c+a*c]]
+         (≡-⇶ [[b+a*b]+[c+a*c]≡b+[a*b+[c+a*c]]]
+         (≡-⇶ [b+[a*b+[c+a*c]]≡b+[c+[a*b+a*c]]]
+               [b+[c+[a*b+a*c]]≡[b+c]+[a*b+a*c]]
+         ))))))
+  -}
+
+{-
+
+-- final step
+a*[b+c]≡a*b+a*c : (a b c : ℕ) → a * (b + c) ≡ a * b + a * c
+a*[b+c]≡a*b+a*c 0 b c = 1-5-base<a,0> b c
+a*[b+c]≡a*b+a*c (𝕤 a) b c = 1-5-ind<a,𝕤> a b c (a*[b+c]≡a*b+a*c a b c)
+
+
+-- 6) Multiplication right-distributes over addition
+-- a,b=0 base case
+[0+0]*c≡0*c+0*c : (c : ℕ) → (0 + 0) * c ≡ 0 * c + 0 * c
+[0+0]*c≡0*c+0*c c = ⟲ 0
+
+-- a=0 base case
+[0+𝕤b]*c≡0*c+𝕤b*c : (b c : ℕ) → (0 + (𝕤 b)) * c ≡ 0 * c + (𝕤 b) * c
+[0+𝕤b]*c≡0*c+𝕤b*c b c = [[0+𝕤b]*c≡0*c+𝕤b*c]
+ where
+  *c : ℕ → ℕ
+  *c = _*'_ c
+
+  +𝕤b*c : ℕ → ℕ
+  +𝕤b*c = _+'_ ((𝕤 b) * c)
+
+  [0+𝕤b≡𝕤b] : 0 + (𝕤 b) ≡ (𝕤 b)
+  [0+𝕤b≡𝕤b] = 𝕫+x≡x (𝕤 b)
+
+  [0*c≡0] : 0 * c ≡ 0
+  [0*c≡0] = 0*x≡0 c
+ 
+  [0*c+𝕤b*c≡0+𝕤b*c] : 0 * c + (𝕤 b) * c ≡ 0 + (𝕤 b) * c
+  [0*c+𝕤b*c≡0+𝕤b*c] = [a≡b]→[fa≡fb] +𝕤b*c (0 * c) 0 [0*c≡0]
+
+  [0+𝕤b*c≡𝕤b*c] : 0 + (𝕤 b) * c ≡ (𝕤 b) * c
+  [0+𝕤b*c≡𝕤b*c] = 𝕫+x≡x ((𝕤 b) * c)
+ 
+  [[0+𝕤b]*c≡𝕤b*c] : (0 + (𝕤 b)) * c ≡ (𝕤 b) * c
+  [[0+𝕤b]*c≡𝕤b*c] = [a≡b]→[fa≡fb] *c (0 + (𝕤 b)) (𝕤 b) [0+𝕤b≡𝕤b]
+
+    
+
+  [[0+𝕤b]*c≡0*c+𝕤b*c] : (0 + (𝕤 b)) * c ≡ 0 * c + (𝕤 b) * c
+  [[0+𝕤b]*c≡0*c+𝕤b*c] = ≡-⇶ [[0+𝕤b]*c≡𝕤b*c] (≡-↑↓ (≡-⇶ [0*c+𝕤b*c≡0+𝕤b*c] [0+𝕤b*c≡𝕤b*c]))
+
+-- b=0 base case
+[𝕤a+0]*c≡𝕤a*c+0*c : (a c : ℕ) → ((𝕤 a) + 0) * c ≡ (𝕤 a) * c + 0 * c
+[𝕤a+0]*c≡𝕤a*c+0*c a c = [[𝕤a+0]*c≡𝕤a*c+0*c]
+ where
+  𝕤a*c+ : ℕ → ℕ
+  𝕤a*c+ = _+_ ((𝕤 a) * c)
+
+  *c : ℕ → ℕ
+  *c = _*'_ c
+
+  [0*c≡0] : 0 * c ≡ 0
+  [0*c≡0] = 0*x≡0 c
+ 
+  [𝕤a*c+0*c≡𝕤a*c+0] : (𝕤 a) * c + 0 * c ≡ (𝕤 a) * c + 0
+  [𝕤a*c+0*c≡𝕤a*c+0] = [a≡b]→[fa≡fb] 𝕤a*c+ (0 * c) 0 [0*c≡0]
+
+  [𝕤a*c+0≡𝕤a*c] : (𝕤 a) * c + 0 ≡ (𝕤 a) * c
+  [𝕤a*c+0≡𝕤a*c] = x+𝕫≡x ((𝕤 a) * c)
+
+  [𝕤a+0≡𝕤a] : (𝕤 a) + 0 ≡ (𝕤 a)
+  [𝕤a+0≡𝕤a] = x+𝕫≡x (𝕤 a)
+
+  [[𝕤a+0]*c≡𝕤a*c] : ((𝕤 a) + 0) * c ≡ (𝕤 a) * c
+  [[𝕤a+0]*c≡𝕤a*c] = [a≡b]→[fa≡fb] *c ((𝕤 a) + 0) (𝕤 a) [𝕤a+0≡𝕤a]
+
+  [[𝕤a+0]*c≡𝕤a*c+0*c] : ((𝕤 a) + 0) * c ≡ (𝕤 a) * c + 0 * c
+  [[𝕤a+0]*c≡𝕤a*c+0*c] = ≡-⇶ [[𝕤a+0]*c≡𝕤a*c] (≡-↑↓ (≡-⇶ [𝕤a*c+0*c≡𝕤a*c+0] [𝕤a*c+0≡𝕤a*c]))
+
+-- ab-inductive
+[[a+b]*c≡a*c+b*c]→[[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] : 
+ (a b c : ℕ) → (a + b) * c ≡ a * c + b * c → ((𝕤 a) + (𝕤 b)) * c ≡ (𝕤 a) * c + (𝕤 b) * c
+[[a+b]*c≡a*c+b*c]→[[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] a b c [[a+b]*c≡a*c+b*c] = [[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c]
+ where
+
+  *c : ℕ → ℕ
+  *c = _*'_ c
+
+  [c+c]+ : ℕ → ℕ
+  [c+c]+ = _+_ (c + c)
+  
+  +b*c : ℕ → ℕ
+  +b*c = _+'_ (b * c)
+
+  c+ : ℕ → ℕ
+  c+ = _+_ c
+--
+
+  [𝕤a*c≡c+a*c] : (𝕤 a) * c ≡  c + (a * c)
+  [𝕤a*c≡c+a*c] = ⟲ (c + a * c)
+
+  [𝕤b*c≡c+b*c] : (𝕤 b) * c ≡  c + (b * c)
+  [𝕤b*c≡c+b*c] = ⟲ (c + b * c)
+
+  [𝕤a*c+𝕤b*c≡[c+a*c]+[c+b*c]] : (𝕤 a) * c + (𝕤 b) * c ≡ (c + a * c) + (c + b * c)
+  [𝕤a*c+𝕤b*c≡[c+a*c]+[c+b*c]] = ⟲ ((c + a * c) + (c + b * c))
+
+  [𝕤a+𝕤b≡𝕤[a+𝕤b]] : (𝕤 a) + (𝕤 b) ≡ 𝕤 (a + (𝕤 b))
+  [𝕤a+𝕤b≡𝕤[a+𝕤b]] = 𝕤x+y≡𝕤[x+y] a (𝕤 b)
+ 
+  [a+𝕤b≡𝕤[a+b]] : a + (𝕤 b) ≡ (𝕤 ( a + b))
+  [a+𝕤b≡𝕤[a+b]] = x+𝕤y≡𝕤[x+y] a b
+
+  [𝕤[a+𝕤b]≡𝕤𝕤[a+b]] : (𝕤 (a + (𝕤 b))) ≡ (𝕤 (𝕤 (a + b)))
+  [𝕤[a+𝕤b]≡𝕤𝕤[a+b]] = [a≡b]→[fa≡fb] 𝕤 (a + (𝕤 b)) (𝕤 (a + b)) [a+𝕤b≡𝕤[a+b]]
+
+  [𝕤a+𝕤b≡𝕤𝕤[a+b]] : (𝕤 a) + (𝕤 b) ≡ (𝕤 (𝕤 (a + b)))
+  [𝕤a+𝕤b≡𝕤𝕤[a+b]] = ≡-⇶ [𝕤a+𝕤b≡𝕤[a+𝕤b]] [𝕤[a+𝕤b]≡𝕤𝕤[a+b]]
+
+  [[𝕤a+𝕤b]*c≡[𝕤𝕤[a+b]]*c] : ((𝕤 a) + (𝕤 b)) * c ≡ (𝕤 (𝕤 (a + b))) * c
+  [[𝕤a+𝕤b]*c≡[𝕤𝕤[a+b]]*c] = [a≡b]→[fa≡fb] *c ((𝕤 a) + (𝕤 b)) (𝕤 (𝕤 (a + b))) [𝕤a+𝕤b≡𝕤𝕤[a+b]]
+
+  [[𝕤𝕤[a+b]]*c≡c+[c+[a+b]*c]] : (𝕤 (𝕤 (a + b))) * c ≡ c + (c + (a + b) * c)
+  [[𝕤𝕤[a+b]]*c≡c+[c+[a+b]*c]] = ⟲ (c + (c + (a + b) * c))
+
+  [c+[c+[a+b]*c]≡[c+c]+[a+b]*c] : c + (c + (a + b) * c) ≡ (c + c) + (a + b) * c  
+  [c+[c+[a+b]*c]≡[c+c]+[a+b]*c] = ≡-↑↓ ([a+b]+c≡a+[b+c] c c ((a + b) * c))
+
+  [[c+c]+[a+b]*c≡[c+c]+[a*c+b*c]] : (c + c) + (a + b) * c ≡ (c + c) + (a * c + b * c)
+  [[c+c]+[a+b]*c≡[c+c]+[a*c+b*c]] = [a≡b]→[fa≡fb] [c+c]+ ((a + b) * c) (a * c + b * c) [[a+b]*c≡a*c+b*c]
+
+  [[c+c]+[a*c+b*c]≡c+[c+[a*c+b*c]]] : (c + c) + (a * c + b * c) ≡ c + (c + (a * c + b * c))
+  [[c+c]+[a*c+b*c]≡c+[c+[a*c+b*c]]] = [a+b]+c≡a+[b+c] c c (a * c + b * c)
+
+  [c+[a*c+b*c]≡[c+a*c]+b*c] : c + (a * c + b * c) ≡ (c + a * c) + b * c
+  [c+[a*c+b*c]≡[c+a*c]+b*c] = ≡-↑↓ ([a+b]+c≡a+[b+c] c (a * c) (b * c))
+
+  [c+a*c≡a*c+c] : c + a * c ≡ a * c + c
+  [c+a*c≡a*c+c] = x+y≡y+x c (a * c)
+
+  [[c+a*c]+b*c≡[a*c+c]+b*c] : (c + a * c) + b * c ≡ (a * c + c) + b * c
+  [[c+a*c]+b*c≡[a*c+c]+b*c] = [a≡b]→[fa≡fb] +b*c (c + a * c) (a * c + c) [c+a*c≡a*c+c]
+
+  [[a*c+c]+b*c≡a*c+[c+b*c]] : (a * c + c) + b * c ≡ a * c + (c + b * c)
+  [[a*c+c]+b*c≡a*c+[c+b*c]] = [a+b]+c≡a+[b+c] (a * c) c (b * c)
+
+  [c+[a*c+b*c]≡a*c+[c+b*c]] : c + (a * c + b * c) ≡ a * c + (c + b * c)
+  [c+[a*c+b*c]≡a*c+[c+b*c]] = ≡-⇶ [c+[a*c+b*c]≡[c+a*c]+b*c] (≡-⇶ [[c+a*c]+b*c≡[a*c+c]+b*c] [[a*c+c]+b*c≡a*c+[c+b*c]])
+
+  [c+[c+[a*c+b*c]]≡c+[a*c+[c+b*c]]] : c + (c + (a * c + b * c)) ≡ c + (a * c + (c + b * c))
+  [c+[c+[a*c+b*c]]≡c+[a*c+[c+b*c]]] = [a≡b]→[fa≡fb] c+ (c + (a * c + b * c)) (a * c + (c + b * c)) [c+[a*c+b*c]≡a*c+[c+b*c]]
+
+  [c+[a*c+[c+b*c]]≡[c+a*c]+[c+b*c]] : c + (a * c + (c + b * c)) ≡ (c + a * c) + (c + b * c)
+  [c+[a*c+[c+b*c]]≡[c+a*c]+[c+b*c]] = ≡-↑↓ ([a+b]+c≡a+[b+c] c (a * c) (c + b * c)) 
+
+  [[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] : ((𝕤 a) + (𝕤 b)) * c ≡ (𝕤 a) * c + (𝕤 b) * c
+  [[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] = ≡-⇶ [[𝕤a+𝕤b]*c≡[𝕤𝕤[a+b]]*c] 
+                          (≡-⇶ [[𝕤𝕤[a+b]]*c≡c+[c+[a+b]*c]]
+                          (≡-⇶ [c+[c+[a+b]*c]≡[c+c]+[a+b]*c]
+                          (≡-⇶ [[c+c]+[a+b]*c≡[c+c]+[a*c+b*c]]
+                          (≡-⇶ [[c+c]+[a*c+b*c]≡c+[c+[a*c+b*c]]]
+                          (≡-⇶ [c+[c+[a*c+b*c]]≡c+[a*c+[c+b*c]]]
+                          (≡-⇶ [c+[a*c+[c+b*c]]≡[c+a*c]+[c+b*c]]
+                          (≡-↑↓ [𝕤a*c+𝕤b*c≡[c+a*c]+[c+b*c]])))))))
+
+
+-- final step
+[a+b]*c≡a*c+b*c : (a b c : ℕ) → (a + b) * c ≡ a * c + b * c
+[a+b]*c≡a*c+b*c 0 0 = [0+0]*c≡0*c+0*c
+[a+b]*c≡a*c+b*c (𝕤 a) 0 = [𝕤a+0]*c≡𝕤a*c+0*c a
+[a+b]*c≡a*c+b*c 0 (𝕤 b) = [0+𝕤b]*c≡0*c+𝕤b*c b
+[a+b]*c≡a*c+b*c (𝕤 a) (𝕤 b) c = [[a+b]*c≡a*c+b*c]→[[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] a b c ([a+b]*c≡a*c+b*c a b c)
+-}
+
+
+-- 7) Lemma: (a * x ) * y ≡ x * (a * y)
+-- base case
+[0*x]*y≡x*[0*y] : (x y : Nat) → mult (mult zero x) y == mult x (mult zero y)
+[0*x]*y≡x*[0*y] x y = [[0*x]*y≡x*[0*y]]
+ where
+-- Defs :
+
+  [0*x≡0] : mult zero x == zero
+  [0*x≡0] = refl
+
+  [0*y≡0] : mult zero y == zero
+  [0*y≡0] = refl
+ 
+  [[0*x]*y≡0] : mult (mult zero x) y == zero
+  [[0*x]*y≡0] = [x==y]→[fx==fy] (λ q → mult q y) (mult zero x) zero refl
+
+  [x*0≡x*[0*y]] : mult x zero == mult x (mult zero y)
+  [x*0≡x*[0*y]] = [x==y]→[fx==fy] (mult x) zero (mult zero y) refl
+  
+  [0≡x*[0*y]] : zero == mult x (mult zero y)
+  [0≡x*[0*y]] = ==-trans (==-sym (x*0==0 x)) [x*0≡x*[0*y]]
+
+  [[0*x]*y≡x*[0*y]] : mult (mult zero x) y == mult x (mult zero y)
+  [[0*x]*y≡x*[0*y]] = ==-trans [[0*x]*y≡0] [0≡x*[0*y]]
+  
+{-
+-- inductive step
+[[a*x]*y≡x*[a*y]]-ind<𝕤,a> :
+ (x y a : ℕ) → (a * x) * y ≡ x * (a * y) → ((𝕤 a) * x) * y ≡ x * ((𝕤 a) * y)
+[[a*x]*y≡x*[a*y]]-ind<𝕤,a> x y a [[a*x]*y≡x*[a*y]] = [[𝕤a*x]*y≡x*[𝕤a*y]]
+ where
+  [𝕤a*x≡x+a*x] : mult (suc a) x == plus x (mult a x)
+  [𝕤a*x≡x+a*x] = refl
+  
+  {-
+  [𝕤a*y≡y+a*y] : (𝕤 a) * y ≡ y + a * y
+  [𝕤a*y≡y+a*y] = ⟲ (y + a * y)
+  -}
+
+  [x*[𝕤a*y]≡x*[y+a*y]] : mult x (mult (suc a) y) == mult x (plus y (mult a y))
+  [x*[𝕤a*y]≡x*[y+a*y]] = [x==y]→[fx==fy] (mult x) (mult (suc a) y) (plus y (mult a y)) refl
+
+  [x*[y+a*y]≡x*y+x*[a*y]] : mult x (plus y (mult a y)) == mult x (plus y (mult x (mult a y)))
+  [x*[y+a*y]≡x*y+x*[a*y]] = a*[b+c]≡a*b+a*c x y (a * y)
+
+  [[𝕤a*x]*y≡[x+a*x]*y] : ((𝕤 a) * x) * y ≡ (x + a * x) * y
+  [[𝕤a*x]*y≡[x+a*x]*y] = [f≡g]→[fa≡ga]₂ *y *y (⟲ *y) ((𝕤 a) * x) (x + a * x) [𝕤a*x≡x+a*x]
+
+  [[x+a*x]*y≡x*y+[a*x]*y] : (x + a * x) * y ≡ x * y + (a * x) * y
+  [[x+a*x]*y≡x*y+[a*x]*y] = [a+b]*c≡a*c+b*c x (a * x) y
+
+  [x*y+x*[a*y]≡x*y+[a*x]*y] : x * y + x * (a * y) ≡ x * y + (a * x) * y
+  [x*y+x*[a*y]≡x*y+[a*x]*y] = [a≡b]→[fa≡fb] x*y+ (x * (a * y)) ((a * x) * y) (≡-↑↓ [[a*x]*y≡x*[a*y]])
+
+  [[𝕤a*x]*y≡x*[𝕤a*y]] : ((𝕤 a) * x) * y ≡ x * ((𝕤 a) * y)
+  [[𝕤a*x]*y≡x*[𝕤a*y]] = ≡-⇶ [[𝕤a*x]*y≡[x+a*x]*y]
+                       (≡-⇶ [[x+a*x]*y≡x*y+[a*x]*y]
+                        (≡-↑↓ (≡-⇶ [x*[𝕤a*y]≡x*[y+a*y]] 
+                              (≡-⇶ [x*[y+a*y]≡x*y+x*[a*y]]
+                                     [x*y+x*[a*y]≡x*y+[a*x]*y]
+                              ))))
+
+
+-}
+{-
+-- final step
+[a*x]*y≡x*[a*y] : (x y a : ℕ) → (a * x) * y ≡ x * (a * y)
+[a*x]*y≡x*[a*y] x y 0 = [0*x]*y≡x*[0*y] x y
+[a*x]*y≡x*[a*y] x y (𝕤 a) = [[a*x]*y≡x*[a*y]]-ind<𝕤,a> x y a ([a*x]*y≡x*[a*y] x y a)
+
+
+
+
+
+-- 8) Multiplication is commutative
+x*y≡y*x : (x y : ℕ) → x * y ≡ y * x
+x*y≡y*x x y = [x*y≡y*x]
+ where
+  y* : ℕ → ℕ
+  y* = _*_ y
+
+  [[x*y]*1≡y*[x*1]] : (x * y) * 1 ≡ y * (x * 1)
+  [[x*y]*1≡y*[x*1]] = [a*x]*y≡x*[a*y] y 1 x
+
+  [[x*y]*1≡x*y] : (x * y) * 1 ≡ x * y
+  [[x*y]*1≡x*y] = x*1≡x (x * y)
+
+  [x*1≡x] : x * 1 ≡ x
+  [x*1≡x] = x*1≡x x
+
+  [y*[x*1]≡y*x] : y * (x * 1) ≡ y * x
+  [y*[x*1]≡y*x] = [a≡b]→[fa≡fb] y* (x * 1) x [x*1≡x]
+
+  [x*y≡y*x] : x * y ≡ y * x
+  [x*y≡y*x] = ≡-⇶ (≡-↑↓ [[x*y]*1≡x*y]) (≡-⇶ [[x*y]*1≡y*[x*1]] [y*[x*1]≡y*x])
+
+
+
+-- 9) (a * b) * c ≡ a * (b * c)  ; Multiplication is associative
+[a*b]*c≡a*[b*c] : (a b c : ℕ) → (a * b) * c ≡ a * (b * c)
+[a*b]*c≡a*[b*c] a b c = [[a*b]*c≡a*[b*c]]
+ where
+  *c : ℕ → ℕ
+  *c = _*'_ c
+--
+  [a*b≡b*a] : a * b ≡ b * a
+  [a*b≡b*a] = x*y≡y*x a b
+
+  [[a*b]*c≡[b*a]*c] : (a * b) * c ≡ (b * a) * c
+  [[a*b]*c≡[b*a]*c] = [a≡b]→[fa≡fb] *c (a * b) (b * a) [a*b≡b*a]
+
+  [[b*a]*c≡a*[b*c]] : (b * a) * c ≡ a * (b * c)
+  [[b*a]*c≡a*[b*c]] = [a*x]*y≡x*[a*y] a c b
+
+  [[a*b]*c≡a*[b*c]] : (a * b) * c ≡ a * (b * c)
+  [[a*b]*c≡a*[b*c]] = ≡-⇶ [[a*b]*c≡[b*a]*c] [[b*a]*c≡a*[b*c]]
+-}
 
 {-
 x*suc-y==x+x*y : (x y : Nat) →  mult x (suc y) == plus x (mult x y)
@@ -2227,5 +2612,149 @@ AlgebraicLatticesContinuous {i} {k} L =
     [x≤z]
 
   ≤-refl
+
+-}
+
+
+
+record Formulation1 {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : {x y : A} → x ≡ y → y ≡ x
+  ≡-trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  ≤-refl : {x y : A} → x ≡ y → (x ≤ y) × (y ≤ x)
+  ≤-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
+  ≤-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
+  ∧-glb : (x y : A) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)))
+
+record Formulation2 {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : {x y : A} → x ≡ y → y ≡ x
+  ≡-trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  ≤-refl : (x : A) → x ≤ x
+  ≤-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
+  ≤-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
+  ∧-glb : (x y : A) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)))
+
+
+record Formulation3 {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : {x y : A} → x ≡ y → y ≡ x
+  ≡-trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  ≤-refl : {x y : A} → x ≡ y → x ≤ y
+  ≤-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
+  ≤-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
+  ∧-glb : (x y : A) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)))
+
+record Formulation4 {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
+ field
+  ≡-refl : (x : A) → x ≡ x
+  ≡-sym : {x y : A} → x ≡ y → y ≡ x
+  ≡-trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  ≤-cont : {x x' y y' : A} → x ≡ x' → y ≡ y' → x ≤ y → x' ≤ y'
+  ≤-refl : (x : A) → x ≤ x
+  ≤-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
+  ≤-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
+  ∧-glb : (x y : A) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)))
+
+record Formulation5 {i} {j} (A : Set i) (_≡_ : A → A → Set j) (≡-equiv : isEquivalence _≡_) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set ((lsuc i) ⊔ (lsuc j)) where
+ field 
+  ∧-comm : isCommutative _≡_ ≡-equiv _∧_
+  ∧-assoc : isAssociative _≡_ ≡-equiv _∧_
+  ∧∨-absorp : absorbs _≡_ ≡-equiv _∧_ _∨_
+  ∨-comm : isCommutative _≡_ ≡-equiv _∨_
+  ∨-assoc : isAssociative _≡_ ≡-equiv _∨_
+  ∨∧-absorp : absorbs _≡_ ≡-equiv _∨_ _∧_
+
+record Formulation6 {i} {j} (A : Set i) (_≡_ : A → A → Set j) (≡-equiv : isEquivalence _≡_) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set ((lsuc i) ⊔ (lsuc j)) where
+ field
+  ∧-cont : (x x' y y' : A) → x ≡ x' → y ≡ y' → (x ∧ y) ≡ (x' ∧ y')
+  ∧-comm : isCommutative _≡_ ≡-equiv _∧_
+  ∧-assoc : isAssociative _≡_ ≡-equiv _∧_
+  ∧∨-absorp : absorbs _≡_ ≡-equiv _∧_ _∨_
+  ∨-cont : (x x' y y' : A) → x ≡ x' → y ≡ y' → (x ∨ y) ≡ (x' ∨ y')
+  ∨-comm : isCommutative _≡_ ≡-equiv _∨_
+  ∨-assoc : isAssociative _≡_ ≡-equiv _∨_
+  ∨∧-absorp : absorbs _≡_ ≡-equiv _∨_ _∧_
+
+
+Formulation1→Formulation2 : ∀ {i j k} (A : Set i) (≡ : A → A → Set k) (≤ : A → A → Set j) (∧ : A → A → A) (∨ : A → A → A) → Formulation1 A ≡ ≤ ∧ ∨ → Formulation2 A ≡ ≤ ∧ ∨
+Formulation1→Formulation2 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation1-A = Formulation2-A
+ where
+  open Formulation1 Formulation1-A
+  Formulation2-A = 
+   record {
+    ≡-refl = ≡-refl ;
+    ≡-sym = ≡-sym ;
+    ≡-trans = ≡-trans ;
+    ≤-refl = ≤-refl' ;
+    ≤-antisym = ≤-antisym ;
+    ≤-trans = ≤-trans ;
+    ∨-lub = ∨-lub ;
+    ∧-glb = ∧-glb 
+   } 
+   where
+    ≤-refl' : (x : A) → x ≤ x
+    ≤-refl' x = first (≤-refl (≡-refl x))
+
+Formulation1→Formulation3 : ∀ {i j k} (A : Set i) (≡ : A → A → Set k) (≤ : A → A → Set j) (∧ : A → A → A) (∨ : A → A → A) → Formulation1 A ≡ ≤ ∧ ∨ → Formulation3 A ≡ ≤ ∧ ∨
+Formulation1→Formulation3 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation1-A = Formulation3-A
+ where
+  open Formulation1 Formulation1-A
+  Formulation3-A = 
+   record {
+    ≡-refl = ≡-refl ;
+    ≡-sym = ≡-sym ;
+    ≡-trans = ≡-trans ;
+    ≤-refl = ≤-refl' ;
+    ≤-antisym = ≤-antisym ;
+    ≤-trans = ≤-trans ;
+    ∨-lub = ∨-lub ;
+    ∧-glb = ∧-glb
+   }
+   where
+    ≤-refl' : {x y : A} → x ≡ y → x ≤ y
+    ≤-refl' p₁ = first (≤-refl p₁)
+
+Formulation1→Formulation4 : ∀ {i j k} (A : Set i) (≡ : A → A → Set k) (≤ : A → A → Set j) (∧ : A → A → A) (∨ : A → A → A) → Formulation1 A ≡ ≤ ∧ ∨ → Formulation4 A ≡ ≤ ∧ ∨
+Formulation1→Formulation4 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation1-A = Formulation4-A
+ where
+  open Formulation1 Formulation1-A
+  Formulation4-A = 
+   record {
+    ≡-refl = ≡-refl ;
+    ≡-sym = ≡-sym ;
+    ≡-trans = ≡-trans ;
+    ≤-cont = ≤-cont ;
+    ≤-refl = ≤-refl' ;
+    ≤-antisym = ≤-antisym ;
+    ≤-trans = ≤-trans ;
+    ∨-lub = ∨-lub ;
+    ∧-glb = ∧-glb 
+   }
+   where
+    ≤-refl' : (x : A) → x ≤ x
+    ≤-refl' x = first (≤-refl (≡-refl x))
+
+    ≤-cont : {x x' y y' : A} → x ≡ x' → y ≡ y' → x ≤ y → x' ≤ y'
+    ≤-cont {x} {x'} {y} {y'} p₁ p₂ [x≤y] = [x'≤y']
+     where
+      [x'≤x] : x' ≤ x
+      [x'≤x] = first (≤-refl (≡-sym p₁))
+
+      [y≤y'] : y ≤ y'
+      [y≤y'] = first (≤-refl p₂)
+
+      [x'≤y'] : x' ≤ y'
+      [x'≤y'] = ≤-trans [x'≤x] (≤-trans [x≤y] [y≤y'])
+    
+{-
+¬[Formulation2→Formulation1]
 
 -}

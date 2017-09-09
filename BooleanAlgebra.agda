@@ -3348,15 +3348,116 @@ Formulation4→Formulation6
 ¬[Formulation5→Formulation3]
 ¬[Formulation5→Formulation4]
 ¬[Formulation5→Formulation6]
-
 -}
 
+
+Formulation6→Formulation1 : ∀ {i k} (A : Set i) (_≡_ : A → A → Set k) (_∧_ : A → A → A) (_∨_ : A → A → A) → Formulation6 A _≡_ _∧_ _∨_ → Formulation1 A _≡_ (λ x y → ((x ∧ y) ≡ x)) _∧_ _∨_
+Formulation6→Formulation1 {i} {k} A _≡_ _∧_ _∨_ Formulation6-A = Formulation1-A
+ where
+  open Formulation6 Formulation6-A
+
+  _≤_ : A → A → Set k
+  x ≤ y = (x ∧ y) ≡ x
+
+  ≤-refl : {x y : A} → (x ≡ y) → (x ≤ y) × (y ≤ x)
+  ≤-refl {x} {y} [x≡y] = proof
+   where
+    [x∧y≡x] : (x ∧ y) ≡ x
+    [x∧y≡x] = subproof
+     where
+      [x∧y≡x∧x] : (x ∧ y) ≡ (x ∧ x)
+      [x∧y≡x∧x] = ∧-cont x x y x (≡-refl x) (≡-sym [x≡y])
+
+      [x∧x≡x∧[x∨[x∧x]]] : (x ∧ x) ≡ (x ∧ (x ∨ (x ∧ x)))
+      [x∧x≡x∧[x∨[x∧x]]] = ∧-cont x x x (x ∨ (x ∧ x)) (≡-refl x) (≡-sym (∨∧-absorp x x))
+
+      [x∧[x∨[x∧x]]≡x] : (x ∧ (x ∨ (x ∧ x))) ≡ x
+      [x∧[x∨[x∧x]]≡x] = ∧∨-absorp x (x ∧ x)
+
+      subproof : (x ∧ y) ≡ x
+      subproof = ≡-trans [x∧y≡x∧x] (≡-trans [x∧x≡x∧[x∨[x∧x]]] [x∧[x∨[x∧x]]≡x])
+    [y∧x≡y] : (y ∧ x) ≡ y
+    [y∧x≡y] = subproof
+     where
+      [y∧x≡y∧y] : (y ∧ x) ≡ (y ∧ y)
+      [y∧x≡y∧y] = ∧-cont y y x y (≡-refl y) [x≡y]
+
+      [y∧y≡y∧[y∨[y∧y]]] : (y ∧ y) ≡ (y ∧ (y ∨ (y ∧ y)))
+      [y∧y≡y∧[y∨[y∧y]]] = ∧-cont y y y (y ∨ (y ∧ y)) (≡-refl y) (≡-sym (∨∧-absorp y y))
+
+      [y∧[y∨[y∧y]]≡y] : (y ∧ (y ∨ (y ∧ y))) ≡ y
+      [y∧[y∨[y∧y]]≡y] = ∧∨-absorp y (y ∧ y)
+ 
+      subproof : (y ∧ x) ≡ y
+      subproof = ≡-trans [y∧x≡y∧y] (≡-trans [y∧y≡y∧[y∨[y∧y]]] [y∧[y∨[y∧y]]≡y])
+    proof : ((x ∧ y) ≡ x) × ((y ∧ x) ≡ y)
+    proof = ([x∧y≡x] , [y∧x≡y])
+
+  ≤-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
+  ≤-antisym {x} {y} [x≤y] [y≤x] = ≡-trans (≡-sym [x≤y]) (≡-trans (∧-comm x y) [y≤x])
+
+  ≤-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  ≤-trans {x} {y} {z} [x≤y] [y≤z] = [x≤z]
+   where
+    [x∧z≡[x∧y]∧z] : (x ∧ z) ≡ ((x ∧ y) ∧ z)
+    [x∧z≡[x∧y]∧z] = ∧-cont x (x ∧ y) z z (≡-sym [x≤y]) (≡-refl z)
+
+    [[x∧y]∧z≡x∧[y∧z]] : ((x ∧ y) ∧ z) ≡ (x ∧ (y ∧ z))
+    [[x∧y]∧z≡x∧[y∧z]] = ≡-sym (∧-assoc x y z)
+
+    [x∧[y∧z]≡x∧y] : (x ∧ (y ∧ z)) ≡ (x ∧ y)
+    [x∧[y∧z]≡x∧y] = ∧-cont x x (y ∧ z) y (≡-refl x) [y≤z]
+
+    [x≤z] : (x ∧ z) ≡ x
+    [x≤z] = ≡-trans [x∧z≡[x∧y]∧z] (≡-trans [[x∧y]∧z≡x∧[y∧z]] (≡-trans [x∧[y∧z]≡x∧y] [x≤y]))
+
+  ∧-glb : (x y : A) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)))
+  ∧-glb x y = ([x∧y≤x] , ([x∧y≤y] , [x∧y]-greatest))
+   where
+    [x∧y≤x] : ((x ∧ y) ∧ x) ≡ (x ∧ y)
+    [x∧y≤x] = ≡-trans (∧-comm (x ∧ y) x) (≡-trans (∧-assoc x x y) (∧-cont (x ∧ x) x y y (first (≤-refl (≡-refl x))) (≡-refl y)))
+
+    [x∧y≤y] : ((x ∧ y) ∧ y) ≡ (x ∧ y)
+    [x∧y≤y] = ≡-trans (∧-comm (x ∧ y) y) (≡-trans (∧-cont y y (x ∧ y) (y ∧ x) (≡-refl y) (∧-comm x y)) (≡-trans (∧-assoc y y x) (≡-trans (∧-cont (y ∧ y) y x x (first (≤-refl (≡-refl y))) (≡-refl x)) (∧-comm y x))))
+
+    [x∧y]-greatest : (z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)
+    [x∧y]-greatest z ([z∧x≡z] , [z∧y≡z]) = ≡-trans (∧-assoc z x y) (≡-trans (∧-cont (z ∧ x) z y y [z∧x≡z] (≡-refl y)) [z∧y≡z])
+
+  ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → ((x ∨ y) ≤ z)))
+  ∨-lub x y = ([x≤x∨y] , ([y≤x∨y] , [x∨y]-least))
+   where
+    [x≤x∨y] : (x ∧ (x ∨ y)) ≡ x
+    [x≤x∨y] = ∧∨-absorp x y
+
+    [y≤x∨y] : (y ∧ (x ∨ y)) ≡ y
+    [y≤x∨y] = ≡-trans (∧-cont y y (x ∨ y) (y ∨ x) (≡-refl y) (∨-comm x y)) (∧∨-absorp y x)
+
+    [x∨y]-least : (z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z
+    [x∨y]-least z ([x∧z≡x] , [y∧z≡y]) = [[x∨y]∧z≡x∨y]
+     where
+      {- How convenient: https://math.stackexchange.com/questions/1898510/from-algebraic-lattice-to-a-poset-lattice -}
+      [x∨z≡z] : (x ∨ z) ≡ z
+      [x∨z≡z] = ≡-trans (∨-cont x (z ∧ x) z z (≡-trans (≡-sym [x∧z≡x]) (∧-comm x z)) (≡-refl z)) (≡-trans (∨-comm (z ∧ x) z) (∨∧-absorp z x))
+
+      [y∨z≡z] : (y ∨ z) ≡ z
+      [y∨z≡z] = ≡-trans (∨-cont y (z ∧ y) z z (≡-trans (≡-sym [y∧z≡y]) (∧-comm y z)) (≡-refl z)) (≡-trans (∨-comm (z ∧ y) z) (∨∧-absorp z y))
+
+      [[x∨y]∧z≡x∨y] = ≡-trans (∧-cont (x ∨ y) (x ∨ y) z (x ∨ z) (≡-refl (x ∨ y)) (≡-sym [x∨z≡z])) (≡-trans (∧-cont (x ∨ y) (x ∨ y) (x ∨ z) (x ∨ (y ∨ z)) (≡-refl (x ∨ y)) (∨-cont x x z (y ∨ z) (≡-refl x) (≡-sym [y∨z≡z]))) (≡-trans (∧-cont (x ∨ y) (x ∨ y) (x ∨ (y ∨ z)) ((x ∨ y) ∨ z) (≡-refl (x ∨ y)) (∨-assoc x y z)) (∧∨-absorp (x ∨ y) z)))
+    
+  Formulation1-A = 
+   record {
+    ≡-refl = ≡-refl ;
+    ≡-sym = ≡-sym ;
+    ≡-trans = ≡-trans ;
+    ≤-refl = ≤-refl ;
+    ≤-antisym = ≤-antisym ;
+    ≤-trans = ≤-trans ;
+    ∧-glb = ∧-glb ;
+    ∨-lub = ∨-lub
+   }
 {-
-Formulation6→Formulation1
 Formulation6→Formulation2
 Formulation6→Formulation3
 Formulation6→Formulation4
 Formulation6→Formulation5
-
-just prove 6 → 1. this is the analog of the standard equivalence between order-theoretic and algebraically formulated lattices that you need to prove in the paper anyway.
 -}

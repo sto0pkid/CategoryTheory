@@ -2062,220 +2062,86 @@ x*1==x zero = refl
 x*1==x (suc x) = x*1==x-ind x (x*1==x x)
 
 
+
+
 -- 5) Multiplication left-distributes over addition :
 1-5-base<a,0> : (b c : Nat) → mult zero (plus b c) == plus (mult zero b) (mult zero c)
 1-5-base<a,0> b c = refl 
 
-{-
+
 1-5-ind<a,𝕤> : (a b c : Nat) → mult a (plus b c) == plus (mult a b) (mult a c) → mult (suc a) (plus b c) == plus (mult (suc a) b) (mult (suc a) c)
-1-5-ind<a,𝕤> a b c [a*[b+c]≡a*b+a*c] = [𝕤a*[b+c]≡𝕤a*b+𝕤a*c]
+1-5-ind<a,𝕤> a b c [a*[b+c]≡a*b+a*c] = proof
  where
-  [𝕤a*[b+c]≡[b+c]+[a*b+a*c]] : mult (suc a) (plus b c) == plus (plus b c) (plus (mult a b) (mult a c))
-  [𝕤a*[b+c]≡[b+c]+[a*b+a*c]] = [x==y]→[fx==fy] (plus (plus b c)) (mult a (plus b c)) (plus (mult a b) (mult a c)) [a*[b+c]≡a*b+a*c] 
+  {- (suc a) * (b + c) == (b + c) + (a * (b + c)) == (b + c) + (a*b + a*c) -}
+  l1 : mult (suc a) (plus b c) == plus (plus b c) (plus (mult a b) (mult a c))
+  l1 = [x==y]→[fx==fy] (plus (plus b c)) (mult a (plus b c)) (plus (mult a b) (mult a c)) [a*[b+c]≡a*b+a*c] 
 
-  [𝕤a*b+𝕤a*c≡b+[a*b+[c+a*c]]] : plus (mult (suc a) b) (mult (suc a) c) == plus b (plus (mult a b) (plus c (mult a c)))
-  [𝕤a*b+𝕤a*c≡b+[a*b+[c+a*c]]] = ==-sym (x+[y+z]==[x+y]+z b (mult a b) (plus c (mult a c)))
+  {- (suc a)*b + (suc a)*c == b + (a*b + (c + a*c)) -}
+  l2 : plus (mult (suc a) b) (mult (suc a) c) == plus b (plus (mult a b) (plus c (mult a c)))
+  l2 = ==-sym (x+[y+z]==[x+y]+z b (mult a b) (plus c (mult a c)))
 
-  [a*b+[c+a*c]]≡[a*b+c]+a*c] : plus (mult a b) (plus c (mult a c)) == plus (plus (mult a b) c) (mult a c)
-  [a*b+[c+a*c]]≡[a*b+c]+a*c] = x+[y+z]==[x+y]+z (mult a b) c (mult a c)
+  {- a*b + (c + a*c) == c + (a*b + a*c) -}
+  l3 : plus (mult a b) (plus c (mult a c)) == plus c (plus (mult a b) (mult a c))
+  l3 = ==-trans (x+y==y+x (mult a b) (plus c (mult a c))) (==-trans (==-sym (x+[y+z]==[x+y]+z c (mult a c) (mult a b))) ([x==y]→[fx==fy] (plus c) (plus (mult a c) (mult a b)) (plus (mult a b) (mult a c)) (x+y==y+x (mult a c) (mult a b))))
 
-
-  [a*b+c≡c+a*b] : a * b + c ≡ c + a * b
-  [a*b+c≡c+a*b] = x+y≡y+x (a * b) c
-
-  [[a*b+c]+a*c≡[c+a*b]+a*c] : (a * b + c) + a * c ≡ (c + a * b) + a * c
-  [[a*b+c]+a*c≡[c+a*b]+a*c] = [f≡g]→[fa≡ga]₂ +a*c +a*c (⟲ +a*c) (a * b + c) (c + a * b) [a*b+c≡c+a*b]
   
-  [[c+a*b]+a*c≡c+[a*b+a*c]] : (c + a * b) + a * c ≡ c + (a * b + a * c)
-  [[c+a*b]+a*c≡c+[a*b+a*c]] = [a+b]+c≡a+[b+c] c (a * b) (a * c) 
+  l4 : plus b (plus (mult a b) (plus c (mult a c))) == plus (plus b c) (plus (mult a b) (mult a c))
+  l4 = ==-trans ([x==y]→[fx==fy] (plus b) (plus (mult a b) (plus c (mult a c))) (plus c (plus (mult a b) (mult a c))) l3) (x+[y+z]==[x+y]+z b c (plus (mult a b) (mult a c)))
 
-  [a*b+[c+a*c]≡c+[a*b+a*c]] : a * b + (c + a * c) ≡ c + (a * b + a * c)
-  [a*b+[c+a*c]≡c+[a*b+a*c]] = ≡-⇶ [a*b+[c+a*c]]≡[a*b+c]+a*c] (≡-⇶ [[a*b+c]+a*c≡[c+a*b]+a*c] [[c+a*b]+a*c≡c+[a*b+a*c]])
+  proof : mult (suc a) (plus b c) == plus (mult (suc a) b) (mult (suc a) c)
+  proof = ==-trans l1 (==-sym (==-trans l2 l4)) 
 
-  [b+[a*b+[c+a*c]]≡b+[c+[a*b+a*c]]] : b + (a * b + (c + a * c)) ≡ b + (c + (a * b + a * c))
-  [b+[a*b+[c+a*c]]≡b+[c+[a*b+a*c]]] = [f≡g]→[fa≡ga]₂ b+ b+ (⟲ b+) (a * b + (c + a * c)) (c + (a * b + a * c)) [a*b+[c+a*c]≡c+[a*b+a*c]]
-
-  [b+[c+[a*b+a*c]]≡[b+c]+[a*b+a*c]] : b + (c + (a * b + a * c)) ≡ (b + c) + (a * b + a * c)
-  [b+[c+[a*b+a*c]]≡[b+c]+[a*b+a*c]] = ≡-↑↓ ([a+b]+c≡a+[b+c] b c (a * b + a * c))
-
-
-  [𝕤a*[b+c]≡𝕤a*b+𝕤a*c] : (𝕤 a) * (b + c) ≡ (𝕤 a) * b + (𝕤 a) * c
-  [𝕤a*[b+c]≡𝕤a*b+𝕤a*c] = 
-    ≡-⇶ [𝕤a*[b+c]≡[b+c]+a*[b+c]] 
-   (≡-⇶ [[b+c]+a*[b+c]≡[b+c]+[a*b+a*c]]
-   (≡-↑↓ (≡-⇶ [𝕤a*b+𝕤a*c≡[b+a*b]+𝕤a*c] 
-         (≡-⇶ [[b+a*b]+𝕤a*c≡[b+a*b]+[c+a*c]]
-         (≡-⇶ [[b+a*b]+[c+a*c]≡b+[a*b+[c+a*c]]]
-         (≡-⇶ [b+[a*b+[c+a*c]]≡b+[c+[a*b+a*c]]]
-               [b+[c+[a*b+a*c]]≡[b+c]+[a*b+a*c]]
-         ))))))
-  -}
-
-{-
 
 -- final step
-a*[b+c]≡a*b+a*c : (a b c : ℕ) → a * (b + c) ≡ a * b + a * c
-a*[b+c]≡a*b+a*c 0 b c = 1-5-base<a,0> b c
-a*[b+c]≡a*b+a*c (𝕤 a) b c = 1-5-ind<a,𝕤> a b c (a*[b+c]≡a*b+a*c a b c)
+a*[b+c]≡a*b+a*c : (a b c : Nat) → mult a (plus b c) == plus (mult a b) (mult a c)
+a*[b+c]≡a*b+a*c zero b c = 1-5-base<a,0> b c
+a*[b+c]≡a*b+a*c (suc a) b c = 1-5-ind<a,𝕤> a b c (a*[b+c]≡a*b+a*c a b c)
 
 
 -- 6) Multiplication right-distributes over addition
--- a,b=0 base case
-[0+0]*c≡0*c+0*c : (c : ℕ) → (0 + 0) * c ≡ 0 * c + 0 * c
-[0+0]*c≡0*c+0*c c = ⟲ 0
-
 -- a=0 base case
-[0+𝕤b]*c≡0*c+𝕤b*c : (b c : ℕ) → (0 + (𝕤 b)) * c ≡ 0 * c + (𝕤 b) * c
-[0+𝕤b]*c≡0*c+𝕤b*c b c = [[0+𝕤b]*c≡0*c+𝕤b*c]
- where
-  *c : ℕ → ℕ
-  *c = _*'_ c
+[0+𝕤b]*c≡0*c+𝕤b*c : (b c : Nat) → (mult (plus zero (suc b)) c) == plus (mult zero c) (mult (suc b) c)
+[0+𝕤b]*c≡0*c+𝕤b*c b c = refl
 
-  +𝕤b*c : ℕ → ℕ
-  +𝕤b*c = _+'_ ((𝕤 b) * c)
-
-  [0+𝕤b≡𝕤b] : 0 + (𝕤 b) ≡ (𝕤 b)
-  [0+𝕤b≡𝕤b] = 𝕫+x≡x (𝕤 b)
-
-  [0*c≡0] : 0 * c ≡ 0
-  [0*c≡0] = 0*x≡0 c
- 
-  [0*c+𝕤b*c≡0+𝕤b*c] : 0 * c + (𝕤 b) * c ≡ 0 + (𝕤 b) * c
-  [0*c+𝕤b*c≡0+𝕤b*c] = [a≡b]→[fa≡fb] +𝕤b*c (0 * c) 0 [0*c≡0]
-
-  [0+𝕤b*c≡𝕤b*c] : 0 + (𝕤 b) * c ≡ (𝕤 b) * c
-  [0+𝕤b*c≡𝕤b*c] = 𝕫+x≡x ((𝕤 b) * c)
- 
-  [[0+𝕤b]*c≡𝕤b*c] : (0 + (𝕤 b)) * c ≡ (𝕤 b) * c
-  [[0+𝕤b]*c≡𝕤b*c] = [a≡b]→[fa≡fb] *c (0 + (𝕤 b)) (𝕤 b) [0+𝕤b≡𝕤b]
-
-    
-
-  [[0+𝕤b]*c≡0*c+𝕤b*c] : (0 + (𝕤 b)) * c ≡ 0 * c + (𝕤 b) * c
-  [[0+𝕤b]*c≡0*c+𝕤b*c] = ≡-⇶ [[0+𝕤b]*c≡𝕤b*c] (≡-↑↓ (≡-⇶ [0*c+𝕤b*c≡0+𝕤b*c] [0+𝕤b*c≡𝕤b*c]))
 
 -- b=0 base case
-[𝕤a+0]*c≡𝕤a*c+0*c : (a c : ℕ) → ((𝕤 a) + 0) * c ≡ (𝕤 a) * c + 0 * c
-[𝕤a+0]*c≡𝕤a*c+0*c a c = [[𝕤a+0]*c≡𝕤a*c+0*c]
+[𝕤a+0]*c≡𝕤a*c+0*c : (a c : Nat) → (mult (plus (suc a) zero) c) == (plus (mult (suc a) c) (mult zero c)) 
+[𝕤a+0]*c≡𝕤a*c+0*c a c = proof
  where
-  𝕤a*c+ : ℕ → ℕ
-  𝕤a*c+ = _+_ ((𝕤 a) * c)
+  l1 : (plus (mult (suc a) c) zero) == (mult (suc a) c)
+  l1 = x+0==x (mult (suc a) c)
 
-  *c : ℕ → ℕ
-  *c = _*'_ c
+  
+  l2 : (mult (plus (suc a) zero) c) == (mult (suc a) c) 
+  l2 = [x==y]→[fx==fy] (λ q → mult q c) (plus (suc a) zero) (suc a) (x+0==x (suc a))
 
-  [0*c≡0] : 0 * c ≡ 0
-  [0*c≡0] = 0*x≡0 c
- 
-  [𝕤a*c+0*c≡𝕤a*c+0] : (𝕤 a) * c + 0 * c ≡ (𝕤 a) * c + 0
-  [𝕤a*c+0*c≡𝕤a*c+0] = [a≡b]→[fa≡fb] 𝕤a*c+ (0 * c) 0 [0*c≡0]
+  proof = ==-trans l2 (==-sym l1)
 
-  [𝕤a*c+0≡𝕤a*c] : (𝕤 a) * c + 0 ≡ (𝕤 a) * c
-  [𝕤a*c+0≡𝕤a*c] = x+𝕫≡x ((𝕤 a) * c)
-
-  [𝕤a+0≡𝕤a] : (𝕤 a) + 0 ≡ (𝕤 a)
-  [𝕤a+0≡𝕤a] = x+𝕫≡x (𝕤 a)
-
-  [[𝕤a+0]*c≡𝕤a*c] : ((𝕤 a) + 0) * c ≡ (𝕤 a) * c
-  [[𝕤a+0]*c≡𝕤a*c] = [a≡b]→[fa≡fb] *c ((𝕤 a) + 0) (𝕤 a) [𝕤a+0≡𝕤a]
-
-  [[𝕤a+0]*c≡𝕤a*c+0*c] : ((𝕤 a) + 0) * c ≡ (𝕤 a) * c + 0 * c
-  [[𝕤a+0]*c≡𝕤a*c+0*c] = ≡-⇶ [[𝕤a+0]*c≡𝕤a*c] (≡-↑↓ (≡-⇶ [𝕤a*c+0*c≡𝕤a*c+0] [𝕤a*c+0≡𝕤a*c]))
 
 -- ab-inductive
 [[a+b]*c≡a*c+b*c]→[[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] : 
- (a b c : ℕ) → (a + b) * c ≡ a * c + b * c → ((𝕤 a) + (𝕤 b)) * c ≡ (𝕤 a) * c + (𝕤 b) * c
-[[a+b]*c≡a*c+b*c]→[[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] a b c [[a+b]*c≡a*c+b*c] = [[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c]
+ (a b c : Nat) → mult (plus a b) c == plus (mult a c) (mult b c) → mult (plus (suc a) (suc b)) c == plus (mult (suc a) c) (mult (suc b) c)
+[[a+b]*c≡a*c+b*c]→[[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] a b c [[a+b]*c≡a*c+b*c] = proof
  where
+  l1 : plus (mult (suc a) c) (mult (suc b) c) == plus (plus c c) (plus (mult a c) (mult b c))
+  l1 = ==-trans (x+[y+z]==[x+y]+z (plus c (mult a c)) c (mult b c)) (==-trans ([x==y]→[fx==fy] (λ q → plus q (mult b c)) (plus (plus c (mult a c)) c) (plus (plus c c) (mult a c)) (==-trans (==-sym (x+[y+z]==[x+y]+z c (mult a c) c)) (==-trans ([x==y]→[fx==fy] (plus c) (plus (mult a c) c) (plus c (mult a c)) (x+y==y+x (mult a c) c)) (x+[y+z]==[x+y]+z c c (mult a c))))) (==-sym (x+[y+z]==[x+y]+z (plus c c) (mult a c) (mult b c))))
 
-  *c : ℕ → ℕ
-  *c = _*'_ c
+  l2 : mult (plus (suc a) (suc b)) c == mult (suc (suc (plus a b))) c 
+  l2 = [x==y]→[fx==fy] (λ q → (mult q c)) (plus (suc a) (suc b)) (suc (suc (plus a b))) ([x==y]→[fx==fy] suc (plus a (suc b)) (suc (plus a b)) (x+suc-y==suc[x+y] a b))
 
-  [c+c]+ : ℕ → ℕ
-  [c+c]+ = _+_ (c + c)
+  l3 : mult (plus (suc a) (suc b)) c == plus (plus c c) (plus (mult a c) (mult b c))
+  l3 = ==-trans l2 (==-trans (x+[y+z]==[x+y]+z c c (mult (plus a b) c)) ([x==y]→[fx==fy] (plus (plus c c)) (mult (plus a b) c) (plus (mult a c) (mult b c)) [[a+b]*c≡a*c+b*c]))
+
   
-  +b*c : ℕ → ℕ
-  +b*c = _+'_ (b * c)
-
-  c+ : ℕ → ℕ
-  c+ = _+_ c
---
-
-  [𝕤a*c≡c+a*c] : (𝕤 a) * c ≡  c + (a * c)
-  [𝕤a*c≡c+a*c] = ⟲ (c + a * c)
-
-  [𝕤b*c≡c+b*c] : (𝕤 b) * c ≡  c + (b * c)
-  [𝕤b*c≡c+b*c] = ⟲ (c + b * c)
-
-  [𝕤a*c+𝕤b*c≡[c+a*c]+[c+b*c]] : (𝕤 a) * c + (𝕤 b) * c ≡ (c + a * c) + (c + b * c)
-  [𝕤a*c+𝕤b*c≡[c+a*c]+[c+b*c]] = ⟲ ((c + a * c) + (c + b * c))
-
-  [𝕤a+𝕤b≡𝕤[a+𝕤b]] : (𝕤 a) + (𝕤 b) ≡ 𝕤 (a + (𝕤 b))
-  [𝕤a+𝕤b≡𝕤[a+𝕤b]] = 𝕤x+y≡𝕤[x+y] a (𝕤 b)
- 
-  [a+𝕤b≡𝕤[a+b]] : a + (𝕤 b) ≡ (𝕤 ( a + b))
-  [a+𝕤b≡𝕤[a+b]] = x+𝕤y≡𝕤[x+y] a b
-
-  [𝕤[a+𝕤b]≡𝕤𝕤[a+b]] : (𝕤 (a + (𝕤 b))) ≡ (𝕤 (𝕤 (a + b)))
-  [𝕤[a+𝕤b]≡𝕤𝕤[a+b]] = [a≡b]→[fa≡fb] 𝕤 (a + (𝕤 b)) (𝕤 (a + b)) [a+𝕤b≡𝕤[a+b]]
-
-  [𝕤a+𝕤b≡𝕤𝕤[a+b]] : (𝕤 a) + (𝕤 b) ≡ (𝕤 (𝕤 (a + b)))
-  [𝕤a+𝕤b≡𝕤𝕤[a+b]] = ≡-⇶ [𝕤a+𝕤b≡𝕤[a+𝕤b]] [𝕤[a+𝕤b]≡𝕤𝕤[a+b]]
-
-  [[𝕤a+𝕤b]*c≡[𝕤𝕤[a+b]]*c] : ((𝕤 a) + (𝕤 b)) * c ≡ (𝕤 (𝕤 (a + b))) * c
-  [[𝕤a+𝕤b]*c≡[𝕤𝕤[a+b]]*c] = [a≡b]→[fa≡fb] *c ((𝕤 a) + (𝕤 b)) (𝕤 (𝕤 (a + b))) [𝕤a+𝕤b≡𝕤𝕤[a+b]]
-
-  [[𝕤𝕤[a+b]]*c≡c+[c+[a+b]*c]] : (𝕤 (𝕤 (a + b))) * c ≡ c + (c + (a + b) * c)
-  [[𝕤𝕤[a+b]]*c≡c+[c+[a+b]*c]] = ⟲ (c + (c + (a + b) * c))
-
-  [c+[c+[a+b]*c]≡[c+c]+[a+b]*c] : c + (c + (a + b) * c) ≡ (c + c) + (a + b) * c  
-  [c+[c+[a+b]*c]≡[c+c]+[a+b]*c] = ≡-↑↓ ([a+b]+c≡a+[b+c] c c ((a + b) * c))
-
-  [[c+c]+[a+b]*c≡[c+c]+[a*c+b*c]] : (c + c) + (a + b) * c ≡ (c + c) + (a * c + b * c)
-  [[c+c]+[a+b]*c≡[c+c]+[a*c+b*c]] = [a≡b]→[fa≡fb] [c+c]+ ((a + b) * c) (a * c + b * c) [[a+b]*c≡a*c+b*c]
-
-  [[c+c]+[a*c+b*c]≡c+[c+[a*c+b*c]]] : (c + c) + (a * c + b * c) ≡ c + (c + (a * c + b * c))
-  [[c+c]+[a*c+b*c]≡c+[c+[a*c+b*c]]] = [a+b]+c≡a+[b+c] c c (a * c + b * c)
-
-  [c+[a*c+b*c]≡[c+a*c]+b*c] : c + (a * c + b * c) ≡ (c + a * c) + b * c
-  [c+[a*c+b*c]≡[c+a*c]+b*c] = ≡-↑↓ ([a+b]+c≡a+[b+c] c (a * c) (b * c))
-
-  [c+a*c≡a*c+c] : c + a * c ≡ a * c + c
-  [c+a*c≡a*c+c] = x+y≡y+x c (a * c)
-
-  [[c+a*c]+b*c≡[a*c+c]+b*c] : (c + a * c) + b * c ≡ (a * c + c) + b * c
-  [[c+a*c]+b*c≡[a*c+c]+b*c] = [a≡b]→[fa≡fb] +b*c (c + a * c) (a * c + c) [c+a*c≡a*c+c]
-
-  [[a*c+c]+b*c≡a*c+[c+b*c]] : (a * c + c) + b * c ≡ a * c + (c + b * c)
-  [[a*c+c]+b*c≡a*c+[c+b*c]] = [a+b]+c≡a+[b+c] (a * c) c (b * c)
-
-  [c+[a*c+b*c]≡a*c+[c+b*c]] : c + (a * c + b * c) ≡ a * c + (c + b * c)
-  [c+[a*c+b*c]≡a*c+[c+b*c]] = ≡-⇶ [c+[a*c+b*c]≡[c+a*c]+b*c] (≡-⇶ [[c+a*c]+b*c≡[a*c+c]+b*c] [[a*c+c]+b*c≡a*c+[c+b*c]])
-
-  [c+[c+[a*c+b*c]]≡c+[a*c+[c+b*c]]] : c + (c + (a * c + b * c)) ≡ c + (a * c + (c + b * c))
-  [c+[c+[a*c+b*c]]≡c+[a*c+[c+b*c]]] = [a≡b]→[fa≡fb] c+ (c + (a * c + b * c)) (a * c + (c + b * c)) [c+[a*c+b*c]≡a*c+[c+b*c]]
-
-  [c+[a*c+[c+b*c]]≡[c+a*c]+[c+b*c]] : c + (a * c + (c + b * c)) ≡ (c + a * c) + (c + b * c)
-  [c+[a*c+[c+b*c]]≡[c+a*c]+[c+b*c]] = ≡-↑↓ ([a+b]+c≡a+[b+c] c (a * c) (c + b * c)) 
-
-  [[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] : ((𝕤 a) + (𝕤 b)) * c ≡ (𝕤 a) * c + (𝕤 b) * c
-  [[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] = ≡-⇶ [[𝕤a+𝕤b]*c≡[𝕤𝕤[a+b]]*c] 
-                          (≡-⇶ [[𝕤𝕤[a+b]]*c≡c+[c+[a+b]*c]]
-                          (≡-⇶ [c+[c+[a+b]*c]≡[c+c]+[a+b]*c]
-                          (≡-⇶ [[c+c]+[a+b]*c≡[c+c]+[a*c+b*c]]
-                          (≡-⇶ [[c+c]+[a*c+b*c]≡c+[c+[a*c+b*c]]]
-                          (≡-⇶ [c+[c+[a*c+b*c]]≡c+[a*c+[c+b*c]]]
-                          (≡-⇶ [c+[a*c+[c+b*c]]≡[c+a*c]+[c+b*c]]
-                          (≡-↑↓ [𝕤a*c+𝕤b*c≡[c+a*c]+[c+b*c]])))))))
+  proof = ==-trans l3 (==-sym l1)
 
 
 -- final step
-[a+b]*c≡a*c+b*c : (a b c : ℕ) → (a + b) * c ≡ a * c + b * c
-[a+b]*c≡a*c+b*c 0 0 = [0+0]*c≡0*c+0*c
-[a+b]*c≡a*c+b*c (𝕤 a) 0 = [𝕤a+0]*c≡𝕤a*c+0*c a
-[a+b]*c≡a*c+b*c 0 (𝕤 b) = [0+𝕤b]*c≡0*c+𝕤b*c b
-[a+b]*c≡a*c+b*c (𝕤 a) (𝕤 b) c = [[a+b]*c≡a*c+b*c]→[[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] a b c ([a+b]*c≡a*c+b*c a b c)
--}
+[a+b]*c≡a*c+b*c : (a b c : Nat) → mult (plus a b) c == plus (mult a c) (mult b c)
+[a+b]*c≡a*c+b*c zero zero c = refl
+[a+b]*c≡a*c+b*c (suc a) zero c = [𝕤a+0]*c≡𝕤a*c+0*c a c
+[a+b]*c≡a*c+b*c zero (suc b) c = refl
+[a+b]*c≡a*c+b*c (suc a) (suc b) c = [[a+b]*c≡a*c+b*c]→[[𝕤a+𝕤b]*c≡𝕤a*c+𝕤b*c] a b c ([a+b]*c≡a*c+b*c a b c)
 
 
 -- 7) Lemma: (a * x ) * y ≡ x * (a * y)
@@ -2303,127 +2169,75 @@ a*[b+c]≡a*b+a*c (𝕤 a) b c = 1-5-ind<a,𝕤> a b c (a*[b+c]≡a*b+a*c a b c)
   [[0*x]*y≡x*[0*y]] : mult (mult zero x) y == mult x (mult zero y)
   [[0*x]*y≡x*[0*y]] = ==-trans [[0*x]*y≡0] [0≡x*[0*y]]
   
-{-
+
 -- inductive step
 [[a*x]*y≡x*[a*y]]-ind<𝕤,a> :
- (x y a : ℕ) → (a * x) * y ≡ x * (a * y) → ((𝕤 a) * x) * y ≡ x * ((𝕤 a) * y)
-[[a*x]*y≡x*[a*y]]-ind<𝕤,a> x y a [[a*x]*y≡x*[a*y]] = [[𝕤a*x]*y≡x*[𝕤a*y]]
+ (x y a : Nat) → mult (mult a x) y == mult x (mult a y) → mult (mult (suc a) x) y == mult x (mult (suc a) y)
+[[a*x]*y≡x*[a*y]]-ind<𝕤,a> x y a [[a*x]*y≡x*[a*y]] = proof
  where
-  [𝕤a*x≡x+a*x] : mult (suc a) x == plus x (mult a x)
-  [𝕤a*x≡x+a*x] = refl
+  l1 : mult x (mult (suc a) y) == mult x (plus y (mult a y))
+  l1 = [x==y]→[fx==fy] (mult x) (mult (suc a) y) (plus y (mult a y)) refl
+
+  l2 : mult x (plus y (mult a y)) == plus (mult x y) (mult x (mult a y))
+  l2 = a*[b+c]≡a*b+a*c x y (mult a y)
+
+  l3 : mult (mult (suc a) x) y == plus (mult x y) (mult (mult a x) y)
+  l3 = [a+b]*c≡a*c+b*c x (mult a x) y
   
-  {-
-  [𝕤a*y≡y+a*y] : (𝕤 a) * y ≡ y + a * y
-  [𝕤a*y≡y+a*y] = ⟲ (y + a * y)
-  -}
+  l4 : plus (mult x y) (mult x (mult a y)) == plus (mult x y) (mult (mult a x) y) 
+  l4 = [x==y]→[fx==fy] (plus (mult x y)) (mult x (mult a y)) (mult (mult a x) y) (==-sym [[a*x]*y≡x*[a*y]])
 
-  [x*[𝕤a*y]≡x*[y+a*y]] : mult x (mult (suc a) y) == mult x (plus y (mult a y))
-  [x*[𝕤a*y]≡x*[y+a*y]] = [x==y]→[fx==fy] (mult x) (mult (suc a) y) (plus y (mult a y)) refl
+  proof = ==-trans l3 (==-sym (==-trans l1 (==-trans l2 l4)))
 
-  [x*[y+a*y]≡x*y+x*[a*y]] : mult x (plus y (mult a y)) == mult x (plus y (mult x (mult a y)))
-  [x*[y+a*y]≡x*y+x*[a*y]] = a*[b+c]≡a*b+a*c x y (a * y)
-
-  [[𝕤a*x]*y≡[x+a*x]*y] : ((𝕤 a) * x) * y ≡ (x + a * x) * y
-  [[𝕤a*x]*y≡[x+a*x]*y] = [f≡g]→[fa≡ga]₂ *y *y (⟲ *y) ((𝕤 a) * x) (x + a * x) [𝕤a*x≡x+a*x]
-
-  [[x+a*x]*y≡x*y+[a*x]*y] : (x + a * x) * y ≡ x * y + (a * x) * y
-  [[x+a*x]*y≡x*y+[a*x]*y] = [a+b]*c≡a*c+b*c x (a * x) y
-
-  [x*y+x*[a*y]≡x*y+[a*x]*y] : x * y + x * (a * y) ≡ x * y + (a * x) * y
-  [x*y+x*[a*y]≡x*y+[a*x]*y] = [a≡b]→[fa≡fb] x*y+ (x * (a * y)) ((a * x) * y) (≡-↑↓ [[a*x]*y≡x*[a*y]])
-
-  [[𝕤a*x]*y≡x*[𝕤a*y]] : ((𝕤 a) * x) * y ≡ x * ((𝕤 a) * y)
-  [[𝕤a*x]*y≡x*[𝕤a*y]] = ≡-⇶ [[𝕤a*x]*y≡[x+a*x]*y]
-                       (≡-⇶ [[x+a*x]*y≡x*y+[a*x]*y]
-                        (≡-↑↓ (≡-⇶ [x*[𝕤a*y]≡x*[y+a*y]] 
-                              (≡-⇶ [x*[y+a*y]≡x*y+x*[a*y]]
-                                     [x*y+x*[a*y]≡x*y+[a*x]*y]
-                              ))))
-
-
--}
-{-
 -- final step
-[a*x]*y≡x*[a*y] : (x y a : ℕ) → (a * x) * y ≡ x * (a * y)
-[a*x]*y≡x*[a*y] x y 0 = [0*x]*y≡x*[0*y] x y
-[a*x]*y≡x*[a*y] x y (𝕤 a) = [[a*x]*y≡x*[a*y]]-ind<𝕤,a> x y a ([a*x]*y≡x*[a*y] x y a)
+[a*x]*y≡x*[a*y] : (x y a : Nat) → mult (mult a x) y == mult x (mult a y)
+[a*x]*y≡x*[a*y] x y zero = [0*x]*y≡x*[0*y] x y
+[a*x]*y≡x*[a*y] x y (suc a) = [[a*x]*y≡x*[a*y]]-ind<𝕤,a> x y a ([a*x]*y≡x*[a*y] x y a)
 
 
 
 
 
 -- 8) Multiplication is commutative
-x*y≡y*x : (x y : ℕ) → x * y ≡ y * x
+x*y≡y*x : (x y : Nat) → mult x y == mult y x
 x*y≡y*x x y = [x*y≡y*x]
  where
-  y* : ℕ → ℕ
-  y* = _*_ y
+  
+  [[x*y]*1≡y*[x*1]] : mult (mult x y) (suc zero) == mult y (mult x (suc zero))
+  [[x*y]*1≡y*[x*1]] = [a*x]*y≡x*[a*y] y (suc zero) x
 
-  [[x*y]*1≡y*[x*1]] : (x * y) * 1 ≡ y * (x * 1)
-  [[x*y]*1≡y*[x*1]] = [a*x]*y≡x*[a*y] y 1 x
+  
+  [[x*y]*1≡x*y] : mult (mult x y) (suc zero) == mult x y
+  [[x*y]*1≡x*y] = x*1==x (mult x y)
 
-  [[x*y]*1≡x*y] : (x * y) * 1 ≡ x * y
-  [[x*y]*1≡x*y] = x*1≡x (x * y)
+  
+  [x*1≡x] : mult x (suc zero) == x
+  [x*1≡x] = x*1==x x
 
-  [x*1≡x] : x * 1 ≡ x
-  [x*1≡x] = x*1≡x x
+  
+  [y*[x*1]≡y*x] : mult y (mult x (suc zero)) == mult y x
+  [y*[x*1]≡y*x] = [x==y]→[fx==fy] (mult y) (mult x (suc zero)) x [x*1≡x]
 
-  [y*[x*1]≡y*x] : y * (x * 1) ≡ y * x
-  [y*[x*1]≡y*x] = [a≡b]→[fa≡fb] y* (x * 1) x [x*1≡x]
-
-  [x*y≡y*x] : x * y ≡ y * x
-  [x*y≡y*x] = ≡-⇶ (≡-↑↓ [[x*y]*1≡x*y]) (≡-⇶ [[x*y]*1≡y*[x*1]] [y*[x*1]≡y*x])
-
-
+  [x*y≡y*x] : mult x y == mult y x
+  [x*y≡y*x] = ==-trans (==-sym [[x*y]*1≡x*y]) (==-trans [[x*y]*1≡y*[x*1]] [y*[x*1]≡y*x])
+  
 
 -- 9) (a * b) * c ≡ a * (b * c)  ; Multiplication is associative
-[a*b]*c≡a*[b*c] : (a b c : ℕ) → (a * b) * c ≡ a * (b * c)
+[a*b]*c≡a*[b*c] : (a b c : Nat) → mult (mult a b) c == mult a (mult b c)
 [a*b]*c≡a*[b*c] a b c = [[a*b]*c≡a*[b*c]]
  where
-  *c : ℕ → ℕ
-  *c = _*'_ c
---
-  [a*b≡b*a] : a * b ≡ b * a
+  [a*b≡b*a] : mult a b == mult b a
   [a*b≡b*a] = x*y≡y*x a b
 
-  [[a*b]*c≡[b*a]*c] : (a * b) * c ≡ (b * a) * c
-  [[a*b]*c≡[b*a]*c] = [a≡b]→[fa≡fb] *c (a * b) (b * a) [a*b≡b*a]
+  [[a*b]*c≡[b*a]*c] : mult (mult a b) c == mult (mult b a) c
+  [[a*b]*c≡[b*a]*c] = [x==y]→[fx==fy] (λ q → mult q c) (mult a b) (mult b a) (x*y≡y*x a b)
 
-  [[b*a]*c≡a*[b*c]] : (b * a) * c ≡ a * (b * c)
+  [[b*a]*c≡a*[b*c]] : mult (mult b a) c == mult a (mult b c)
   [[b*a]*c≡a*[b*c]] = [a*x]*y≡x*[a*y] a c b
 
-  [[a*b]*c≡a*[b*c]] : (a * b) * c ≡ a * (b * c)
-  [[a*b]*c≡a*[b*c]] = ≡-⇶ [[a*b]*c≡[b*a]*c] [[b*a]*c≡a*[b*c]]
--}
+  [[a*b]*c≡a*[b*c]] : mult (mult a b) c == mult a (mult b c)
+  [[a*b]*c≡a*[b*c]] = ==-trans [[a*b]*c≡[b*a]*c] [[b*a]*c≡a*[b*c]]
 
-{-
-x*suc-y==x+x*y : (x y : Nat) →  mult x (suc y) == plus x (mult x y)
-x*suc-y==x+x*y zero y = refl
-x*suc-y==x+x*y (suc x) zero = proof
- where
-  [suc-x*1==suc-x] : mult (suc x) (suc zero) == suc x
-  [suc-x*1==suc-x] = x*1==x (suc x)
-
-  [suc-x*1==1+x*1] : mult (suc x) (suc zero) == plus (suc zero) (mult x (suc zero))
-  [suc-x*1==1+x*1] = refl
-
-  [1+x*1==suc-x] : plus (suc zero) (mult x (suc zero)) == suc x
-  [1+x*1==suc-x] = [x==y]→[fx==fy] (plus (suc zero)) (mult x (suc zero)) x (x*1==x x)
-
-  [suc-x+suc-x*0==suc-x+0] : plus (suc x) (mult (suc x) zero) == plus (suc x) zero
-  [suc-x+suc-x*0==suc-x+0] = [x==y]→[fx==fy] (plus (suc x)) (mult (suc x) zero) zero (x*0==0 (suc x))
-
-  [suc-x+0==suc-x] : plus (suc x) zero == suc x
-  [suc-x+0==suc-x] = x+0==x (suc x)
-
-
-  proof : mult (suc x) (suc zero) == plus (suc x) (mult (suc x) zero)  
-  proof =  ==-trans [suc-x*1==suc-x] (==-trans (==-sym [suc-x+0==suc-x]) (==-sym [suc-x+suc-x*0==suc-x+0]))
-x*suc-y==x+x*y (suc x) (suc y) = proof
- where
-  
-  proof
--}
 
 
 ⊹-comm : ∀ {i j} {A : Set i} {B : Set j} → A ⊹ B → B ⊹ A
@@ -2435,34 +2249,123 @@ x*suc-y==0→x==0 : (x y : Nat) → mult x (suc y) == zero → x == zero
 x*suc-y==0→x==0 x y [x*suc-y==zero] = proof-by-elimination (⊹-comm (x*y==0→x==0⊹y==0 x (suc y) [x*suc-y==zero])) (¬[suc-x==0] y)
 
 
+pred : Nat → Nat
+pred zero = zero
+pred (suc x) = x
 
-{-
-x+y==x→y==0 : (x y : Nat) → plus x y == x → y == zero
-x+y==x→y==0 x zero [x+0==x] = refl
-x+y==x→y==0 x (suc y) p₁ = ω ((¬[suc-x==0] (plus x y)) p₁)
--}
+suc-injective : (x x' : Nat) → suc x == suc x' → x == x'
+suc-injective x y [suc-x==suc-y] = [x==y]→[fx==fy] pred (suc x) (suc y) [suc-x==suc-y]
 
-{-
-x*y==y*x-ind : (x y : Nat) → mult x y == mult y x → mult (suc x) (suc y) == mult (suc y) (suc x)
-x*y==y*x-ind x y [x*y==y*x] = proof
+
+x+y==y→x==0-ind : (x y : Nat) → (plus x y == y → x == zero) → (plus x (suc y) == (suc y) → x == zero)
+x+y==y→x==0-ind x y assump [x+suc-y==suc-y] = proof
  where
-  l1 : mult (suc x) (suc y) == plus (suc y) (mult x (suc y))
-  l1 = refl
+  l1 : plus x (suc y) == suc (plus x y)
+  l1 = x+suc-y==suc[x+y] x y
 
-  l2 : 
+  l2 : plus x y == y
+  l2 = suc-injective (plus x y) y (==-trans (==-sym l1) [x+suc-y==suc-y])
 
+  proof = assump l2
+  {-
+  l1 : plus x (suc y) == suc (plus x y)
+  l1 = x+suc-y==suc[x+y] x y
+
+  l2 : suc (plus x y) == suc y
+  l2 = [x==y]→[fx==fy] suc (plus x y) y [x+y==y]
+
+  proof : plus x (suc y) == suc y
+  proof = ==-trans l1 l2
+  -}
+
+{-
+x+y==y→x==0-ind₃ : (x y : Nat) → (plus x (suc y) == (suc y) → x == zero) → (plus (suc x) (suc y) == (suc y) → (suc x) == zero)
+x+y==y→x==0-ind₃ x y assump [suc-x+y==y] = proof
+ where
+  
   proof
 -}
+x+y==y→x==0-ind₂ : (x y : Nat) → plus x (suc y) == (suc y) → plus x y == y
+x+y==y→x==0-ind₂ x y [x+suc-y==suc-y] = proof
+ where
+  l1 : plus x (suc y) == suc (plus x y)
+  l1 = x+suc-y==suc[x+y] x y
 
-{-
-x*y==y*x : (x y : Nat) → mult x y == mult y x
-x*y==y*x zero zero = refl
-x*y==y*x zero (suc y) = ==-trans refl (==-sym (x*0==0 (suc y)))
-x*y==y*x (suc x) zero = ==-trans (x*0==0 (suc x)) refl
-x*y==y*x (suc x) (suc y) = 
--}
+  l2 : suc (plus x y) == suc y
+  l2 = ==-trans (==-sym l1) [x+suc-y==suc-y]
 
-{-
+  proof : plus x y == y
+  proof = suc-injective (plus x y) y l2
+
+suc-x≠x-ind : (x : Nat) → suc x ≠ x → (suc (suc x)) ≠ (suc x)
+suc-x≠x-ind x [suc-x≠x] [suc-suc-x==suc-x] = disproof
+ where
+  disproof : ⊥
+  disproof = [suc-x≠x] ([x==y]→[fx==fy] pred (suc (suc x)) (suc x) [suc-suc-x==suc-x])
+
+suc-x≠x : (x : Nat) → suc x ≠ x
+suc-x≠x zero = ¬[suc-x==0] zero
+suc-x≠x (suc x) = suc-x≠x-ind x (suc-x≠x x)
+
+[suc-x+y≠y]-ind : (x y : Nat) → plus (suc x) y ≠ y → plus (suc (suc x)) y ≠ y
+[suc-x+y≠y]-ind x y [suc-x+y≠y] [suc-suc-x+y==y] = x≮x y ((suc x) , [suc-suc-x+y==y]) 
+ where
+  l1 : plus (suc (suc x)) y == suc (plus (suc x) y)
+  l1 = refl
+
+  l2 : suc (plus (suc x) y) == y
+  l2 = ==-trans (==-sym l1) [suc-suc-x+y==y]
+
+  l3 : suc (plus (suc x) y) == suc (plus (suc x) (plus (suc (suc x)) y))
+  l3 = [x==y]→[fx==fy] (λ q → (suc (plus (suc x) q))) y (plus (suc (suc x)) y) (==-sym [suc-suc-x+y==y])
+
+  [suc-x<suc-y]→[x<y] : (x y : Nat) → (∃ k ∈ Nat , (plus (suc k) (suc x) == suc y)) → (∃ k ∈ Nat , (plus (suc k) x == y))
+  [suc-x<suc-y]→[x<y] x y (k , [suc-k+suc-x==suc-y]) = (k , l6)
+   where
+    l4 : plus (suc k) (suc x) == suc (plus (suc k) x)
+    l4 = x+suc-y==suc[x+y] (suc k) x
+
+    l5 : suc (plus (suc k) x) == suc y
+    l5 = ==-trans (==-sym l4) [suc-k+suc-x==suc-y]
+
+    l6 : plus (suc k) x == y
+    l6 = suc-injective (plus (suc k) x) y l5
+
+
+  0≮0 : (∃ x ∈ Nat , (plus (suc x) zero == zero)) → ⊥
+  0≮0 (x , [suc-x+0==0]) = ¬[suc-x==0] x (==-trans (==-sym (x+0==x (suc x))) [suc-x+0==0])
+
+  x≮x-ind : (x : Nat) → ((∃ k ∈ Nat , (plus (suc k) x == x)) → ⊥) → (∃ k ∈ Nat , (plus (suc k) (suc x) == (suc x))) → ⊥
+  x≮x-ind x ¬[x<x] [suc-x<suc-x] = ¬[x<x] ([suc-x<suc-y]→[x<y] x x [suc-x<suc-x])
+
+  
+  x≮x : (x : Nat) → (∃ k ∈ Nat , (plus (suc k) x == x)) → ⊥
+  x≮x zero [0<0] = 0≮0 [0<0]
+  x≮x (suc x) = x≮x-ind x (x≮x x)
+
+
+[suc-x+y≠y] : (x y : Nat) → plus (suc x) y ≠ y
+[suc-x+y≠y] zero y [suc-zero+y==y] = suc-x≠x y [suc-zero+y==y]
+[suc-x+y≠y] (suc x) y = [suc-x+y≠y]-ind x y ([suc-x+y≠y] x y)
+
+x+y==y→x==0-ind₃ : (x y : Nat) → plus (suc x) y == y → plus x y == y
+x+y==y→x==0-ind₃ x y [suc-x+y==y] = ω ([suc-x+y≠y] x y [suc-x+y==y])
+
+x+y==y→x==0 : (x y : Nat) → plus x y == y → x == zero
+x+y==y→x==0 zero y refl = refl
+x+y==y→x==0 (suc x) y [suc-x+y==y] = ω ([suc-x+y≠y] x y [suc-x+y==y])
+
+x+y==x→y==0 : (x y : Nat) → plus x y == x → y == zero
+x+y==x→y==0 x y [x+y==x] = proof
+ where
+  l1 : plus x y == plus y x
+  l1 = x+y==y+x x y
+
+  l2 : plus y x == x
+  l2 = ==-trans (==-sym l1) [x+y==x]
+  
+  proof = x+y==y→x==0 y x l2
+
 x*y==y→x==1⊹y==0 : (x y : Nat) → mult x y == y → (x == (suc zero)) ⊹ (y == zero)
 x*y==y→x==1⊹y==0 x zero p₁ = inr refl
 x*y==y→x==1⊹y==0 zero (suc y) p₁ = ω (¬[suc-x==0] y (==-sym p₁))
@@ -2477,18 +2380,66 @@ x*y==y→x==1⊹y==0 (suc x) (suc y) p₁ = proof
   l3 : mult x (suc y) == zero
   l3 = x+y==x→y==0 (suc y) (mult x (suc y)) p₁
 
-  l4 : x == 0
+  l4 : x == zero
   l4 = proof-by-elimination (⊹-comm (x*y==0→x==0⊹y==0 x (suc y) l3)) (¬[suc-x==0] y)
 
-  proof  
-  
--}
+  l5 : suc x == suc zero
+  l5 = [x==y]→[fx==fy] suc x zero l4
+
+  proof  = inl l5
+
+
+¬A→¬B→¬[A⊹B] : ∀ {i j} {A : Set i} {B : Set j} → (A → ⊥) → (B → ⊥) → (A ⊹ B) → ⊥
+¬A→¬B→¬[A⊹B] {i} {j} {A} {B} ¬A ¬B (inl a) = ¬A a
+¬A→¬B→¬[A⊹B] {i} {j} {A} {B} ¬A ¬B (inr b) = ¬B b
+
+
+x*y==1→[x==1]×[y==1] : (x y : Nat) → mult x y == suc zero → (x == suc zero) × (y == suc zero)
+x*y==1→[x==1]×[y==1] x zero [x*0==1] = ω (¬[suc-x==0] zero (==-sym (==-trans (==-sym (x*0==0 x)) [x*0==1])))
+x*y==1→[x==1]×[y==1] zero y [0*y==1] = ω (¬[suc-x==0] zero (==-sym [0*y==1]))
+x*y==1→[x==1]×[y==1] (suc zero) (suc zero) [1*1==1] = (refl , refl)
+x*y==1→[x==1]×[y==1] (suc (suc x)) (suc zero) [suc-suc-x*1==1] = proof
+ where
+  l1 : mult (suc (suc x)) (suc zero) == suc (suc x)
+  l1 = x*1==x (suc (suc x))
+
+  l2 : suc (suc x) == (suc zero)
+  l2 = ==-trans (==-sym l1) [suc-suc-x*1==1]
+
+  l3 : suc x == zero
+  l3 = suc-injective (suc x) zero l2
+
+  proof = ω (¬[suc-x==0] x l3)
+x*y==1→[x==1]×[y==1] (suc zero) (suc (suc y)) [1*suc-suc-y==1] = proof
+ where
+  l1 : mult (suc zero) (suc (suc y)) == suc (suc y)
+  l1 = x+0==x (suc (suc y))
+
+  l2 : suc (suc y) == suc zero
+  l2 = ==-trans (==-sym l1) [1*suc-suc-y==1]
+
+  l3 : suc y == zero
+  l3 = suc-injective (suc y) zero l2
+
+  proof = ω (¬[suc-x==0] y l3)
+x*y==1→[x==1]×[y==1] (suc (suc x)) (suc (suc y)) [suc-suc-x*suc-suc-y==1] = proof
+ where
+  l1 : mult (suc (suc x)) (suc (suc y)) == suc (suc (plus y (mult (suc x) (suc (suc y)))))
+  l1 = refl
+
+  l2 : suc (suc (plus y (mult (suc x) (suc (suc y))))) == suc zero
+  l2 = ==-trans (==-sym l1) [suc-suc-x*suc-suc-y==1]
+
+  l3 : suc (plus y (mult (suc x) (suc (suc y)))) == zero
+  l3 = suc-injective (suc (plus y (mult (suc x) (suc (suc y))))) zero l2
+
+  proof = ω (¬[suc-x==0] (plus y (mult (suc x) (suc (suc y)))) l3)
 
 
 divides-refl : (x : Nat) → x divides x
 divides-refl x = (suc zero , 1*x==x x)
 
-{-
+
 divides-antisym : (x y : Nat) → x divides y → y divides x → x == y
 divides-antisym zero zero 0|0 0|0' = refl
 divides-antisym zero (suc y) 0|suc-y suc-y|0 = ω (¬[0-divides-suc-x] y 0|suc-y)
@@ -2496,124 +2447,35 @@ divides-antisym (suc x) zero suc-x|0 0|suc-x = ω (¬[0-divides-suc-x] x 0|suc-x
 divides-antisym (suc x) (suc y) (k₁ , k₁*[suc-x]==[suc-y]) (k₂ , k₂*[suc-y]==[suc-x]) = proof
  where
   
-  [suc-y==k₁*k₂*suc-y] : suc y == mult k₁ (mult k₂ (suc y))
-  [suc-y==k₁*k₂*suc-y] = ==-trans (==-sym k₁*[suc-x]==[suc-y]) ([x==y]→[fx==fy] (mult k₁) (suc x) (mult (k₂ suc y)) (==-sym k₂*[suc-y]==[suc-x]))
+  [suc-y==[k₁*k₂]*suc-y] : suc y == mult (mult k₁ k₂) (suc y)
+  [suc-y==[k₁*k₂]*suc-y] = ==-trans (==-sym k₁*[suc-x]==[suc-y]) (==-trans ([x==y]→[fx==fy] (mult k₁) (suc x) (mult k₂ (suc y)) (==-sym k₂*[suc-y]==[suc-x])) (==-sym ([a*b]*c≡a*[b*c] k₁ k₂ (suc y))))
 
-  
-  k₁≠0 : k₁ == 0 → ⊥
-  k₁≠0 [k₁==0] = subproof 
-   where
-    l1 : mult k₁ (suc x) == mult zero (suc x)
-    l1 = [x==y]→[fx==fy] (λ z → mult z x) k₁ zero [k₁==0]
+  [k₁*k₂]==1⊹suc-y==0 : (mult k₁ k₂ == suc zero) ⊹ (suc y == zero)
+  [k₁*k₂]==1⊹suc-y==0 = x*y==y→x==1⊹y==0 (mult k₁ k₂) (suc y) (==-sym [suc-y==[k₁*k₂]*suc-y])
 
-    l2 : mult k₁ (suc x) == zero
-    l2 = ==-trans l1 refl 
+  k₁*k₂==1 : mult k₁ k₂ == suc zero
+  k₁*k₂==1 = proof-by-elimination (⊹-comm [k₁*k₂]==1⊹suc-y==0) (¬[suc-x==0] y)
 
-    suc-y==0 : suc y == zero
-    suc-y==0 = ==-trans (==-sym k₁*[suc-x]==[suc-y]) l2
+  [k₁==1]×[k₂==1] : (k₁ == suc zero) × (k₂ == suc zero)
+  [k₁==1]×[k₂==1] = x*y==1→[x==1]×[y==1] k₁ k₂ k₁*k₂==1
+ 
+  k₁*[suc-x]==suc-x : mult k₁ (suc x) == suc x
+  k₁*[suc-x]==suc-x = ==-trans ([x==y]→[fx==fy] (λ q → mult q (suc x)) k₁ (suc zero) (first [k₁==1]×[k₂==1])) (x+0==x (suc x))
 
-    subproof = (¬[suc-x==0] y) suc-y==0
-
-  k₂≠0 : k₂ == 0 → ⊥
-  k₂≠0 [k₂==0] = subproof
-   where
-    l1 : mult k₂ (suc y) == mult zero (suc y)
-    l1 = [x==y]→[fx==fy] (λ z → mult z x) k₂ zero [k₂==0]
-
-    l2 : mult k₂ (suc y) == zero
-    l2 = ==-trans l1 refl
-
-    suc-z==0 : suc z == zero
-    suc-z==0 = ==-trans (==-sym k₂*[suc-y]==[suc-z]) l2
-
-    subproof = (¬[suc-x==0] z) suc-z==0
-
-  proof
--}
+  proof = ==-trans (==-sym k₁*[suc-x]==suc-x) k₁*[suc-x]==[suc-y]
 
 
-{-
+
 -- needs associativity of multiplication
 divides-trans : (x y z : Nat) → x divides y → y divides z → x divides z
-divides-trans x y z (k₁ , k₁*x==y) (k₂ , k₂*y==z) = (k₁*k₂ , k₁*k₂*x==z)
+divides-trans x y z (k₁ , k₁*x==y) (k₂ , k₂*y==z) = ((mult k₂ k₁) , [[k₂*k₁]*x==z])
  where
-  k₁*k₂*x==z
--}
+  [k₂*[k₁*x]==z] : (mult k₂ (mult k₁ x)) == z
+  [k₂*[k₁*x]==z] = ==-trans (==-sym ([x==y]→[fx==fy] (mult k₂) y (mult k₁ x) (==-sym k₁*x==y))) k₂*y==z
 
+  [[k₂*k₁]*x==z] : (mult (mult k₂ k₁) x) == z
+  [[k₂*k₁]*x==z] = ==-trans ([a*b]*c≡a*[b*c] k₂ k₁ x) [k₂*[k₁*x]==z]
 
-{-
-AlgebraicLatticesContinuous : ∀ {i} {k} (L : AlgebraicLattice {i} {k}) → AlgebraicLatticeContinuity L
-AlgebraicLatticesContinuous {i} {k} L =
- record {
-  ∧-cont = ∧-cont ;
-  ∨-cont = ∨-cont
- }
- where
-  open AlgebraicLattice L
-  ∧-cont : (a b c d : carrier) → a ≡ b → c ≡ d → (a ∧ c) ≡ (b ∧ d)
-  ∧-cont a b c d [a≡b] [c≡d] = [a∧c]≡[b∧d]
-   where
-    
-    [a∧c≡b∧d]
-  ∨-cont a b c d [a≡b] [c≡d] = [a∨c]≡[b∨d]
--}
-   
-{-
-≤'-isPartialOrder : 
- ∀ {i} {k} (L : AlgebraicLattice {i} {k}) →
- let open AlgebraicLattice L
-     ≡-equiv : isEquivalence _≡_
-     ≡-equiv = 
-      record {
-       ≡-refl = ≡-refl ;
-       ≡-sym = ≡-sym ;
-       ≡-trans = ≡-trans 
-      }
- in isPartialOrder' _≡_ ≡-equiv (≤' L)
-≤'-isPartialOrder {i} {k} L =
- record {
-  ≤-refl = ≤-refl ;
-  ≤-antisym = ≤-antisym ;
-  ≤-trans = ≤-trans
- }
- where
-  open AlgebraicLattice L
-
-
-  ≤-antisym : (x y : carrier) → ≤' L x y → ≤' L y x → x ≡ y
-  ≤-antisym x y [x≤y] [y≤x] = [x≡y]
-   where
-    [x≡x∧y] : x ≡ (x ∧ y)
-    [x≡x∧y] = ≡-sym [x≤y]
-
-    [x∧y≡y∧x] : (x ∧ y) ≡ (y ∧ x)
-    [x∧y≡y∧x] = ∧-comm x y
-
-    [y∧x≡y] : (y ∧ x) ≡ y
-    [y∧x≡y] = [y≤x]
-
-    [x≡y] : x ≡ y
-    [x≡y] = ≡-trans [x≡x∧y] (≡-trans [x∧y≡y∧x] [y∧x≡y])
-    
-  ≤-trans : (x y z : carrier) → ≤' L x y → ≤' L y z → ≤' L x z
-  ≤-trans x y z [x≤y] [y≤z] = [x≤z]
-   where
-    [x∧y≡x] : (x ∧ y) ≡ x
-    [x∧y≡x] = [x≤y]
-
-    [y∧z≡y] : (y ∧ z) ≡ y
-    [y∧z≡y] = [y≤z]
-    
-    {-
-    [x∧z≡[x∧y]∧z] : (x ∧ z) ≡ ((x ∧ y) ∧ z)
-    [x∧z≡[x∧y]∧z] = ∧-cont x (x ∧ y) z z [x∧y≡x] (≡-refl z)
-    -}
-
-    [x≤z]
-
-  ≤-refl
-
--}
 
 
 
@@ -2638,7 +2500,6 @@ record Formulation2 {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ :
   ≤-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
   ∨-lub : (x y : A) → (x ≤ (x ∨ y)) × ((y ≤ (x ∨ y)) × ((z : A) → (x ≤ z) × (y ≤ z) → (x ∨ y) ≤ z))
   ∧-glb : (x y : A) → ((x ∧ y) ≤ x) × (((x ∧ y) ≤ y) × ((z : A) → (z ≤ x) × (z ≤ y) → z ≤ (x ∧ y)))
-
 
 record Formulation3 {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
  field

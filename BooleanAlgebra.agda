@@ -3497,10 +3497,6 @@ Formulation2→Formulation5 {i} {j} {k} A _≡_ _≤_ _∧_ _∨_ Formulation2-A
         [x∧y≤x] : (x ∧ y) ≤ x
         [x∧y≤x] = first (∧-glb x y)
 
-{-
-¬[Formulation2→Formulation6]
-
--}
 
 
 Formulation3→Formulation1 : ∀ {i j k} (A : Set i) (≡ : A → A → Set k) (≤ : A → A → Set j) (∧ : A → A → A) (∨ : A → A → A) → Formulation3 A ≡ ≤ ∧ ∨ → Formulation1 A ≡ ≤ ∧ ∨
@@ -3752,3 +3748,65 @@ Formulation6→Formulation3
 Formulation6→Formulation4
 Formulation6→Formulation5
 -}
+
+Formulation2-==→Formulation2-≡ : ∀ {i j k} (A : Set i) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) → Formulation2 A _==_ _≤_ _∧_ _∨_ → (_≡_ : A → A → Set k) → isEquivalence _≡_ → Formulation2 A _≡_ _≤_ _∧_ _∨_
+Formulation2-==→Formulation2-≡ {i} {j} {k} A _≤_ _∧_ _∨_ Formulation2-A-== _≡_ ≡-equiv = Formulation2-A-≡
+ where
+  open isEquivalence ≡-equiv
+  open Formulation2 Formulation2-A-== hiding (≡-refl ; ≡-sym ; ≡-trans)
+  Formulation2-A-≡ =
+   record {
+    ≡-refl = ≡-refl ;
+    ≡-sym = ≡-sym ;
+    ≡-trans = ≡-trans ;
+    ≤-refl = ≤-refl ;
+    ≤-antisym = ≤-antisym' ;
+    ≤-trans = ≤-trans ;
+    ∧-glb = ∧-glb ;
+    ∨-lub = ∨-lub 
+   }
+   where
+    ≤-antisym' : {x y : A} → x ≤ y → y ≤ x → x ≡ y
+    ≤-antisym' {x} {y} [x≤y] [y≤x] = [A==B]→[A→B] ([x==y]→[fx==fy] (λ q → (x ≡ q)) x y (≤-antisym [x≤y] [y≤x])) (≡-refl x)
+
+¬[Formulation2→Formulation6] : (∀ {i j k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) → Formulation2 A _≡_ _≤_ _∧_ _∨_ → Formulation6 A _≡_ _∧_ _∨_) → ⊥
+¬[Formulation2→Formulation6] assump = proof
+ where
+  Formulation6-four : Formulation6 four _==_ four-∧ four-∨
+  Formulation6-four =
+   record {
+    ≡-refl = ==-refl ;
+    ≡-sym = ==-sym ;
+    ≡-trans = ==-trans ;
+    ∧-cont = ∧-cont ;
+    ∧-comm = four-∧-comm ;
+    ∧-assoc = four-∧-assoc ;
+    ∧∨-absorp = four-∧∨-absorp ;
+    ∨-cont = ∨-cont ;
+    ∨-comm = four-∨-comm ;
+    ∨-assoc = four-∨-assoc ;
+    ∨∧-absorp = four-∨∧-absorp
+   }
+   where
+    ∧-cont : (x x' y y' : four) → x == x' → y == y' → four-∧ x y == four-∧ x' y'
+    ∧-cont x .x y .y refl refl = refl
+
+    ∨-cont : (x x' y y' : four) → x == x' → y == y' → four-∨ x y == four-∨ x' y'
+    ∨-cont x .x y .y refl refl = refl
+
+  Formulation2-four : Formulation2 four _==_ (λ x y → four-∧ x y == x) four-∧ four-∨
+  Formulation2-four = Formulation1→Formulation2 four _==_ (λ x y → four-∧ x y == x) four-∧ four-∨ (Formulation6→Formulation1 four _==_ four-∧ four-∨ Formulation6-four)
+
+  Formulation2-four-≡ : Formulation2 four four-≡ (λ x y → four-∧ x y == x) four-∧ four-∨
+  Formulation2-four-≡ = Formulation2-==→Formulation2-≡ four (λ x y → four-∧ x y == x) four-∧ four-∨ Formulation2-four four-≡ four-≡-equiv
+
+  ¬[Formulation6-four-≡] : (Formulation6 four four-≡ four-∧ four-∨) → ⊥
+  ¬[Formulation6-four-≡] Formulation6-four-≡ = subproof
+   where
+    open Formulation6 Formulation6-four-≡
+    subproof = ¬[four-∧-cont] ∧-cont
+
+  Formulation6-four-≡ : Formulation6 four four-≡ four-∧ four-∨
+  Formulation6-four-≡ = assump four four-≡ (λ x y → four-∧ x y == x) four-∧ four-∨ Formulation2-four-≡
+
+  proof = ¬[Formulation6-four-≡] Formulation6-four-≡

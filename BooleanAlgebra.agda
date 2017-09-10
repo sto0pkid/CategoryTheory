@@ -2267,24 +2267,7 @@ x+y==y→x==0-ind x y assump [x+suc-y==suc-y] = proof
   l2 = suc-injective (plus x y) y (==-trans (==-sym l1) [x+suc-y==suc-y])
 
   proof = assump l2
-  {-
-  l1 : plus x (suc y) == suc (plus x y)
-  l1 = x+suc-y==suc[x+y] x y
 
-  l2 : suc (plus x y) == suc y
-  l2 = [x==y]→[fx==fy] suc (plus x y) y [x+y==y]
-
-  proof : plus x (suc y) == suc y
-  proof = ==-trans l1 l2
-  -}
-
-{-
-x+y==y→x==0-ind₃ : (x y : Nat) → (plus x (suc y) == (suc y) → x == zero) → (plus (suc x) (suc y) == (suc y) → (suc x) == zero)
-x+y==y→x==0-ind₃ x y assump [suc-x+y==y] = proof
- where
-  
-  proof
--}
 x+y==y→x==0-ind₂ : (x y : Nat) → plus x (suc y) == (suc y) → plus x y == y
 x+y==y→x==0-ind₂ x y [x+suc-y==suc-y] = proof
  where
@@ -2466,6 +2449,8 @@ divides-antisym (suc x) (suc y) (k₁ , k₁*[suc-x]==[suc-y]) (k₂ , k₂*[suc
 
 
 
+
+
 -- needs associativity of multiplication
 divides-trans : (x y z : Nat) → x divides y → y divides z → x divides z
 divides-trans x y z (k₁ , k₁*x==y) (k₂ , k₂*y==z) = ((mult k₂ k₁) , [[k₂*k₁]*x==z])
@@ -2477,7 +2462,375 @@ divides-trans x y z (k₁ , k₁*x==y) (k₂ , k₂*y==z) = ((mult k₂ k₁) , 
   [[k₂*k₁]*x==z] = ==-trans ([a*b]*c≡a*[b*c] k₂ k₁ x) [k₂*[k₁*x]==z]
 
 
+data four : Set where
+ 0' : four
+ 1' : four
+ 2' : four
+ 3' : four
 
+four-∧ : four → four → four
+four-∧ 0' 0' = 0'
+four-∧ 0' 1' = 0'
+four-∧ 0' 2' = 0'
+four-∧ 0' 3' = 0'
+four-∧ 1' 0' = 0'
+four-∧ 1' 1' = 1'
+four-∧ 1' 2' = 0'
+four-∧ 1' 3' = 1'
+four-∧ 2' 0' = 0'
+four-∧ 2' 1' = 0'
+four-∧ 2' 2' = 2'
+four-∧ 2' 3' = 2'
+four-∧ 3' 0' = 0'
+four-∧ 3' 1' = 1'
+four-∧ 3' 2' = 2'
+four-∧ 3' 3' = 3'
+
+
+four-∨ : four → four → four
+four-∨ 0' 0' = 0'
+four-∨ 0' 1' = 1'
+four-∨ 0' 2' = 2'
+four-∨ 0' 3' = 3'
+four-∨ 1' 0' = 1'
+four-∨ 1' 1' = 1'
+four-∨ 1' 2' = 3'
+four-∨ 1' 3' = 3'
+four-∨ 2' 0' = 2'
+four-∨ 2' 1' = 3'
+four-∨ 2' 2' = 2'
+four-∨ 2' 3' = 3'
+four-∨ 3' 0' = 3'
+four-∨ 3' 1' = 3'
+four-∨ 3' 2' = 3'
+four-∨ 3' 3' = 3'
+
+four-∧-comm : (x y : four) → four-∧ x y == four-∧ y x
+four-∧-comm 0' 0' = refl
+four-∧-comm 0' 1' = refl
+four-∧-comm 0' 2' = refl
+four-∧-comm 0' 3' = refl
+four-∧-comm 1' 0' = refl
+four-∧-comm 1' 1' = refl
+four-∧-comm 1' 2' = refl
+four-∧-comm 1' 3' = refl
+four-∧-comm 2' 0' = refl
+four-∧-comm 2' 1' = refl
+four-∧-comm 2' 2' = refl
+four-∧-comm 2' 3' = refl
+four-∧-comm 3' 0' = refl
+four-∧-comm 3' 1' = refl
+four-∧-comm 3' 2' = refl
+four-∧-comm 3' 3' = refl
+
+four-∧-assoc : (x y z : four) → four-∧ x (four-∧ y z) == four-∧ (four-∧ x y) z
+four-∧-assoc 0' 0' 0' = refl
+four-∧-assoc 0' 0' 1' = refl
+four-∧-assoc 0' 0' 2' = refl
+four-∧-assoc 0' 0' 3' = refl
+four-∧-assoc 0' 1' 0' = refl
+four-∧-assoc 0' 1' 1' = refl
+four-∧-assoc 0' 1' 2' = refl
+four-∧-assoc 0' 1' 3' = refl
+four-∧-assoc 0' 2' 0' = refl
+four-∧-assoc 0' 2' 1' = refl
+four-∧-assoc 0' 2' 2' = refl
+four-∧-assoc 0' 2' 3' = refl
+four-∧-assoc 0' 3' 0' = refl
+four-∧-assoc 0' 3' 1' = refl
+four-∧-assoc 0' 3' 2' = refl
+four-∧-assoc 0' 3' 3' = refl
+four-∧-assoc 1' 0' 0' = refl
+four-∧-assoc 1' 0' 1' = refl
+four-∧-assoc 1' 0' 2' = refl
+four-∧-assoc 1' 0' 3' = refl
+four-∧-assoc 1' 1' 0' = refl
+four-∧-assoc 1' 1' 1' = refl
+four-∧-assoc 1' 1' 2' = refl
+four-∧-assoc 1' 1' 3' = refl
+four-∧-assoc 1' 2' 0' = refl
+four-∧-assoc 1' 2' 1' = refl
+four-∧-assoc 1' 2' 2' = refl
+four-∧-assoc 1' 2' 3' = refl
+four-∧-assoc 1' 3' 0' = refl
+four-∧-assoc 1' 3' 1' = refl
+four-∧-assoc 1' 3' 2' = refl
+four-∧-assoc 1' 3' 3' = refl
+four-∧-assoc 2' 0' 0' = refl
+four-∧-assoc 2' 0' 1' = refl
+four-∧-assoc 2' 0' 2' = refl
+four-∧-assoc 2' 0' 3' = refl
+four-∧-assoc 2' 1' 0' = refl
+four-∧-assoc 2' 1' 1' = refl
+four-∧-assoc 2' 1' 2' = refl
+four-∧-assoc 2' 1' 3' = refl
+four-∧-assoc 2' 2' 0' = refl
+four-∧-assoc 2' 2' 1' = refl
+four-∧-assoc 2' 2' 2' = refl
+four-∧-assoc 2' 2' 3' = refl
+four-∧-assoc 2' 3' 0' = refl
+four-∧-assoc 2' 3' 1' = refl
+four-∧-assoc 2' 3' 2' = refl
+four-∧-assoc 2' 3' 3' = refl
+four-∧-assoc 3' 0' 0' = refl
+four-∧-assoc 3' 0' 1' = refl
+four-∧-assoc 3' 0' 2' = refl
+four-∧-assoc 3' 0' 3' = refl
+four-∧-assoc 3' 1' 0' = refl
+four-∧-assoc 3' 1' 1' = refl
+four-∧-assoc 3' 1' 2' = refl
+four-∧-assoc 3' 1' 3' = refl
+four-∧-assoc 3' 2' 0' = refl
+four-∧-assoc 3' 2' 1' = refl
+four-∧-assoc 3' 2' 2' = refl
+four-∧-assoc 3' 2' 3' = refl
+four-∧-assoc 3' 3' 0' = refl
+four-∧-assoc 3' 3' 1' = refl
+four-∧-assoc 3' 3' 2' = refl
+four-∧-assoc 3' 3' 3' = refl
+
+four-∧∨-absorp : (x y : four) → four-∧ x (four-∨ x y) == x
+four-∧∨-absorp 0' 0' = refl
+four-∧∨-absorp 0' 1' = refl
+four-∧∨-absorp 0' 2' = refl
+four-∧∨-absorp 0' 3' = refl
+four-∧∨-absorp 1' 0' = refl
+four-∧∨-absorp 1' 1' = refl
+four-∧∨-absorp 1' 2' = refl
+four-∧∨-absorp 1' 3' = refl
+four-∧∨-absorp 2' 0' = refl
+four-∧∨-absorp 2' 1' = refl
+four-∧∨-absorp 2' 2' = refl
+four-∧∨-absorp 2' 3' = refl
+four-∧∨-absorp 3' 0' = refl
+four-∧∨-absorp 3' 1' = refl
+four-∧∨-absorp 3' 2' = refl
+four-∧∨-absorp 3' 3' = refl
+
+four-∨-comm : (x y : four) → four-∨ x y == four-∨ y x
+four-∨-comm 0' 0' = refl
+four-∨-comm 0' 1' = refl
+four-∨-comm 0' 2' = refl
+four-∨-comm 0' 3' = refl
+four-∨-comm 1' 0' = refl
+four-∨-comm 1' 1' = refl
+four-∨-comm 1' 2' = refl
+four-∨-comm 1' 3' = refl
+four-∨-comm 2' 0' = refl
+four-∨-comm 2' 1' = refl
+four-∨-comm 2' 2' = refl
+four-∨-comm 2' 3' = refl
+four-∨-comm 3' 0' = refl
+four-∨-comm 3' 1' = refl
+four-∨-comm 3' 2' = refl
+four-∨-comm 3' 3' = refl
+
+four-∨-assoc : (x y z : four) → four-∨ x (four-∨ y z) == four-∨ (four-∨ x y) z
+four-∨-assoc 0' 0' 0' = refl
+four-∨-assoc 0' 0' 1' = refl
+four-∨-assoc 0' 0' 2' = refl
+four-∨-assoc 0' 0' 3' = refl
+four-∨-assoc 0' 1' 0' = refl
+four-∨-assoc 0' 1' 1' = refl
+four-∨-assoc 0' 1' 2' = refl
+four-∨-assoc 0' 1' 3' = refl
+four-∨-assoc 0' 2' 0' = refl
+four-∨-assoc 0' 2' 1' = refl
+four-∨-assoc 0' 2' 2' = refl
+four-∨-assoc 0' 2' 3' = refl
+four-∨-assoc 0' 3' 0' = refl
+four-∨-assoc 0' 3' 1' = refl
+four-∨-assoc 0' 3' 2' = refl
+four-∨-assoc 0' 3' 3' = refl
+four-∨-assoc 1' 0' 0' = refl
+four-∨-assoc 1' 0' 1' = refl
+four-∨-assoc 1' 0' 2' = refl
+four-∨-assoc 1' 0' 3' = refl
+four-∨-assoc 1' 1' 0' = refl
+four-∨-assoc 1' 1' 1' = refl
+four-∨-assoc 1' 1' 2' = refl
+four-∨-assoc 1' 1' 3' = refl
+four-∨-assoc 1' 2' 0' = refl
+four-∨-assoc 1' 2' 1' = refl
+four-∨-assoc 1' 2' 2' = refl
+four-∨-assoc 1' 2' 3' = refl
+four-∨-assoc 1' 3' 0' = refl
+four-∨-assoc 1' 3' 1' = refl
+four-∨-assoc 1' 3' 2' = refl
+four-∨-assoc 1' 3' 3' = refl
+four-∨-assoc 2' 0' 0' = refl
+four-∨-assoc 2' 0' 1' = refl
+four-∨-assoc 2' 0' 2' = refl
+four-∨-assoc 2' 0' 3' = refl
+four-∨-assoc 2' 1' 0' = refl
+four-∨-assoc 2' 1' 1' = refl
+four-∨-assoc 2' 1' 2' = refl
+four-∨-assoc 2' 1' 3' = refl
+four-∨-assoc 2' 2' 0' = refl
+four-∨-assoc 2' 2' 1' = refl
+four-∨-assoc 2' 2' 2' = refl
+four-∨-assoc 2' 2' 3' = refl
+four-∨-assoc 2' 3' 0' = refl
+four-∨-assoc 2' 3' 1' = refl
+four-∨-assoc 2' 3' 2' = refl
+four-∨-assoc 2' 3' 3' = refl
+four-∨-assoc 3' 0' 0' = refl
+four-∨-assoc 3' 0' 1' = refl
+four-∨-assoc 3' 0' 2' = refl
+four-∨-assoc 3' 0' 3' = refl
+four-∨-assoc 3' 1' 0' = refl
+four-∨-assoc 3' 1' 1' = refl
+four-∨-assoc 3' 1' 2' = refl
+four-∨-assoc 3' 1' 3' = refl
+four-∨-assoc 3' 2' 0' = refl
+four-∨-assoc 3' 2' 1' = refl
+four-∨-assoc 3' 2' 2' = refl
+four-∨-assoc 3' 2' 3' = refl
+four-∨-assoc 3' 3' 0' = refl
+four-∨-assoc 3' 3' 1' = refl
+four-∨-assoc 3' 3' 2' = refl
+four-∨-assoc 3' 3' 3' = refl
+
+
+four-∨∧-absorp : (x y : four) → four-∨ x (four-∧ x y) == x
+four-∨∧-absorp 0' 0' = refl
+four-∨∧-absorp 0' 1' = refl
+four-∨∧-absorp 0' 2' = refl
+four-∨∧-absorp 0' 3' = refl
+four-∨∧-absorp 1' 0' = refl 
+four-∨∧-absorp 1' 1' = refl
+four-∨∧-absorp 1' 2' = refl
+four-∨∧-absorp 1' 3' = refl
+four-∨∧-absorp 2' 0' = refl
+four-∨∧-absorp 2' 1' = refl
+four-∨∧-absorp 2' 2' = refl
+four-∨∧-absorp 2' 3' = refl
+four-∨∧-absorp 3' 0' = refl
+four-∨∧-absorp 3' 1' = refl
+four-∨∧-absorp 3' 2' = refl
+four-∨∧-absorp 3' 3' = refl
+
+
+four-≡ : four → four → Set
+four-≡ 0' 0' = ⊤
+four-≡ 0' 1' = ⊥
+four-≡ 0' 2' = ⊥
+four-≡ 0' 3' = ⊥
+four-≡ 1' 0' = ⊥
+four-≡ 1' 1' = ⊤
+four-≡ 1' 2' = ⊤
+four-≡ 1' 3' = ⊥
+four-≡ 2' 0' = ⊥
+four-≡ 2' 1' = ⊤
+four-≡ 2' 2' = ⊤
+four-≡ 2' 3' = ⊥
+four-≡ 3' 0' = ⊥
+four-≡ 3' 1' = ⊥
+four-≡ 3' 2' = ⊥
+four-≡ 3' 3' = ⊤
+
+four-≡-refl : (x : four) → four-≡ x x
+four-≡-refl 0' = ●
+four-≡-refl 1' = ●
+four-≡-refl 2' = ●
+four-≡-refl 3' = ●
+
+four-≡-sym : (x y : four) → four-≡ x y → four-≡ y x
+four-≡-sym 0' 0' q = ●
+four-≡-sym 0' 1' q = ω q
+four-≡-sym 0' 2' q = ω q
+four-≡-sym 0' 3' q = ω q
+four-≡-sym 1' 0' q = ω q
+four-≡-sym 1' 1' q = ●
+four-≡-sym 1' 2' q = ●
+four-≡-sym 1' 3' q = ω q
+four-≡-sym 2' 0' q = ω q
+four-≡-sym 2' 1' q = ●
+four-≡-sym 2' 2' q = ●
+four-≡-sym 2' 3' q = ω q
+four-≡-sym 3' 0' q = ω q
+four-≡-sym 3' 1' q = ω q
+four-≡-sym 3' 2' q = ω q
+four-≡-sym 3' 3' q = ●
+
+four-≡-trans : (x y z : four) → four-≡ x y → four-≡ y z → four-≡ x z
+four-≡-trans 0' y 0' q r = ●
+four-≡-trans 0' 0' 1' q r = ω r
+four-≡-trans 0' 1' 1' q r = ω q
+four-≡-trans 0' 2' 1' q r = ω q
+four-≡-trans 0' 3' 1' q r = ω q
+four-≡-trans 0' 0' 2' q r = ω r
+four-≡-trans 0' 1' 2' q r = ω q
+four-≡-trans 0' 2' 2' q r = ω q
+four-≡-trans 0' 3' 2' q r = ω q
+four-≡-trans 0' 0' 3' q r = ω r
+four-≡-trans 0' 1' 3' q r = ω q
+four-≡-trans 0' 2' 3' q r = ω q
+four-≡-trans 0' 3' 3' q r = ω q
+four-≡-trans 1' 0' 0' q r = ω q
+four-≡-trans 1' 1' 0' q r = ω r
+four-≡-trans 1' 2' 0' q r = ω r
+four-≡-trans 1' 3' 0' q r = ω q
+four-≡-trans 1' y 1' q r = ●
+four-≡-trans 1' y 2' q r = ●
+four-≡-trans 1' 0' 3' q r = ω q
+four-≡-trans 1' 1' 3' q r = ω r
+four-≡-trans 1' 2' 3' q r = ω r
+four-≡-trans 1' 3' 3' q r = ω q
+four-≡-trans 2' 0' 0' q r = ω q
+four-≡-trans 2' 1' 0' q r = ω r
+four-≡-trans 2' 2' 0' q r = ω r
+four-≡-trans 2' 3' 0' q r = ω q
+four-≡-trans 2' y 1' q r = ●
+four-≡-trans 2' y 2' q r = ●
+four-≡-trans 2' 0' 3' q r = ω q
+four-≡-trans 2' 1' 3' q r = ω r
+four-≡-trans 2' 2' 3' q r = ω r
+four-≡-trans 2' 3' 3' q r = ω q
+four-≡-trans 3' 0' 0' q r = ω q
+four-≡-trans 3' 1' 0' q r = ω q
+four-≡-trans 3' 2' 0' q r = ω q
+four-≡-trans 3' 3' 0' q r = ω r
+four-≡-trans 3' 0' 1' q r = ω q
+four-≡-trans 3' 1' 1' q r = ω q
+four-≡-trans 3' 2' 1' q r = ω q
+four-≡-trans 3' 3' 1' q r = ω r
+four-≡-trans 3' 0' 2' q r = ω q
+four-≡-trans 3' 1' 2' q r = ω q
+four-≡-trans 3' 2' 2' q r = ω q
+four-≡-trans 3' 3' 2' q r = ω r
+four-≡-trans 3' y 3' q r = ●
+
+four-≡-equiv : isEquivalence four-≡
+four-≡-equiv = 
+ record {
+  ≡-refl = four-≡-refl ;
+  ≡-sym = (λ {x} {y} → four-≡-sym x y) ;
+  ≡-trans = (λ {x} {y} {z} → four-≡-trans x y z)
+ }
+
+¬[four-∧-cont] : ((x x' y y' : four) → (four-≡ x x') → (four-≡ y y') → (four-≡ (four-∧ x y) (four-∧ x' y'))) → ⊥
+¬[four-∧-cont] assump = proof
+ where
+  [1≡1] : four-≡ 1' 1'
+  [1≡1] = ●
+
+  [1≡2] : four-≡ 1' 2'
+  [1≡2] = ●
+
+  [1∧1≡1] : four-≡ (four-∧ 1' 1') 1'
+  [1∧1≡1] = ●
+
+  [1∧2≡0] : four-≡ (four-∧ 1' 2') 0'
+  [1∧2≡0] = ●
+
+  ¬[1≡0] : (four-≡ 1' 0') → ⊥
+  ¬[1≡0] [1'≡0'] = [1'≡0']
+
+  [1≡0] : four-≡ 1' 0'
+  [1≡0] = assump 1' 1' 1' 2' [1≡1] [1≡2]
+
+  proof = ¬[1≡0] [1≡0]
 
 record Formulation1 {i} {j} {k} (A : Set i) (_≡_ : A → A → Set k) (_≤_ : A → A → Set j) (_∧_ : A → A → A) (_∨_ : A → A → A) : Set (((lsuc i) ⊔ (lsuc j)) ⊔ (lsuc k)) where
  field
@@ -3204,13 +3557,90 @@ Formulation4→Formulation6
 -}
 
 {-
-¬[Formulation5→Formulation1]
 ¬[Formulation5→Formulation2]
-¬[Formulation5→Formulation3]
-¬[Formulation5→Formulation4]
-¬[Formulation5→Formulation6]
 -}
 
+Formulation5-==→Formulation5-≡ : ∀ {i k} (A : Set i) (_∧_ : A → A → A) (_∨_ : A → A → A) → Formulation5 A _==_ _∧_ _∨_ → (_≡_ : A → A → Set k) → isEquivalence _≡_ → Formulation5 A _≡_ _∧_ _∨_
+Formulation5-==→Formulation5-≡ {i} {k} A _∧_ _∨_ Formulation5-A _≡_ ≡-equiv =
+ record {
+  ≡-refl = ≡-refl ;
+  ≡-sym = ≡-sym ;
+  ≡-trans = ≡-trans ;
+  ∧-comm = ∧-comm' ;
+  ∧-assoc = ∧-assoc' ;
+  ∧∨-absorp = ∧∨-absorp' ;
+  ∨-comm = ∨-comm' ;
+  ∨-assoc = ∨-assoc' ;
+  ∨∧-absorp = ∨∧-absorp'  
+ }
+ where
+  open isEquivalence ≡-equiv
+  open Formulation5 Formulation5-A hiding (≡-refl ; ≡-sym ; ≡-trans)
+  ∧-comm' : (x y : A) → (x ∧ y) ≡ (y ∧ x)
+  ∧-comm' x y = proof
+   where
+    [x∧y==y∧x] : (x ∧ y) == (y ∧ x)
+    [x∧y==y∧x] = ∧-comm x y
+
+    [x∧y≡x∧y] : (x ∧ y) ≡ (x ∧ y)
+    [x∧y≡x∧y] = ≡-refl (x ∧ y)
+
+    [x∧y≡x∧y]==[x∧y≡y∧x] : ((x ∧ y) ≡ (x ∧ y)) == ((x ∧ y) ≡ (y ∧ x))
+    [x∧y≡x∧y]==[x∧y≡y∧x] = [x==y]→[fx==fy] (λ q → (x ∧ y) ≡ q) (x ∧ y) (y ∧ x) [x∧y==y∧x]
+
+    proof = [A==B]→[A→B] [x∧y≡x∧y]==[x∧y≡y∧x] [x∧y≡x∧y]
+
+  ∧-assoc' : (x y z : A) → (x ∧ (y ∧ z)) ≡ ((x ∧ y) ∧ z)
+  ∧-assoc' x y z = [A==B]→[A→B] ([x==y]→[fx==fy] (λ q → (x ∧ (y ∧ z)) ≡ q) (x ∧ (y ∧ z)) ((x ∧ y) ∧ z) (∧-assoc x y z)) (≡-refl (x ∧ (y ∧ z)))
+
+  ∧∨-absorp' : (x y : A) → (x ∧ (x ∨ y)) ≡ x
+  ∧∨-absorp' x y = [A==B]→[A→B] ([x==y]→[fx==fy] (λ q → (x ∧ (x ∨ y)) ≡ q) (x ∧ (x ∨ y)) x (∧∨-absorp x y)) (≡-refl (x ∧ (x ∨ y)))
+
+  ∨-comm' : (x y : A) → (x ∨ y) ≡ (y ∨ x)
+  ∨-comm' x y = [A==B]→[A→B] ([x==y]→[fx==fy] (λ q → (x ∨ y) ≡ q) (x ∨ y) (y ∨ x) (∨-comm x y)) (≡-refl (x ∨ y))
+
+  ∨-assoc' : (x y z : A) → (x ∨ (y ∨ z)) ≡ ((x ∨ y) ∨ z)
+  ∨-assoc' x y z = [A==B]→[A→B] ([x==y]→[fx==fy] (λ q → (x ∨ (y ∨ z)) ≡ q) (x ∨ (y ∨ z)) ((x ∨ y) ∨ z) (∨-assoc x y z)) (≡-refl (x ∨ (y ∨ z)))
+
+  ∨∧-absorp' : (x y : A) → (x ∨ (x ∧ y)) ≡ x
+  ∨∧-absorp' x y = [A==B]→[A→B] ([x==y]→[fx==fy] (λ q → (x ∨ (x ∧ y)) ≡ q) (x ∨ (x ∧ y)) x (∨∧-absorp x y)) (≡-refl (x ∨ (x ∧ y)))
+
+¬[Formulation5→Formulation6] : (∀ {i k} (A : Set i) (_≡_ : A → A → Set k) (_∧_ : A → A → A) (_∨_ : A → A → A) → Formulation5 A _≡_ _∧_ _∨_ → Formulation6 A _≡_  _∧_ _∨_) → ⊥
+¬[Formulation5→Formulation6] assump = proof
+ where
+  Formulation5-four : Formulation5 four _==_ four-∧ four-∨
+  Formulation5-four = 
+   record {
+    ≡-refl = ==-refl ;
+    ≡-sym = ==-sym ;
+    ≡-trans = ==-trans ;
+    ∧-comm = four-∧-comm ;
+    ∧-assoc = four-∧-assoc ;
+    ∧∨-absorp = four-∧∨-absorp ;
+    ∨-comm = four-∨-comm ;
+    ∨-assoc = four-∨-assoc ;
+    ∨∧-absorp = four-∨∧-absorp
+   }
+
+  Formulation5-four-≡ : Formulation5 four four-≡ four-∧ four-∨
+  Formulation5-four-≡ = Formulation5-==→Formulation5-≡ four four-∧ four-∨ Formulation5-four four-≡ four-≡-equiv
+
+  ¬[Formulation6-four-≡] : (Formulation6 four four-≡ four-∧ four-∨) → ⊥
+  ¬[Formulation6-four-≡] Formulation6-four = subproof
+   where
+    open Formulation6 Formulation6-four
+    subproof = ¬[four-∧-cont] ∧-cont
+
+  Formulation6-four-≡ : Formulation6 four four-≡ four-∧ four-∨
+  Formulation6-four-≡ = assump four four-≡ four-∧ four-∨ Formulation5-four-≡
+
+  proof = ¬[Formulation6-four-≡] Formulation6-four-≡
+
+{-
+¬[Formulation5→Formulation1]
+¬[Formulation5→Formulation3]
+¬[Formulation5→Formulation4]
+-}
 
 Formulation6→Formulation1 : ∀ {i k} (A : Set i) (_≡_ : A → A → Set k) (_∧_ : A → A → A) (_∨_ : A → A → A) → Formulation6 A _≡_ _∧_ _∨_ → Formulation1 A _≡_ (λ x y → ((x ∧ y) ≡ x)) _∧_ _∨_
 Formulation6→Formulation1 {i} {k} A _≡_ _∧_ _∨_ Formulation6-A = Formulation1-A
